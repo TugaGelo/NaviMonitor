@@ -20,7 +20,6 @@ public class RefuelController : ControllerBase
     public async Task<IActionResult> GetAllLogs()
     {
         var logs = await _context.RefuelLogs.ToListAsync();
-
         return Ok(logs);
     }
 
@@ -86,7 +85,6 @@ public class RefuelController : ControllerBase
         }
 
         _context.Entry(updatedLog).State = EntityState.Modified;
-
         await _context.SaveChangesAsync();
 
         return NoContent();
