@@ -1,0 +1,50 @@
+@NaviMonitor.Api_HostAddress = http://localhost:5053
+
+### 1. Read
+GET {{NaviMonitor.Api_HostAddress}}/api/refuel
+Accept: application/json
+
+### 2. Create Log #1 (and Vehicle #1)
+POST {{NaviMonitor.Api_HostAddress}}/api/refuel
+Content-Type: application/json
+
+{
+  "odometer": 1200,
+  "volume": 3.2,
+  "totalCost": 180.50,
+  "vehicle": {
+    "name": "Honda Navi",
+    "distanceUnit": 0,
+    "volumeUnit": 0
+  }
+}
+
+### 3. Create Log #2
+POST {{NaviMonitor.Api_HostAddress}}/api/refuel
+Content-Type: application/json
+
+{
+  "vehicleId": 1,
+  "odometer": 1300,
+  "volume": 2.5,
+  "totalCost": 145.00
+}
+
+### 4. Read Stats
+GET {{NaviMonitor.Api_HostAddress}}/api/refuel/stats/1
+Accept: application/json
+
+### 5. Update Log #2
+PUT {{NaviMonitor.Api_HostAddress}}/api/refuel/2
+Content-Type: application/json
+
+{
+  "id": 2,
+  "vehicleId": 1,
+  "odometer": 1300,
+  "volume": 2.5,
+  "totalCost": 155.00
+}
+
+### 6. Delete Log #1
+DELETE {{NaviMonitor.Api_HostAddress}}/api/refuel/1
