@@ -1,16 +1,18 @@
-﻿namespace NaviMonitor.Api.Models;
+﻿using System.Text.Json.Serialization;
 
-public enum DistanceUnit { Kilometers, Miles }
-public enum VolumeUnit { Liters, Gallons }
+namespace NaviMonitor.Api.Models;
 
 public class Vehicle
 {
     public int Id { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Nickname { get; set; } = string.Empty;
+    public string Make { get; set; } = string.Empty;
+    public string Model { get; set; } = string.Empty;
+    public int Year { get; set; }
 
-    public DistanceUnit DistanceUnit { get; set; } = DistanceUnit.Kilometers;
-    public VolumeUnit VolumeUnit { get; set; } = VolumeUnit.Liters;
+    public int StartingOdometer { get; set; }
 
-    public ICollection<RefuelLog> RefuelLogs { get; set; } = new List<RefuelLog>();
+    [JsonIgnore]
+    public List<RefuelLog> RefuelLogs { get; set; } = new();
 }

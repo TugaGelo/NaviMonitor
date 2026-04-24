@@ -11,7 +11,7 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260423085711_InitialCreate")]
+    [Migration("20260424071602_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -54,14 +54,22 @@ namespace NaviMonitor.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("DistanceUnit")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("Make")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("VolumeUnit")
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nickname")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StartingOdometer")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Year")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

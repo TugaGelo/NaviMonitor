@@ -17,9 +17,11 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    DistanceUnit = table.Column<int>(type: "INTEGER", nullable: false),
-                    VolumeUnit = table.Column<int>(type: "INTEGER", nullable: false)
+                    Nickname = table.Column<string>(type: "TEXT", nullable: false),
+                    Make = table.Column<string>(type: "TEXT", nullable: false),
+                    Model = table.Column<string>(type: "TEXT", nullable: false),
+                    Year = table.Column<int>(type: "INTEGER", nullable: false),
+                    StartingOdometer = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
