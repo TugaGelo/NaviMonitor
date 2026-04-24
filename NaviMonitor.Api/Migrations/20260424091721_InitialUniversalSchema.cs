@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class TheUltimateFleetSchema : Migration
+    public partial class InitialUniversalSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

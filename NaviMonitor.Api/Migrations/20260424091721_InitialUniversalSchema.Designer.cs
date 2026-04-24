@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260424081453_TheUltimateFleetSchema")]
-    partial class TheUltimateFleetSchema
+    [Migration("20260424091721_InitialUniversalSchema")]
+    partial class InitialUniversalSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
