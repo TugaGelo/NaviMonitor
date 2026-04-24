@@ -21,5 +21,7 @@ public class RefuelLog
     [Range(0.01, 10000, ErrorMessage = "Total cost must be greater than zero.")]
     public double TotalCost { get; set; }
 
+    public string? FuelType { get; set; }
+
     public Vehicle? Vehicle { get; set; }
 }

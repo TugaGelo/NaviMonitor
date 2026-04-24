@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<RefuelLog> RefuelLogs { get; set; }
+    public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<MaintenanceLog> MaintenanceLogs { get; set; }
 }
