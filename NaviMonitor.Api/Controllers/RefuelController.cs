@@ -106,4 +106,15 @@ public class RefuelController : ControllerBase
 
         return NoContent();
     }
+
+    // GET: /api/refuel/vehicle/5
+    [HttpGet("vehicle/{vehicleId}")]
+    public async Task<IActionResult> GetLogsByVehicle(int vehicleId)
+    {
+        var logs = await _context.RefuelLogs
+            .Where(l => l.VehicleId == vehicleId)
+            .OrderByDescending(l => l.Date)
+            .ToListAsync();
+        return Ok(logs);
+    }
 }
