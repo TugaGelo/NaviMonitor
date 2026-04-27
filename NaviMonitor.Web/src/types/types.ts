@@ -21,3 +21,22 @@ export interface RefuelLog {
   totalCost: number;
   fuelType?: string;
 }
+
+export interface MaintenanceLog {
+  id?: number;
+  vehicleId: number;
+  logType: 'Maintenance' | 'Modification';
+  serviceCategory?: string;
+  date: string;
+  odometer: number;
+  serviceType: string;
+  price: number;
+  isDIY: boolean;
+  shopName?: string;
+  mechanicName?: string;
+  contactNumber?: string;
+  notes?: string;
+  nextServiceOdometer?: number;
+  nextServiceDate?: string;
+  tirePosition?: string;
+}
