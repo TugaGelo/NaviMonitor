@@ -16,7 +16,6 @@ export default function App() {
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [vehicleToEdit, setVehicleToEdit] = useState<Vehicle | null>(null);
   const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
@@ -96,25 +95,31 @@ export default function App() {
               ))}
             </div>
 
-            <AddVehicleModal 
-              isOpen={isAddModalOpen} 
-              onClose={() => setIsAddModalOpen(false)} 
-              onSuccess={() => setRefreshKey(k => k + 1)} 
-            />
+            {isAddModalOpen && (
+              <AddVehicleModal 
+                isOpen={true} 
+                onClose={() => setIsAddModalOpen(false)} 
+                onSuccess={() => setRefreshKey(k => k + 1)} 
+              />
+            )}
 
-            <AddVehicleModal 
-              isOpen={vehicleToEdit !== null} 
-              onClose={() => setVehicleToEdit(null)} 
-              onSuccess={() => setRefreshKey(k => k + 1)} 
-              vehicleToEdit={vehicleToEdit}
-            />
+            {vehicleToEdit && (
+              <AddVehicleModal 
+                isOpen={true} 
+                onClose={() => setVehicleToEdit(null)} 
+                onSuccess={() => setRefreshKey(k => k + 1)} 
+                vehicleToEdit={vehicleToEdit}
+              />
+            )}
 
-            <DeleteVehicleModal
-              isOpen={vehicleToDelete !== null}
-              onClose={() => setVehicleToDelete(null)}
-              onSuccess={() => setRefreshKey(k => k + 1)}
-              vehicle={vehicleToDelete}
-            />
+            {vehicleToDelete && (
+              <DeleteVehicleModal
+                isOpen={true}
+                onClose={() => setVehicleToDelete(null)}
+                onSuccess={() => setRefreshKey(k => k + 1)}
+                vehicle={vehicleToDelete}
+              />
+            )}
           </div>
         } />
 

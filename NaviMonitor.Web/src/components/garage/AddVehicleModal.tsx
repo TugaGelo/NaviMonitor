@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { PlusCircle, Calendar, Car, Bike, Save } from 'lucide-react';
+import { PlusCircle, Car, Bike, Save } from 'lucide-react';
 import BaseModal from '../ui/BaseModal';
 import type { Vehicle } from '../../types/types';
 
@@ -40,7 +40,6 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToE
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      
       const payload = {
         ...formData,
         year: Number(formData.year),
@@ -54,18 +53,11 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToE
       } else {
         await axios.post(`${apiUrl}/vehicle`, payload);
       }
-      
       onSuccess();
       onClose();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        if (err.response?.status === 405) {
-           setError('Backend Error 405: Your C# API is missing the HttpPut endpoint!');
-        } else {
-           setError(err.response?.data?.title || (isEditMode ? 'Failed to update vehicle.' : 'Failed to add vehicle.'));
-        }
-      } else {
-        setError('An unexpected error occurred.');
+        setError(err.response?.status === 405 ? 'Backend Error 405: Check your Controller PUT method!' : 'Failed to save vehicle.');
       }
     } finally {
       setIsSubmitting(false);
@@ -121,11 +113,6 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToE
                 <input required name="model" value={formData.model} onChange={handleChange} type="text" placeholder="e.g. Navi" className="w-full px-4 py-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all bg-zinc-50" />
               </div>
             </div>
-
-            <div>
-              <label className="text-sm font-bold text-black block mb-2">Year</label>
-              <input name="year" value={formData.year} onChange={handleChange} type="number" className="w-full px-4 py-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all bg-zinc-50" />
-            </div>
           </div>
 
           <div className="space-y-6">
@@ -152,10 +139,7 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToE
 
             <div>
               <label className="text-sm font-bold text-black block mb-2">Registration Expiry</label>
-              <div className="relative">
-                <input name="registrationExpiry" value={formData.registrationExpiry} onChange={handleChange} type="date" className="w-full px-4 py-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all bg-zinc-50" />
-                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 pointer-events-none" />
-              </div>
+              <input name="registrationExpiry" value={formData.registrationExpiry} onChange={handleChange} type="date" className="w-full px-4 py-3 border border-zinc-200 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all bg-zinc-50" />
             </div>
           </div>
         </div>
