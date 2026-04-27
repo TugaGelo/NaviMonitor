@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { ArrowLeft, Fuel, History, Edit2, ArrowUp, Trash2, Filter } from 'lucide-react';
+import { ArrowLeft, Fuel, History, Edit2, Trash2, Filter } from 'lucide-react';
 import type { Vehicle, RefuelLog } from '../../types/types';
 
 interface DashboardProps {
@@ -15,7 +15,6 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [logs, setLogs] = useState<RefuelLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [timeFilter, setTimeFilter] = useState('All Time');
 
   useEffect(() => {
@@ -23,10 +22,8 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
       try {
         setIsLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        
         const vehicleRes = await axios.get(`${apiUrl}/vehicle/${id}`);
         setVehicle(vehicleRes.data);
-
         try {
            const logsRes = await axios.get(`${apiUrl}/refuel/vehicle/${id}`);
            setLogs(logsRes.data);
@@ -39,7 +36,6 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
         setIsLoading(false);
       }
     };
-    
     if (id) fetchData();
   }, [id, refreshTrigger]);
 
@@ -50,12 +46,15 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
     : (vehicle.startingOdometer ?? 0);
 
   const totalSpent = logs.reduce((sum, log) => sum + log.totalCost, 0);
-
   const totalVolume = logs.reduce((sum, log) => sum + log.volume, 0);
   const distanceTraveled = currentOdometer - (vehicle.startingOdometer ?? 0);
   
   const avgEfficiency = totalVolume > 0 
     ? (distanceTraveled / totalVolume).toFixed(1) 
+    : "---";
+
+  const costPerKm = distanceTraveled > 0 
+    ? (totalSpent / distanceTraveled).toFixed(2) 
     : "---";
 
   return (
@@ -81,17 +80,22 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
         </button>
       </div>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         
         <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between">
           <span className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mb-4">Avg Efficiency</span>
           <div className="flex items-end justify-between">
             <span className="text-4xl font-black text-black">{avgEfficiency} <span className="text-lg text-zinc-400 font-medium">km/L</span></span>
-            {avgEfficiency !== "---" && (
-              <span className="text-green-600 font-bold flex items-center text-sm mb-1 bg-green-50 px-2 py-1 rounded-lg">
-                <ArrowUp className="w-4 h-4 mr-1" /> Active
-              </span>
-            )}
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between">
+          <span className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mb-4">Cost Per KM</span>
+          <div className="flex items-end justify-between">
+            <span className="text-4xl font-black text-black">
+              <span className="text-xl mr-1">₱</span>{costPerKm}
+            </span>
+            <span className="text-zinc-400 text-sm font-medium mb-1">/ km</span>
           </div>
         </div>
         
@@ -106,14 +110,12 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
                 className="text-xs font-bold bg-transparent outline-none cursor-pointer appearance-none text-inherit"
               >
                 <option value="All Time">All Time</option>
-                <option value="6 Months">Last 6 Months</option>
-                <option value="30 Days">Last 30 Days</option>
+                <option value="6 Months">6 Months</option>
               </select>
             </div>
           </div>
           <div className="flex items-end justify-between">
-            <span className="text-4xl font-black text-black">₱{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            <span className="text-zinc-400 text-sm font-medium mb-1">Total</span>
+            <span className="text-4xl font-black text-black">₱{totalSpent.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
           </div>
         </div>
 
@@ -146,11 +148,8 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
-                
                 {logs.length === 0 ? (
-                  <tr>
-                     <td colSpan={4} className="px-6 py-8 text-center text-zinc-500 font-bold">No fuel logs found for this vehicle.</td>
-                  </tr>
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500 font-bold">No fuel logs found.</td></tr>
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} className="hover:bg-zinc-50 transition-colors">
@@ -160,17 +159,12 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
                         <span className="font-bold text-black">{log.volume} L</span> <span className="text-zinc-400">/ ₱{log.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
-                        <button className="p-2 text-zinc-400 hover:text-secondary transition-colors">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <button className="p-2 text-zinc-400 hover:text-secondary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                        <button className="p-2 text-zinc-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </td>
                     </tr>
                   ))
                 )}
-                
               </tbody>
             </table>
           </div>
