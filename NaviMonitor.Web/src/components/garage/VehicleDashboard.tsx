@@ -45,18 +45,18 @@ export default function VehicleDashboard({ onOpenRefuelModal, onDeleteRefuelLog,
   if (isLoading || !vehicle) return <div className="p-20 text-center animate-pulse font-black uppercase tracking-widest text-zinc-400">Loading Data...</div>;
 
   const currentOdometer = logs.length > 0 
-    ? Math.max(...logs.map(l => l.odometer)) 
+    ? Math.max(...logs.map((l: RefuelLog) => l.odometer)) 
     : (vehicle.startingOdometer ?? 0);
 
   const totalSpent = logs.reduce((sum, log) => sum + log.totalCost, 0);
   const totalVolume = logs.reduce((sum, log) => sum + log.volume, 0);
-  const distanceTraveled = currentOdometer - (vehicle.startingOdometer ?? 0);
+  const distanceTraveled = Math.max(0, currentOdometer - (vehicle.startingOdometer ?? 0));
   
-  const avgEfficiency = totalVolume > 0 
+  const avgEfficiency = (totalVolume > 0 && distanceTraveled > 0)
     ? (distanceTraveled / totalVolume).toFixed(1) 
     : "---";
 
-  const costPerKm = distanceTraveled > 0 
+  const costPerKm = (distanceTraveled > 0 && totalSpent > 0)
     ? (totalSpent / distanceTraveled).toFixed(2) 
     : "---";
 
