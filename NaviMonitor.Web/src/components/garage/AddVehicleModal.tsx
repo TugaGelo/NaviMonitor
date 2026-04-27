@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { PlusCircle, Calendar, Car, Bike } from 'lucide-react';
-import BaseModal from './BaseModal';
+import BaseModal from '../ui/BaseModal';
 
 interface AddVehicleModalProps {
   isOpen: boolean;
