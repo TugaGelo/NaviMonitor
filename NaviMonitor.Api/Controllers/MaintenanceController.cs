@@ -65,6 +65,36 @@ public class MaintenanceController : ControllerBase
         return CreatedAtAction(nameof(GetLog), new { id = newLog.Id }, newLog);
     }
 
+    // PUT: /api/maintenance/1
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateLog(int id, MaintenanceLog updatedLog)
+    {
+        if (id != updatedLog.Id)
+        {
+            return BadRequest("Log ID mismatch.");
+        }
+
+        _context.Entry(updatedLog).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await _context.MaintenanceLogs.AnyAsync(e => e.Id == id))
+            {
+                return NotFound("Maintenance log not found.");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return NoContent();
+    }
+
     // DELETE: /api/maintenance/1
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLog(int id)

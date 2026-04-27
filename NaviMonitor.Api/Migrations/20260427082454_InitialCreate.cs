@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialUniversalSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,6 +41,8 @@ namespace NaviMonitor.Api.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
+                    LogType = table.Column<string>(type: "TEXT", nullable: false),
+                    ServiceCategory = table.Column<string>(type: "TEXT", nullable: true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Odometer = table.Column<int>(type: "INTEGER", nullable: false),
                     ServiceType = table.Column<string>(type: "TEXT", nullable: false),

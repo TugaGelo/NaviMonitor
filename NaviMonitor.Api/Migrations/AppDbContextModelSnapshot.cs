@@ -32,6 +32,10 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<bool>("IsDIY")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LogType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("MechanicName")
                         .HasColumnType("TEXT");
 
@@ -49,6 +53,9 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<double>("Price")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("ServiceCategory")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ServiceType")
                         .IsRequired()

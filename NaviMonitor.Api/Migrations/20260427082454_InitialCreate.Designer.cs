@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260424091721_InitialUniversalSchema")]
-    partial class InitialUniversalSchema
+    [Migration("20260427082454_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,6 +35,10 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<bool>("IsDIY")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LogType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("MechanicName")
                         .HasColumnType("TEXT");
 
@@ -52,6 +56,9 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<double>("Price")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("ServiceCategory")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ServiceType")
                         .IsRequired()

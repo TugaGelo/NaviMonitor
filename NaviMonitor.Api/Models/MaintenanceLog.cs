@@ -9,6 +9,11 @@ public class MaintenanceLog
     [Required]
     public int VehicleId { get; set; }
 
+    [Required(ErrorMessage = "Please specify if this is a Maintenance or Modification.")]
+    public string LogType { get; set; } = "Maintenance";
+
+    public string? ServiceCategory { get; set; }
+
     [Required(ErrorMessage = "A date is required for this service.")]
     public DateTime Date { get; set; }
 
