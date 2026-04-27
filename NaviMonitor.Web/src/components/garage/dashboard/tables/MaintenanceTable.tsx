@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Edit2, Trash2 } from 'lucide-react';
-import type { MaintenanceLog } from '../../../types/types';
+import type { MaintenanceLog } from '../../../../types/types';
 
 interface MaintenanceTableProps {
   logs: MaintenanceLog[];

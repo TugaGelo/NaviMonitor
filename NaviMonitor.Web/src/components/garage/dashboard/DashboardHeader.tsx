@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Fuel, Wrench } from 'lucide-react';
-import type { Vehicle } from '../../types/types';
+import type { Vehicle } from '../../../types/types';
 
 interface DashboardHeaderProps {
   vehicle: Vehicle;

@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types/types';
 
-import DashboardHeader from '../dashboard/DashboardHeader';
-import MetricGrid from '../dashboard/MetricGrid';
-import DashboardTabs from '../dashboard/DashboardTabs';
-import FuelTable from '../dashboard/tables/FuelTable';
-import MaintenanceTable from '../dashboard/tables/MaintenanceTable';
+import DashboardHeader from './dashboard/DashboardHeader';
+import MetricGrid from './dashboard/MetricGrid';
+import DashboardTabs from './dashboard/DashboardTabs';
+import FuelTable from './dashboard/tables/FuelTable';
+import MaintenanceTable from './dashboard/tables/MaintenanceTable';
 
 interface DashboardProps {
   onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
