@@ -1,17 +1,38 @@
-import { Gauge, CalendarDays, ChevronRight, ShieldAlert, Droplet } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { Gauge, CalendarDays, ChevronRight, ShieldAlert, Droplet, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import type { Vehicle } from '../../types/types';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
+  onEdit: (vehicle: Vehicle) => void;
+  onDelete: (vehicleId: number) => void;
 }
 
-export default function VehicleCard({ vehicle }: VehicleCardProps) {
+export default function VehicleCard({ vehicle, onEdit, onDelete }: VehicleCardProps) {
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isExpiringSoon = vehicle.registrationExpiry && 
     (new Date(vehicle.registrationExpiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 30;
+
+  const handleMenuClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    onEdit(vehicle);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMenuOpen(false);
+    onDelete(vehicle.id);
+  };
 
   return (
     <motion.div 
@@ -20,7 +41,7 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6 group cursor-pointer relative overflow-hidden transition-shadow hover:shadow-lg"
+      className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6 group cursor-pointer relative overflow-visible transition-shadow hover:shadow-lg"
     >
       <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-secondary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
@@ -33,9 +54,53 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
             {vehicle.year} {vehicle.make} {vehicle.model} • {vehicle.color}
           </p>
         </div>
-        <span className="bg-zinc-100 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-          {vehicle.vehicleType}
-        </span>
+        
+        <div className="flex items-center gap-3">
+          <span className="bg-zinc-100 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            {vehicle.vehicleType}
+          </span>
+          
+          <div className="relative">
+            <button 
+              onClick={handleMenuClick}
+              className="p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-black rounded-lg transition-colors"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+
+            <AnimatePresence>
+              {isMenuOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); }}
+                  />
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-40 bg-white border border-zinc-200 shadow-xl rounded-xl overflow-hidden z-50 flex flex-col"
+                  >
+                    <button 
+                      onClick={handleEdit}
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-50 transition-colors w-full text-left border-b border-zinc-100"
+                    >
+                      <Edit2 className="w-4 h-4" /> Edit
+                    </button>
+                    <button 
+                      onClick={handleDelete}
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-secondary hover:bg-red-50 transition-colors w-full text-left"
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">

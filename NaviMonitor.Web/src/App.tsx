@@ -7,14 +7,19 @@ import type { Vehicle } from './types/types';
 import Layout from './components/ui/Layout';
 import VehicleCard from './components/garage/VehicleCard';
 import AddVehicleModal from './components/garage/AddVehicleModal';
+import DeleteVehicleModal from './components/garage/DeleteVehicleModal';
 import VehicleDashboard from './components/garage/VehicleDashboard';
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Modal States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [vehicleToEdit, setVehicleToEdit] = useState<Vehicle | null>(null);
+  const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -43,7 +48,7 @@ export default function App() {
     loadVehicles();
 
     return () => {
-      isMounted = false;
+      isMounted = false; 
     };
   }, [refreshKey]);
 
@@ -58,7 +63,7 @@ export default function App() {
                 <p className="text-zinc-500 font-medium mt-1">Select a vehicle to view dashboard</p>
               </div>
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => setIsAddModalOpen(true)}
                 className="bg-secondary text-white px-4 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all active:scale-95"
               >
                 <Plus className="w-5 h-5" /> Add Vehicle
@@ -82,19 +87,37 @@ export default function App() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {vehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} vehicle={vehicle} />
+                <VehicleCard 
+                  key={vehicle.id} 
+                  vehicle={vehicle} 
+                  onEdit={(v) => setVehicleToEdit(v)}
+                  onDelete={(id) => setVehicleToDelete(vehicles.find(v => v.id === id) || null)}
+                />
               ))}
             </div>
 
             <AddVehicleModal 
-              isOpen={isModalOpen} 
-              onClose={() => setIsModalOpen(false)} 
+              isOpen={isAddModalOpen} 
+              onClose={() => setIsAddModalOpen(false)} 
               onSuccess={() => setRefreshKey(k => k + 1)} 
+            />
+
+            <AddVehicleModal 
+              isOpen={vehicleToEdit !== null} 
+              onClose={() => setVehicleToEdit(null)} 
+              onSuccess={() => setRefreshKey(k => k + 1)} 
+              vehicleToEdit={vehicleToEdit}
+            />
+
+            <DeleteVehicleModal
+              isOpen={vehicleToDelete !== null}
+              onClose={() => setVehicleToDelete(null)}
+              onSuccess={() => setRefreshKey(k => k + 1)}
+              vehicle={vehicleToDelete}
             />
           </div>
         } />
 
-        {/* DASHBOARD ROUTE: Individual Vehicle */}
         <Route path="/vehicle/:id" element={<VehicleDashboard />} />
       </Routes>
     </Layout>

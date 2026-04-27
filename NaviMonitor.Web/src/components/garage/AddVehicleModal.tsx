@@ -1,29 +1,32 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { PlusCircle, Calendar, Car, Bike } from 'lucide-react';
+import { PlusCircle, Calendar, Car, Bike, Save } from 'lucide-react';
 import BaseModal from '../ui/BaseModal';
+import type { Vehicle } from '../../types/types';
 
 interface AddVehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  vehicleToEdit?: Vehicle | null;
 }
 
-export default function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehicleModalProps) {
+export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToEdit }: AddVehicleModalProps) {
+  const isEditMode = !!vehicleToEdit;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    nickname: '',
-    vehicleType: 'Car',
-    make: '',
-    model: '',
-    year: new Date().getFullYear(),
-    color: '',
-    engineSizeCC: '',
-    startingOdometer: '',
-    licensePlate: '',
-    registrationExpiry: ''
+    nickname: vehicleToEdit?.nickname || '',
+    vehicleType: vehicleToEdit?.vehicleType || 'Car',
+    make: vehicleToEdit?.make || '',
+    model: vehicleToEdit?.model || '',
+    year: vehicleToEdit?.year || new Date().getFullYear(),
+    color: vehicleToEdit?.color || '',
+    engineSizeCC: vehicleToEdit?.engineSizeCC?.toString() || '',
+    startingOdometer: vehicleToEdit?.startingOdometer?.toString() || '',
+    licensePlate: vehicleToEdit?.licensePlate || '',
+    registrationExpiry: vehicleToEdit?.registrationExpiry ? vehicleToEdit.registrationExpiry.split('T')[0] : ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -46,13 +49,21 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehic
         registrationExpiry: formData.registrationExpiry ? new Date(formData.registrationExpiry).toISOString() : null
       };
 
-      await axios.post(`${apiUrl}/vehicle`, payload);
+      if (isEditMode && vehicleToEdit) {
+        await axios.put(`${apiUrl}/vehicle/${vehicleToEdit.id}`, { id: vehicleToEdit.id, ...payload });
+      } else {
+        await axios.post(`${apiUrl}/vehicle`, payload);
+      }
       
       onSuccess();
       onClose();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.title || 'Failed to add vehicle. Check required fields.');
+        if (err.response?.status === 405) {
+           setError('Backend Error 405: Your C# API is missing the HttpPut endpoint!');
+        } else {
+           setError(err.response?.data?.title || (isEditMode ? 'Failed to update vehicle.' : 'Failed to add vehicle.'));
+        }
       } else {
         setError('An unexpected error occurred.');
       }
@@ -65,8 +76,8 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehic
     <BaseModal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title="Add New Vehicle" 
-      subtitle="Register a new asset to your Garage"
+      title={isEditMode ? "Edit Vehicle" : "Add New Vehicle"} 
+      subtitle={isEditMode ? "Update your vehicle's details" : "Register a new asset to your Garage"}
     >
       <form onSubmit={handleSubmit} className="p-6">
         {error && (
@@ -154,7 +165,7 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess }: AddVehic
             Cancel
           </button>
           <button disabled={isSubmitting} type="submit" className="px-6 py-3 font-bold text-white bg-secondary rounded-xl hover:bg-red-600 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95">
-            {isSubmitting ? 'Saving...' : <><PlusCircle className="w-5 h-5" /> Add Vehicle</>}
+            {isSubmitting ? 'Saving...' : (isEditMode ? <><Save className="w-5 h-5" /> Save Changes</> : <><PlusCircle className="w-5 h-5" /> Add Vehicle</>)}
           </button>
         </div>
       </form>

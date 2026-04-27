@@ -64,4 +64,30 @@ public class VehicleController : ControllerBase
 
         return NoContent();
     }
+
+    // UPDATE: /api/vehicle/1
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateVehicle(int id, Vehicle vehicle)
+    {
+        if (id != vehicle.Id)
+        {
+            return BadRequest("ID mismatch");
+        }
+
+        _context.Entry(vehicle).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!_context.Vehicles.Any(e => e.Id == id))
+                return NotFound();
+            else
+                throw;
+        }
+
+        return NoContent();
+    }
 }
