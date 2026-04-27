@@ -1,19 +1,21 @@
 import { Gauge, CalendarDays, ChevronRight, ShieldAlert, Droplet } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import type { Vehicle } from '../../types/types';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
-  onClick: () => void;
 }
 
-export default function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
+export default function VehicleCard({ vehicle }: VehicleCardProps) {
+  const navigate = useNavigate();
+
   const isExpiringSoon = vehicle.registrationExpiry && 
     (new Date(vehicle.registrationExpiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 30;
 
   return (
     <motion.div 
-      onClick={onClick}
+      onClick={() => navigate(`/vehicle/${vehicle.id}`)}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
