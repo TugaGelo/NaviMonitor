@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Fuel, Car, Bike, Truck } from 'lucide-react';
+import { Fuel, Car, Bike, Truck, Save } from 'lucide-react';
 import BaseModal from '../ui/BaseModal';
-import type { Vehicle } from '../../types/types';
+import type { Vehicle, RefuelLog } from '../../types/types';
 
 interface AddRefuelModalProps {
   isOpen: boolean;
@@ -10,24 +10,56 @@ interface AddRefuelModalProps {
   onSuccess: () => void;
   vehicles: Vehicle[];
   preselectedVehicleId?: number | null;
+  logToEdit?: RefuelLog | null;
 }
 
-export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId }: AddRefuelModalProps) {
+export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit }: AddRefuelModalProps) {
+  const isEditMode = !!logToEdit;
+  const hideVehiclePicker = !!preselectedVehicleId;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-
-  const hideVehiclePicker = !!preselectedVehicleId;
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(
     preselectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : null)
   );
 
   const [formData, setFormData] = useState({
-    odometer: '',
-    volume: '',
-    totalCost: '',
-    fuelType: 'Unleaded'
+    odometer: logToEdit?.odometer?.toString() || '',
+    volume: logToEdit?.volume?.toString() || '',
+    totalCost: logToEdit?.totalCost?.toString() || '',
+    fuelType: logToEdit?.fuelType || 'Unleaded'
   });
+
+  useEffect(() => {
+    if (!isOpen || isEditMode || !selectedVehicleId) return;
+
+    let isMounted = true;
+
+    const fetchLatestOdo = async () => {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
+        const res = await axios.get(`${apiUrl}/refuel/vehicle/${selectedVehicleId}`);
+        if (!isMounted) return;
+
+        const logs: RefuelLog[] = res.data;
+        const active = vehicles.find(v => v.id === selectedVehicleId);
+        
+        const highestOdo = logs.length > 0 
+          ? Math.max(...logs.map((l: RefuelLog) => l.odometer)) 
+          : (active?.startingOdometer || 0);
+        
+        setFormData(prev => ({ ...prev, odometer: (highestOdo + 1).toString() }));
+      } catch {
+        if (!isMounted) return;
+        const active = vehicles.find(v => v.id === selectedVehicleId);
+        setFormData(prev => ({ ...prev, odometer: ((active?.startingOdometer || 0) + 1).toString() }));
+      }
+    };
+    
+    fetchLatestOdo();
+
+    return () => { isMounted = false; };
+  }, [isOpen, selectedVehicleId, isEditMode, vehicles]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -44,19 +76,26 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
       const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
       const payload = {
         vehicleId: selectedVehicleId,
-        date: new Date().toISOString(),
+        date: isEditMode && logToEdit ? logToEdit.date : new Date().toISOString(),
         odometer: Number(formData.odometer),
         volume: Number(formData.volume),
         totalCost: Number(formData.totalCost),
         fuelType: formData.fuelType
       };
 
-      await axios.post(`${apiUrl}/refuel`, payload);
+      if (isEditMode && logToEdit) {
+        await axios.put(`${apiUrl}/refuel/${logToEdit.id}`, { id: logToEdit.id, ...payload });
+      } else {
+        await axios.post(`${apiUrl}/refuel`, payload);
+      }
+      
       onSuccess();
       onClose();
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data || 'Submission failed. Ensure odometer is higher than the last entry.');
+        setError(err.response?.data || 'Submission failed. Check your data.');
+      } else {
+        setError('An unexpected error occurred.');
       }
     } finally {
       setIsSubmitting(false);
@@ -69,47 +108,36 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Quick Refuel Log"
-      subtitle={hideVehiclePicker && activeVehicle 
-        ? `Record latest fill-up for ${activeVehicle.nickname}.` 
-        : 'Record your latest fill-up.'}
+      title={isEditMode ? "Edit Refuel Log" : "Quick Refuel Log"}
+      subtitle={isEditMode ? "Update the details of your previous fill-up." : (hideVehiclePicker && activeVehicle ? `Record latest fill-up for ${activeVehicle.nickname}.` : 'Record your latest fill-up.')}
       maxWidth="max-w-2xl"
     >
       <form onSubmit={handleSubmit} className="flex flex-col">
         <div className="p-6 space-y-6">
-          {error && (
-            <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-bold">
-              {error}
-            </div>
-          )}
+          {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-bold">{error}</div>}
 
-          {!hideVehiclePicker && (
+          {!hideVehiclePicker && !isEditMode && (
             <section className="space-y-2">
               <h3 className="text-xs font-bold text-black uppercase tracking-wider">Select Ride</h3>
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x no-scrollbar">
                 {vehicles.map((vehicle) => {
                   const isSelected = selectedVehicleId === vehicle.id;
                   return (
-                    <button
-                      key={vehicle.id}
-                      type="button"
-                      onClick={() => setSelectedVehicleId(vehicle.id)}
-                      className={`shrink-0 flex items-center gap-3 rounded-lg px-3 py-2 border-2 transition-all snap-start ${
-                        isSelected 
-                          ? 'bg-zinc-50 border-secondary' 
-                          : 'bg-white border-zinc-100 hover:border-zinc-200'
-                      }`}
+                    <button 
+                      key={vehicle.id} 
+                      type="button" 
+                      onClick={() => {
+                        setSelectedVehicleId(vehicle.id);
+                        setFormData(prev => ({ ...prev, volume: '', totalCost: '' }));
+                      }} 
+                      className={`shrink-0 flex items-center gap-3 rounded-lg px-3 py-2 border-2 transition-all snap-start ${isSelected ? 'bg-zinc-50 border-secondary' : 'bg-white border-zinc-100 hover:border-zinc-200'}`}
                     >
                       <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center ${isSelected ? 'bg-red-100 text-secondary' : 'bg-zinc-100 text-zinc-400'}`}>
                         {vehicle.vehicleType === 'Motorcycle' ? <Bike className="w-4 h-4" /> : vehicle.vehicleType === 'Truck' ? <Truck className="w-4 h-4" /> : <Car className="w-4 h-4" />}
                       </div>
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <span className={`text-sm font-bold whitespace-nowrap ${isSelected ? 'text-black' : 'text-zinc-600'}`}>
-                          {vehicle.nickname}
-                        </span>
-                        <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded shrink-0 uppercase">
-                          {vehicle.licensePlate}
-                        </span>
+                        <span className={`text-sm font-bold whitespace-nowrap ${isSelected ? 'text-black' : 'text-zinc-600'}`}>{vehicle.nickname}</span>
+                        <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded shrink-0 uppercase">{vehicle.licensePlate}</span>
                       </div>
                     </button>
                   );
@@ -125,9 +153,6 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
                 <input required id="odometer" type="number" value={formData.odometer} onChange={handleChange} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-3 pl-4 pr-12 text-sm font-bold focus:border-black focus:ring-1 focus:ring-black outline-none transition-all placeholder:text-zinc-300" placeholder="Enter current mileage" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400">km</span>
               </div>
-              <p className="text-[10px] font-bold text-zinc-400 absolute -bottom-5 left-0 uppercase">
-                Last recorded: {activeVehicle?.startingOdometer?.toLocaleString() || 0} km
-              </p>
             </div>
 
             <div className="space-y-1">
@@ -150,16 +175,7 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
               <label className="text-xs font-bold text-black mb-2 block">Fuel Type</label>
               <div className="flex flex-wrap gap-2">
                 {['Unleaded', 'Premium', 'Diesel'].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setFormData({...formData, fuelType: type})}
-                    className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${
-                      formData.fuelType === type 
-                        ? 'border-black bg-black text-white' 
-                        : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300'
-                    }`}
-                  >
+                  <button key={type} type="button" onClick={() => setFormData({...formData, fuelType: type})} className={`text-xs font-bold px-4 py-2 rounded-full border transition-all ${formData.fuelType === type ? 'border-black bg-black text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300'}`}>
                     {type}
                   </button>
                 ))}
@@ -169,20 +185,9 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
         </div>
 
         <div className="border-t border-zinc-100 pt-6 px-6 pb-6 bg-zinc-50/50 flex justify-end gap-4 rounded-b-2xl">
-          <button 
-            type="button" 
-            onClick={onClose} 
-            className="px-6 py-3 font-bold text-black border border-zinc-200 rounded-xl hover:bg-white transition-all"
-          >
-            Cancel
-          </button>
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="px-6 py-3 font-bold text-white bg-secondary rounded-xl hover:bg-red-600 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
-          >
-            <Fuel className="w-5 h-5" />
-            {isSubmitting ? 'Saving...' : 'Save Log'}
+          <button type="button" onClick={onClose} className="px-6 py-3 font-bold text-black border border-zinc-200 rounded-xl hover:bg-white transition-all">Cancel</button>
+          <button disabled={isSubmitting} type="submit" className="px-6 py-3 font-bold text-white bg-secondary rounded-xl hover:bg-red-600 disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95">
+            {isEditMode ? <><Save className="w-5 h-5" /> Update Log</> : <><Fuel className="w-5 h-5" /> Save Log</>}
           </button>
         </div>
       </form>

@@ -6,11 +6,12 @@ import { ArrowLeft, Fuel, History, Edit2, Trash2, Filter } from 'lucide-react';
 import type { Vehicle, RefuelLog } from '../../types/types';
 
 interface DashboardProps {
-  onOpenRefuelModal?: (vehicleId: number) => void;
+  onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
+  onDeleteRefuelLog?: (log: RefuelLog) => void;
   refreshTrigger?: number;
 }
 
-export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: DashboardProps) {
+export default function VehicleDashboard({ onOpenRefuelModal, onDeleteRefuelLog, refreshTrigger }: DashboardProps) {
   const { id } = useParams<{ id: string }>(); 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [logs, setLogs] = useState<RefuelLog[]>([]);
@@ -22,8 +23,10 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
       try {
         setIsLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
+        
         const vehicleRes = await axios.get(`${apiUrl}/vehicle/${id}`);
         setVehicle(vehicleRes.data);
+
         try {
            const logsRes = await axios.get(`${apiUrl}/refuel/vehicle/${id}`);
            setLogs(logsRes.data);
@@ -81,7 +84,6 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
       </div>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        
         <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-sm flex flex-col justify-between">
           <span className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest mb-4">Avg Efficiency</span>
           <div className="flex items-end justify-between">
@@ -149,7 +151,7 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {logs.length === 0 ? (
-                  <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500 font-bold">No fuel logs found.</td></tr>
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-zinc-500 font-bold">No fuel logs found for this vehicle.</td></tr>
                 ) : (
                   logs.map((log) => (
                     <tr key={log.id} className="hover:bg-zinc-50 transition-colors">
@@ -159,8 +161,18 @@ export default function VehicleDashboard({ onOpenRefuelModal, refreshTrigger }: 
                         <span className="font-bold text-black">{log.volume} L</span> <span className="text-zinc-400">/ ₱{log.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </td>
                       <td className="px-6 py-4 text-right flex justify-end gap-2">
-                        <button className="p-2 text-zinc-400 hover:text-secondary transition-colors"><Edit2 className="w-4 h-4" /></button>
-                        <button className="p-2 text-zinc-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button 
+                          onClick={() => onOpenRefuelModal && onOpenRefuelModal(vehicle.id, log)}
+                          className="p-2 text-zinc-400 hover:text-secondary transition-colors"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => onDeleteRefuelLog && onDeleteRefuelLog(log)}
+                          className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))

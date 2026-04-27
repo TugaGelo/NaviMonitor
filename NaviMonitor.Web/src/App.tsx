@@ -2,19 +2,21 @@ import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Fuel } from 'lucide-react';
-import type { Vehicle } from './types/types';
+import type { Vehicle, RefuelLog } from './types/types';
 
 import Layout from './components/ui/Layout';
 import VehicleCard from './components/garage/VehicleCard';
 import AddVehicleModal from './components/garage/AddVehicleModal';
 import DeleteVehicleModal from './components/garage/DeleteVehicleModal';
 import AddRefuelModal from './components/garage/AddRefuelModal';
+import DeleteRefuelModal from './components/garage/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/VehicleDashboard';
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -22,6 +24,8 @@ export default function App() {
   const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
   const [isRefuelModalOpen, setIsRefuelModalOpen] = useState(false);
   const [preselectedRefuelId, setPreselectedRefuelId] = useState<number | null>(null);
+  const [refuelLogToEdit, setRefuelLogToEdit] = useState<RefuelLog | null>(null);
+  const [refuelLogToDelete, setRefuelLogToDelete] = useState<RefuelLog | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +64,7 @@ export default function App() {
                 <button 
                   onClick={() => {
                     setPreselectedRefuelId(null);
+                    setRefuelLogToEdit(null);
                     setIsRefuelModalOpen(true);
                   }}
                   className="bg-black text-white px-4 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-zinc-800 transition-all active:scale-95"
@@ -100,10 +105,12 @@ export default function App() {
 
         <Route path="/vehicle/:id" element={
           <VehicleDashboard 
-            onOpenRefuelModal={(vehicleId) => {
+            onOpenRefuelModal={(vehicleId, log) => {
               setPreselectedRefuelId(vehicleId);
+              setRefuelLogToEdit(log || null);
               setIsRefuelModalOpen(true);
             }}
+            onDeleteRefuelLog={(log) => setRefuelLogToDelete(log)}
             refreshTrigger={refreshKey}
           />
         } />
@@ -119,10 +126,21 @@ export default function App() {
           onClose={() => {
             setIsRefuelModalOpen(false);
             setPreselectedRefuelId(null);
+            setRefuelLogToEdit(null);
           }}
           onSuccess={() => setRefreshKey(k => k + 1)}
           vehicles={vehicles}
           preselectedVehicleId={preselectedRefuelId}
+          logToEdit={refuelLogToEdit}
+        />
+      )}
+
+      {refuelLogToDelete && (
+        <DeleteRefuelModal
+          isOpen={true}
+          onClose={() => setRefuelLogToDelete(null)}
+          onSuccess={() => setRefreshKey(k => k + 1)}
+          log={refuelLogToDelete}
         />
       )}
     </Layout>
