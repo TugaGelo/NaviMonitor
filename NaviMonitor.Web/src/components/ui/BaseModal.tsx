@@ -8,9 +8,18 @@ interface BaseModalProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  maxWidth?: string;
 }
 
-export default function BaseModal({ isOpen, onClose, title, subtitle, children }: BaseModalProps) {
+export default function BaseModal({ 
+  isOpen, 
+  onClose, 
+  title, 
+  subtitle, 
+  children, 
+  maxWidth = 'max-w-200'
+}: BaseModalProps) {
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -18,6 +27,12 @@ export default function BaseModal({ isOpen, onClose, title, subtitle, children }
     if (isOpen) window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -38,7 +53,7 @@ export default function BaseModal({ isOpen, onClose, title, subtitle, children }
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full max-w-200 max-h-[90vh] flex flex-col"
+            className={`relative bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full ${maxWidth} max-h-[90vh] flex flex-col`}
           >
             
             <div className="p-6 border-b border-zinc-100 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-2xl">

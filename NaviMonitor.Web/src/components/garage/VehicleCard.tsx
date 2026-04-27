@@ -65,9 +65,9 @@ export default function VehicleCard({ vehicle, onEdit, onDelete, refreshTrigger 
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6 group cursor-pointer relative overflow-visible transition-shadow hover:shadow-lg"
+      className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6 group cursor-pointer relative overflow-hidden transition-shadow hover:shadow-lg"
     >
-      <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-secondary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-t-2xl"></div>
+      <div className="absolute top-0 left-0 w-full h-1.5 bg-linear-to-r from-secondary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-t-2xl"></div>
 
       <div className="flex justify-between items-start mb-6">
         <div>
