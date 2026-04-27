@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* 🎨 Your Monochrome Noir Palette */
   --color-primary: #000000;
   --color-secondary: #E63946;
   --color-surface: #FFFFFF;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Plus, Gauge, CalendarDays, ChevronRight, Settings2, ShieldAlert } from 'lucide-react';
+import { Plus, Gauge, CalendarDays, ChevronRight, ShieldAlert } from 'lucide-react';
+import AddVehicleModal from './AddVehicleModal';
 
 interface Vehicle {
   id: number;
@@ -20,33 +21,54 @@ export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const fetchVehicles = async () => {
+    let isMounted = true;
+
+    const loadVehicles = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
         const response = await axios.get(`${apiUrl}/vehicle`); 
-        setVehicles(response.data);
-        setIsLoading(false);
+        
+        if (isMounted) {
+          setVehicles(response.data);
+          setError('');
+        }
       } catch (err) {
-        console.error("API Error:", err);
-        setError('Failed to connect to the garage. Is the engine (API) running?');
-        setIsLoading(false);
+        if (isMounted) {
+          console.error("API Error:", err);
+          setError('Failed to connect to the garage. Is the engine (API) running?');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchVehicles();
-  }, []);
+    loadVehicles();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshKey]);
+
+  const handleVehicleAdded = () => {
+    setRefreshKey(oldKey => oldKey + 1);
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-50">
+    <div className="min-h-screen flex flex-col bg-zinc-50 relative">
       
-      <header className="bg-primary text-surface px-6 py-5 shadow-md flex justify-between items-center sticky top-0 z-10">
+      <header className="bg-black text-white px-6 py-5 shadow-md flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <Settings2 className="text-secondary w-6 h-6" />
-          <h1 className="font-bold tracking-wide text-xl">NaviMonitor</h1>
+          <div className="w-3 h-3 rounded-full bg-secondary animate-pulse"></div>
+          <h1 className="font-black tracking-widest text-xl uppercase">Navi</h1>
         </div>
-        <div className="w-8 h-8 rounded-full bg-neutral flex items-center justify-center border border-zinc-700">
+        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
           <span className="text-sm font-bold">G</span>
         </div>
       </header>
@@ -55,10 +77,13 @@ export default function App() {
         
         <div className="flex justify-between items-end mb-8">
           <div>
-            <h2 className="text-3xl font-extrabold text-primary tracking-tight">My Garage</h2>
+            <h2 className="text-3xl font-extrabold text-black tracking-tight">My Garage</h2>
             <p className="text-zinc-500 font-medium mt-1">Select a vehicle to view dashboard</p>
           </div>
-          <button className="bg-secondary text-surface px-4 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-500/20 hover:bg-red-600 transition-colors active:scale-95">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-secondary text-white px-4 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-500/20 hover:bg-red-600 transition-colors active:scale-95"
+          >
             <Plus className="w-5 h-5" />
             <span className="hidden sm:inline">Add Vehicle</span>
           </button>
@@ -74,7 +99,7 @@ export default function App() {
 
         {!isLoading && !error && vehicles.length === 0 && (
           <div className="text-center py-16 border-2 border-dashed border-zinc-200 rounded-2xl bg-zinc-50">
-            <h3 className="text-xl font-bold text-primary mb-2">Your garage is empty</h3>
+            <h3 className="text-xl font-bold text-black mb-2">Your garage is empty</h3>
             <p className="text-zinc-500 mb-6">Let's add your first vehicle to get started.</p>
           </div>
         )}
@@ -85,17 +110,17 @@ export default function App() {
               (new Date(vehicle.registrationExpiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 30;
 
             return (
-              <div key={vehicle.id} className="card-noir group cursor-pointer border border-zinc-200/60 relative overflow-hidden">
+              <div key={vehicle.id} className="bg-white rounded-2xl shadow-sm border border-zinc-100 p-6 group cursor-pointer relative overflow-hidden transition-all hover:shadow-md">
                 <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-secondary to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                 <div className="flex justify-between items-start mb-6">
                   <div>
-                    <h3 className="text-2xl font-black text-primary leading-none mb-2">{vehicle.nickname}</h3>
+                    <h3 className="text-2xl font-black text-black leading-none mb-2">{vehicle.nickname}</h3>
                     <p className="text-zinc-500 font-medium text-sm">
                       {vehicle.year} {vehicle.make} {vehicle.model} • {vehicle.color}
                     </p>
                   </div>
-                  <span className="bg-zinc-100 text-neutral text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  <span className="bg-zinc-100 text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                     {vehicle.vehicleType}
                   </span>
                 </div>
@@ -106,7 +131,7 @@ export default function App() {
                       <Gauge className="w-4 h-4" />
                       <span className="text-xs font-semibold uppercase tracking-wider">Odometer</span>
                     </div>
-                    <p className="font-bold text-lg text-primary">{vehicle.startingOdometer?.toLocaleString() ?? 0} <span className="text-xs text-zinc-400 font-medium">km</span></p>
+                    <p className="font-bold text-lg text-black">{vehicle.startingOdometer?.toLocaleString() ?? 0} <span className="text-xs text-zinc-400 font-medium">km</span></p>
                   </div>
 
                   <div className={`rounded-xl p-3 border ${isExpiringSoon ? 'bg-red-50 border-red-100' : 'bg-zinc-50 border-zinc-100'}`}>
@@ -114,7 +139,7 @@ export default function App() {
                       {isExpiringSoon ? <ShieldAlert className="w-4 h-4" /> : <CalendarDays className="w-4 h-4" />}
                       <span className="text-xs font-semibold uppercase tracking-wider">LTO Reg</span>
                     </div>
-                    <p className={`font-bold text-sm ${isExpiringSoon ? 'text-secondary' : 'text-primary'}`}>
+                    <p className={`font-bold text-sm ${isExpiringSoon ? 'text-secondary' : 'text-black'}`}>
                       {vehicle.registrationExpiry ? new Date(vehicle.registrationExpiry).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
                     </p>
                   </div>
@@ -131,6 +156,12 @@ export default function App() {
           })}
         </div>
       </main>
+
+      <AddVehicleModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSuccess={handleVehicleAdded} 
+      />
     </div>
   );
 }
