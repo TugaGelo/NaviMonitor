@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Fuel } from 'lucide-react';
-import type { Vehicle, RefuelLog } from './types/types';
+import type { Vehicle, RefuelLog, MaintenanceLog } from './types/types';
 
 import Layout from './components/ui/Layout';
 import VehicleCard from './components/garage/VehicleCard';
@@ -11,6 +11,8 @@ import DeleteVehicleModal from './components/garage/DeleteVehicleModal';
 import AddRefuelModal from './components/garage/AddRefuelModal';
 import DeleteRefuelModal from './components/garage/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/VehicleDashboard';
+import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
+import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -22,10 +24,17 @@ export default function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [vehicleToEdit, setVehicleToEdit] = useState<Vehicle | null>(null);
   const [vehicleToDelete, setVehicleToDelete] = useState<Vehicle | null>(null);
+  
   const [isRefuelModalOpen, setIsRefuelModalOpen] = useState(false);
   const [preselectedRefuelId, setPreselectedRefuelId] = useState<number | null>(null);
   const [refuelLogToEdit, setRefuelLogToEdit] = useState<RefuelLog | null>(null);
   const [refuelLogToDelete, setRefuelLogToDelete] = useState<RefuelLog | null>(null);
+
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [preselectedMaintenanceId, setPreselectedMaintenanceId] = useState<number | null>(null);
+  const [maintenanceLogToEdit, setMaintenanceLogToEdit] = useState<MaintenanceLog | null>(null);
+  const [maintenanceLogToDelete, setMaintenanceLogToDelete] = useState<MaintenanceLog | null>(null);
+  const [maintenanceModalOdo, setMaintenanceModalOdo] = useState<number>(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,12 +114,21 @@ export default function App() {
 
         <Route path="/vehicle/:id" element={
           <VehicleDashboard 
-            onOpenRefuelModal={(vehicleId, log) => {
+            onOpenRefuelModal={(vehicleId: number, log?: RefuelLog) => {
               setPreselectedRefuelId(vehicleId);
               setRefuelLogToEdit(log || null);
               setIsRefuelModalOpen(true);
             }}
-            onDeleteRefuelLog={(log) => setRefuelLogToDelete(log)}
+            onDeleteRefuelLog={(log: RefuelLog) => setRefuelLogToDelete(log)}
+            
+            onOpenMaintenanceModal={(vehicleId: number, log?: MaintenanceLog | null, currentOdo?: number) => {
+              setPreselectedMaintenanceId(vehicleId);
+              setMaintenanceLogToEdit(log || null);
+              setMaintenanceModalOdo(currentOdo || 0);
+              setIsMaintenanceModalOpen(true);
+            }}
+            onDeleteMaintenanceLog={(log: MaintenanceLog) => setMaintenanceLogToDelete(log)}
+            
             refreshTrigger={refreshKey}
           />
         } />
@@ -143,6 +161,32 @@ export default function App() {
           log={refuelLogToDelete}
         />
       )}
+
+      {isMaintenanceModalOpen && (
+        <AddMaintenanceModModal
+          isOpen={true}
+          onClose={() => {
+            setIsMaintenanceModalOpen(false);
+            setPreselectedMaintenanceId(null);
+            setMaintenanceLogToEdit(null);
+          }}
+          onSuccess={() => setRefreshKey(k => k + 1)}
+          vehicles={vehicles}
+          preselectedVehicleId={preselectedMaintenanceId}
+          logToEdit={maintenanceLogToEdit}
+          currentOdometer={maintenanceModalOdo}
+        />
+      )}
+
+      {maintenanceLogToDelete && (
+        <DeleteMaintenanceModal
+          isOpen={true}
+          onClose={() => setMaintenanceLogToDelete(null)}
+          onSuccess={() => setRefreshKey(k => k + 1)}
+          log={maintenanceLogToDelete}
+        />
+      )}
+
     </Layout>
   );
 }

@@ -13,7 +13,7 @@ import MaintenanceTable from './dashboard/tables/MaintenanceTable';
 interface DashboardProps {
   onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
   onDeleteRefuelLog?: (log: RefuelLog) => void;
-  onOpenMaintenanceModal?: (vehicleId: number, logToEdit?: MaintenanceLog) => void;
+  onOpenMaintenanceModal?: (vehicleId: number, logToEdit?: MaintenanceLog | null, currentOdometer?: number) => void;
   onDeleteMaintenanceLog?: (log: MaintenanceLog) => void;
   refreshTrigger?: number;
 }
@@ -81,7 +81,7 @@ export default function VehicleDashboard({
         vehicle={vehicle} 
         activeTab={activeTab} 
         onOpenRefuelModal={onOpenRefuelModal} 
-        onOpenMaintenanceModal={onOpenMaintenanceModal} 
+        onOpenMaintenanceModal={(vehicleId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicleId, null, currentOdometer)} 
       />
 
       <MetricGrid 
