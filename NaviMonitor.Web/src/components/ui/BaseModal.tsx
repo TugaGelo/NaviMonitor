@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface BaseModalProps {
@@ -9,6 +8,7 @@ interface BaseModalProps {
   subtitle?: string;
   children: React.ReactNode;
   maxWidth?: string;
+  headerRight?: React.ReactNode;
 }
 
 export default function BaseModal({ 
@@ -17,7 +17,8 @@ export default function BaseModal({
   title, 
   subtitle, 
   children, 
-  maxWidth = 'max-w-200'
+  maxWidth = 'max-w-2xl',
+  headerRight 
 }: BaseModalProps) {
   
   useEffect(() => {
@@ -56,17 +57,17 @@ export default function BaseModal({
             className={`relative bg-white rounded-2xl border border-zinc-200 shadow-2xl w-full ${maxWidth} max-h-[90vh] flex flex-col`}
           >
             
-            <div className="p-6 border-b border-zinc-100 flex justify-between items-center sticky top-0 bg-white z-10 rounded-t-2xl">
+            <div className="p-6 border-b border-zinc-100 sticky top-0 bg-white z-10 rounded-t-2xl flex justify-between items-start md:items-center gap-4 flex-col md:flex-row">
               <div>
                 <h2 className="text-2xl font-bold text-black">{title}</h2>
                 {subtitle && <p className="text-sm font-medium text-zinc-500 mt-1">{subtitle}</p>}
               </div>
-              <button 
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-zinc-100 text-zinc-500 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              
+              {headerRight && (
+                <div className="shrink-0 w-full md:w-auto">
+                  {headerRight}
+                </div>
+              )}
             </div>
 
             <div className="overflow-y-auto">
