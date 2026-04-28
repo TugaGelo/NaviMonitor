@@ -9,6 +9,7 @@ import MetricGrid from './MetricGrid';
 import DashboardTabs from './DashboardTabs';
 import FuelTable from './tables/FuelTable';
 import MaintenanceTable from './tables/MaintenanceTable';
+import ActivityFeed from './ActivityFeed';
 
 interface DashboardProps {
   onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
@@ -32,7 +33,7 @@ export default function VehicleDashboard({
   const [isLoading, setIsLoading] = useState(true);
   
   const [timeFilter, setTimeFilter] = useState('All Time');
-  const [activeTab, setActiveTab] = useState<'Fuel' | 'Maintenance'>('Fuel');
+  const [activeTab, setActiveTab] = useState<'Activity' | 'Fuel' | 'Maintenance'>('Activity');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +80,7 @@ export default function VehicleDashboard({
       
       <DashboardHeader 
         vehicle={vehicle} 
-        activeTab={activeTab} 
+        activeTab={activeTab === 'Activity' ? 'Fuel' : activeTab}
         onOpenRefuelModal={onOpenRefuelModal} 
         onOpenMaintenanceModal={(vehicleId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicleId, null, currentOdometer)} 
       />
@@ -96,22 +97,27 @@ export default function VehicleDashboard({
       <section className="space-y-6">
         <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
-        <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <AnimatePresence mode="wait">
-              {activeTab === 'Fuel' ? (
-                <FuelTable logs={refuelLogs} vehicleId={vehicle.id} onEdit={onOpenRefuelModal} onDelete={onDeleteRefuelLog} />
-              ) : (
-                <MaintenanceTable logs={maintenanceLogs} vehicleId={vehicle.id} onEdit={onOpenMaintenanceModal} onDelete={onDeleteMaintenanceLog} />
-              )}
-            </AnimatePresence>
+        {activeTab === 'Activity' ? (
+          <ActivityFeed maintenanceLogs={maintenanceLogs} refuelLogs={refuelLogs} />
+        ) : (
+          <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <AnimatePresence mode="wait">
+                {activeTab === 'Fuel' && (
+                  <FuelTable logs={refuelLogs} vehicleId={vehicle.id} onEdit={onOpenRefuelModal} onDelete={onDeleteRefuelLog} />
+                )}
+                {activeTab === 'Maintenance' && (
+                  <MaintenanceTable logs={maintenanceLogs} vehicleId={vehicle.id} onEdit={onOpenMaintenanceModal} onDelete={onDeleteMaintenanceLog} />
+                )}
+              </AnimatePresence>
+            </div>
+            <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+              <span className="text-zinc-500 text-sm font-bold">
+                Showing {activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} logs
+              </span>
+            </div>
           </div>
-          <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
-            <span className="text-zinc-500 text-sm font-bold">
-              Showing {activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} logs
-            </span>
-          </div>
-        </div>
+        )}
       </section>
 
     </motion.div>
