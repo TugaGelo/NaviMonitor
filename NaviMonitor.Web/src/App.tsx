@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Fuel } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from './types/types';
+import { AnimatePresence } from 'framer-motion';
 
 import Layout from './components/ui/Layout';
 import VehicleCard from './components/garage/VehicleCard';
@@ -134,58 +135,15 @@ export default function App() {
         } />
       </Routes>
 
-      {isAddModalOpen && <AddVehicleModal isOpen={true} onClose={() => setIsAddModalOpen(false)} onSuccess={() => setRefreshKey(k => k + 1)} />}
-      {vehicleToEdit && <AddVehicleModal isOpen={true} onClose={() => setVehicleToEdit(null)} onSuccess={() => setRefreshKey(k => k + 1)} vehicleToEdit={vehicleToEdit} />}
-      {vehicleToDelete && <DeleteVehicleModal isOpen={true} onClose={() => setVehicleToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} vehicle={vehicleToDelete} />}
-
-      {isRefuelModalOpen && (
-        <AddRefuelModal
-          isOpen={true}
-          onClose={() => {
-            setIsRefuelModalOpen(false);
-            setPreselectedRefuelId(null);
-            setRefuelLogToEdit(null);
-          }}
-          onSuccess={() => setRefreshKey(k => k + 1)}
-          vehicles={vehicles}
-          preselectedVehicleId={preselectedRefuelId}
-          logToEdit={refuelLogToEdit}
-        />
-      )}
-
-      {refuelLogToDelete && (
-        <DeleteRefuelModal
-          isOpen={true}
-          onClose={() => setRefuelLogToDelete(null)}
-          onSuccess={() => setRefreshKey(k => k + 1)}
-          log={refuelLogToDelete}
-        />
-      )}
-
-      {isMaintenanceModalOpen && (
-        <AddMaintenanceModModal
-          isOpen={true}
-          onClose={() => {
-            setIsMaintenanceModalOpen(false);
-            setPreselectedMaintenanceId(null);
-            setMaintenanceLogToEdit(null);
-          }}
-          onSuccess={() => setRefreshKey(k => k + 1)}
-          vehicles={vehicles}
-          preselectedVehicleId={preselectedMaintenanceId}
-          logToEdit={maintenanceLogToEdit}
-          currentOdometer={maintenanceModalOdo}
-        />
-      )}
-
-      {maintenanceLogToDelete && (
-        <DeleteMaintenanceModal
-          isOpen={true}
-          onClose={() => setMaintenanceLogToDelete(null)}
-          onSuccess={() => setRefreshKey(k => k + 1)}
-          log={maintenanceLogToDelete}
-        />
-      )}
+      <AnimatePresence>
+        {isAddModalOpen && <AddVehicleModal key="add-veh" isOpen={true} onClose={() => setIsAddModalOpen(false)} onSuccess={() => setRefreshKey(k => k + 1)} />}
+        {vehicleToEdit && <AddVehicleModal key="edit-veh" isOpen={true} onClose={() => setVehicleToEdit(null)} onSuccess={() => setRefreshKey(k => k + 1)} vehicleToEdit={vehicleToEdit} />}
+        {vehicleToDelete && <DeleteVehicleModal key="del-veh" isOpen={true} onClose={() => setVehicleToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} vehicle={vehicleToDelete} />}
+        {isRefuelModalOpen && <AddRefuelModal key="add-ref" isOpen={true} onClose={() => { setIsRefuelModalOpen(false); setPreselectedRefuelId(null); setRefuelLogToEdit(null); }} onSuccess={() => setRefreshKey(k => k + 1)} vehicles={vehicles} preselectedVehicleId={preselectedRefuelId} logToEdit={refuelLogToEdit} />}
+        {refuelLogToDelete && <DeleteRefuelModal key="del-ref" isOpen={true} onClose={() => setRefuelLogToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} log={refuelLogToDelete} />}
+        {isMaintenanceModalOpen && <AddMaintenanceModModal key="add-maint" isOpen={true} onClose={() => { setIsMaintenanceModalOpen(false); setPreselectedMaintenanceId(null); setMaintenanceLogToEdit(null); }} onSuccess={() => setRefreshKey(k => k + 1)} vehicles={vehicles} preselectedVehicleId={preselectedMaintenanceId} logToEdit={maintenanceLogToEdit} currentOdometer={maintenanceModalOdo} />}
+        {maintenanceLogToDelete && <DeleteMaintenanceModal key="del-maint" isOpen={true} onClose={() => setMaintenanceLogToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} log={maintenanceLogToDelete} />}
+      </AnimatePresence>
 
     </Layout>
   );
