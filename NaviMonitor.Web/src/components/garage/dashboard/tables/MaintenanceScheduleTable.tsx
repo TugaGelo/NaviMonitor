@@ -6,14 +6,16 @@ interface MaintenanceScheduleTableProps {
   matrix: MaintenanceMatrixItem[];
   currentOdometer: number;
   logs: MaintenanceLog[];
+  onCellClick: (task: string, action: string) => void;
 }
 
-export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs }: MaintenanceScheduleTableProps) {
+export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs, onCellClick }: MaintenanceScheduleTableProps) {
   
+  const masterInterval = matrix.length > 0 ? Math.min(...matrix.map(i => i.interval)) : 4000;
+  const initialPoint = matrix.find(i => i.initial)?.initial || 0;
+
   const getColumns = () => {
     if (matrix.length === 0) return [1000, 4000, 8000, 12000, 16000];
-    const masterInterval = Math.min(...matrix.map(i => i.interval));
-    const initialPoint = matrix.find(i => i.initial)?.initial || 0;
     const currentCycle = Math.max(0, Math.floor((currentOdometer - initialPoint) / masterInterval));
     const cols = [];
     for (let i = -1; i <= 3; i++) {
@@ -27,10 +29,17 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
   const nextMilestone = columns.find(c => c >= currentOdometer) || columns[columns.length - 1];
 
   const isCompleted = (taskName: string, odoPoint: number) => {
-    return logs.some(log => 
-      log.serviceType.toLowerCase().includes(taskName.toLowerCase()) && 
-      Math.abs(log.odometer - odoPoint) < 500
-    );
+    const tolerance = Math.max(500, masterInterval * 0.4); 
+
+    return logs.some(log => {
+      const safeLogName = (log.serviceType || '').toLowerCase();
+      const safeTaskName = (taskName || '').toLowerCase().trim();
+      
+      const isNameMatch = safeLogName.includes(safeTaskName);
+      const isOdoMatch = Math.abs((log.odometer || 0) - odoPoint) <= tolerance;
+
+      return isNameMatch && isOdoMatch;
+    });
   };
 
   const getActionIcon = (action: string, isDone: boolean) => {
@@ -43,7 +52,6 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
 
   const labelTextStyle = "font-black text-[10px] text-zinc-500 uppercase tracking-widest";
   const borderStyle = "border-b border-r border-zinc-200";
-  
   const headerHeight = "h-20";
   const rowHeight = "h-16";
 
@@ -88,17 +96,20 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
                 const isApplicable = (item.initial === odo) || (odo > (item.initial || 0) && (odo - (item.initial || 0)) % item.interval === 0);
                 const done = isCompleted(item.item, odo);
                 const isActive = odo === nextMilestone;
+                const canLog = isActive && isApplicable && !done;
 
                 return (
-                  <div 
-                    key={odo} 
-                    className={`${rowHeight} ${borderStyle} flex flex-col justify-center items-center gap-0.5 group transition-colors ${
-                      isActive ? 'bg-zinc-900/2' : 'bg-white hover:bg-zinc-50/30'
-                    }`}
+                  <button 
+                    key={odo}
+                    disabled={!canLog}
+                    onClick={() => onCellClick(item.item, item.action)}
+                    className={`${rowHeight} ${borderStyle} flex flex-col justify-center items-center gap-0.5 group transition-all outline-none ${
+                      isActive ? 'bg-zinc-900/2' : 'bg-white'
+                    } ${canLog ? 'hover:bg-zinc-900/6 cursor-pointer' : 'cursor-default'}`}
                   >
                     {isApplicable ? (
                       <>
-                        <div className="flex items-center justify-center h-6">
+                        <div className={`flex items-center justify-center h-6 transition-transform ${canLog ? 'group-active:scale-90' : ''}`}>
                           {getActionIcon(item.action, done)}
                         </div>
                         {!done && (
@@ -110,7 +121,7 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
                     ) : (
                       <span className="text-zinc-200 text-[10px] font-black opacity-20">-</span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </React.Fragment>

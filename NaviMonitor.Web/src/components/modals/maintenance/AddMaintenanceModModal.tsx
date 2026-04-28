@@ -7,16 +7,56 @@ import FormInput from '../../ui/FormInput';
 import SegmentedPicker from '../../ui/SegmentedPicker';
 import type { MaintenanceLog, Vehicle } from '../../../types/types';
 
-interface AddMaintenanceModModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicles: Vehicle[]; preselectedVehicleId?: number | null; logToEdit?: MaintenanceLog | null; currentOdometer?: number; }
+interface AddMaintenanceModModalProps { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  vehicles: Vehicle[]; 
+  preselectedVehicleId?: number | null; 
+  logToEdit?: MaintenanceLog | null; 
+  currentOdometer?: number; 
+}
 
-export default function AddMaintenanceModModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit, currentOdometer }: AddMaintenanceModModalProps) {
-  const isEditMode = !!logToEdit;
+export default function AddMaintenanceModModal({ 
+  isOpen, 
+  onClose, 
+  onSuccess, 
+  vehicles, 
+  preselectedVehicleId, 
+  logToEdit, 
+  currentOdometer 
+}: AddMaintenanceModModalProps) {
+  
+  const isEditMode = Boolean(logToEdit?.id && logToEdit.id > 0);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState<MaintenanceLog>(() => {
-    if (logToEdit) return { ...logToEdit, date: new Date(logToEdit.date).toISOString().split('T')[0] };
-    return { vehicleId: preselectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : 0), logType: 'Maintenance', date: new Date().toISOString().split('T')[0], odometer: currentOdometer || 0, serviceType: '', serviceCategory: 'General', price: 0, isDIY: false, notes: '', shopName: '', mechanicName: '', contactNumber: '' };
+    const baseDefaults: Partial<MaintenanceLog> = { 
+      vehicleId: preselectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : 0), 
+      logType: 'Maintenance', 
+      date: new Date().toISOString().split('T')[0], 
+      odometer: currentOdometer || 0, 
+      serviceType: '', 
+      serviceCategory: 'General', 
+      price: 0, 
+      isDIY: false, 
+      notes: '', 
+      shopName: '', 
+      mechanicName: '', 
+      contactNumber: '' 
+    };
+
+    if (logToEdit) {
+      return { 
+        ...baseDefaults, 
+        ...logToEdit,
+        date: logToEdit.date ? new Date(logToEdit.date).toISOString().split('T')[0] : baseDefaults.date 
+      } as MaintenanceLog;
+    }
+    
+    return baseDefaults as MaintenanceLog;
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -25,12 +65,21 @@ export default function AddMaintenanceModModal({ isOpen, onClose, onSuccess, veh
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setIsSubmitting(true); setError('');
+    e.preventDefault(); 
+    setIsSubmitting(true); 
+    setError('');
+    
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      if (isEditMode && logToEdit) await axios.put(`${apiUrl}/maintenance/${logToEdit.id}`, formData);
-      else await axios.post(`${apiUrl}/maintenance`, formData);
-      onSuccess(); onClose();
+      
+      if (isEditMode && logToEdit) {
+        await axios.put(`${apiUrl}/maintenance/${logToEdit.id}`, formData);
+      } else {
+        await axios.post(`${apiUrl}/maintenance`, formData);
+      }
+      
+      onSuccess(); 
+      onClose();
     } catch (err) { 
       console.error("Maintenance submission error:", err);
       setError("Failed to save log. Please check your inputs."); 
@@ -40,7 +89,11 @@ export default function AddMaintenanceModModal({ isOpen, onClose, onSuccess, veh
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Edit Record" : "Add Service Log"} subtitle={formData.logType === 'Maintenance' ? "Record professional garage services and checkups." : "Track your custom performance upgrades and mods."}
+    <BaseModal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={isEditMode ? "Edit Record" : "Add Service Log"} 
+      subtitle={formData.logType === 'Maintenance' ? "Record professional garage services and checkups." : "Track your custom performance upgrades and mods."}
       headerRight={
         <SegmentedPicker 
           options={[
@@ -50,7 +103,8 @@ export default function AddMaintenanceModModal({ isOpen, onClose, onSuccess, veh
           selectedValue={formData.logType} 
           onChange={(v: 'Maintenance' | 'Modification') => setFormData({ ...formData, logType: v })} 
         />
-      }    >
+      }    
+    >
       <form onSubmit={handleSubmit} className="flex flex-col h-full">
         <div className="p-6 space-y-6">
           {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-xs font-bold">{error}</div>}
@@ -73,7 +127,15 @@ export default function AddMaintenanceModModal({ isOpen, onClose, onSuccess, veh
             </div>
 
             <div className="space-y-5 flex flex-col h-full">
-              <SegmentedPicker label="Service Mode" options={[{ value: false, label: 'Professional', icon: Store }, { value: true, label: 'DIY Service', icon: Hammer }]} selectedValue={formData.isDIY} onChange={(v) => setFormData({ ...formData, isDIY: v, shopName: '', mechanicName: '', contactNumber: '' })} />
+              <SegmentedPicker 
+                label="Service Mode" 
+                options={[
+                  { value: false, label: 'Professional', icon: Store }, 
+                  { value: true, label: 'DIY Service', icon: Hammer }
+                ]} 
+                selectedValue={formData.isDIY} 
+                onChange={(v) => setFormData({ ...formData, isDIY: v, shopName: '', mechanicName: '', contactNumber: '' })} 
+              />
               
               {!formData.isDIY && (
                 <>

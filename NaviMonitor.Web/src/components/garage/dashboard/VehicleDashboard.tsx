@@ -58,7 +58,7 @@ export default function VehicleDashboard({
         } catch { setMaintenanceLogs([]); }
 
       } catch (err) {
-        console.error("Error fetching vehicle details:", err);
+        console.error("Error fetching dashboard data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -66,12 +66,20 @@ export default function VehicleDashboard({
     if (id) fetchData();
   }, [id, refreshTrigger]);
 
-  if (isLoading || !vehicle) return <div className="p-20 text-center animate-pulse font-black uppercase tracking-widest text-zinc-400">Loading Data...</div>;
+  if (isLoading || !vehicle) {
+    return (
+      <div className="p-20 text-center animate-pulse font-black uppercase tracking-widest text-zinc-400">
+        Syncing Core Systems...
+      </div>
+    );
+  }
 
   const allOdos = [...refuelLogs.map(l => l.odometer), ...maintenanceLogs.map(m => m.odometer)];
   const currentOdometer = allOdos.length > 0 ? Math.max(...allOdos) : (vehicle.startingOdometer ?? 0);
 
-  const totalSpent = refuelLogs.reduce((sum, log) => sum + log.totalCost, 0) + maintenanceLogs.reduce((sum, log) => sum + log.price, 0);
+  const totalSpent = refuelLogs.reduce((sum, log) => sum + log.totalCost, 0) + 
+                     maintenanceLogs.reduce((sum, log) => sum + log.price, 0);
+  
   const totalVolume = refuelLogs.reduce((sum, log) => sum + log.volume, 0);
   const distanceTraveled = Math.max(0, currentOdometer - (vehicle.startingOdometer ?? 0));
   
@@ -82,14 +90,30 @@ export default function VehicleDashboard({
     ? JSON.parse(vehicle.maintenanceMatrixJson).matrix 
     : [];
 
+  const handleMatrixAction = (item: string, action: string) => {
+    if (onOpenMaintenanceModal && vehicle) {
+      const prefillData: Partial<MaintenanceLog> = {
+        serviceType: `${item} (${action})`,
+        odometer: currentOdometer,
+        price: 0,
+        notes: `Automated log from Service Matrix milestone.`,
+        date: new Date().toISOString().split('T')[0]
+      };
+      onOpenMaintenanceModal(vehicle.id, prefillData as MaintenanceLog, currentOdometer);
+    }
+  };
+
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      className="space-y-8 pb-20"
+    >
       <DashboardHeader 
         vehicle={vehicle} 
         activeTab={activeTab === 'Activity' ? 'Fuel' : (activeTab === 'Schedule' ? 'Maintenance' : activeTab)}
         onOpenRefuelModal={onOpenRefuelModal} 
-        onOpenMaintenanceModal={(vehicleId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicleId, null, currentOdometer)} 
+        onOpenMaintenanceModal={(vId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vId, null, currentOdometer)} 
         onOpenSyncModal={onOpenSyncModal}
       />
 
@@ -107,7 +131,11 @@ export default function VehicleDashboard({
         
         <AnimatePresence mode="wait">
           {activeTab === 'Activity' ? (
-            <ActivityFeed key="feed" maintenanceLogs={maintenanceLogs} refuelLogs={refuelLogs} />
+            <ActivityFeed 
+              key="feed" 
+              maintenanceLogs={maintenanceLogs} 
+              refuelLogs={refuelLogs} 
+            />
           ) : (
             <motion.div 
               key={activeTab}
@@ -117,22 +145,56 @@ export default function VehicleDashboard({
               transition={{ duration: 0.2 }}
               className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm"
             >
-              <div className="overflow-x-auto">
-                {activeTab === 'Fuel' && (
-                  <FuelTable logs={refuelLogs} vehicleId={vehicle.id} onEdit={onOpenRefuelModal} onDelete={onDeleteRefuelLog} />
-                )}
-                {activeTab === 'Maintenance' && (
-                  <MaintenanceTable logs={maintenanceLogs} vehicleId={vehicle.id} onEdit={onOpenMaintenanceModal} onDelete={onDeleteMaintenanceLog} />
-                )}
-                {activeTab === 'Schedule' && (
-                  <MaintenanceScheduleTable matrix={maintenanceMatrix} currentOdometer={currentOdometer} logs={maintenanceLogs}/>
-                )}
-              </div>
-              <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
-                <span className="text-zinc-500 text-sm font-bold">
-                  {activeTab === 'Schedule' ? `Tracking ${maintenanceMatrix.length} manual tasks` : `Showing ${activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} logs`}
-                </span>
-              </div>
+              {activeTab === 'Fuel' && (
+                <div className="overflow-x-auto">
+                  <FuelTable 
+                    logs={refuelLogs} 
+                    vehicleId={vehicle.id} 
+                    onEdit={onOpenRefuelModal} 
+                    onDelete={onDeleteRefuelLog} 
+                  />
+                </div>
+              )}
+              
+              {activeTab === 'Maintenance' && (
+                <div className="overflow-x-auto">
+                  <MaintenanceTable 
+                    logs={maintenanceLogs} 
+                    vehicleId={vehicle.id} 
+                    onEdit={onOpenMaintenanceModal} 
+                    onDelete={onDeleteMaintenanceLog} 
+                  />
+                </div>
+              )}
+
+              {activeTab === 'Schedule' && (
+                <MaintenanceScheduleTable 
+                  matrix={maintenanceMatrix} 
+                  currentOdometer={currentOdometer} 
+                  logs={maintenanceLogs}
+                  onCellClick={handleMatrixAction}
+                />
+              )}
+
+              {activeTab !== 'Schedule' && (
+                <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+                  <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                    System Registry
+                  </span>
+                  <span className="text-zinc-500 text-sm font-bold">
+                    {`Showing ${activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} historical logs`}
+                  </span>
+                  
+                </div>
+              )}
+              
+              {activeTab === 'Schedule' && (
+                <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+                  <span className="text-zinc-500 text-sm font-bold">
+                    Tracking {maintenanceMatrix.length} maintenance tasks
+                  </span>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
