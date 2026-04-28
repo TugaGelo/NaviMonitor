@@ -1,31 +1,39 @@
-import { Fuel, Wrench, Activity } from 'lucide-react';
+import { motion } from 'framer-motion'; // 💡 Added this import
+import { Activity, Fuel, Wrench, Calendar } from 'lucide-react';
 
 interface DashboardTabsProps {
-  activeTab: 'Fuel' | 'Maintenance' | 'Activity';
-  setActiveTab: (tab: 'Fuel' | 'Maintenance' | 'Activity') => void;
+  activeTab: 'Activity' | 'Fuel' | 'Maintenance' | 'Schedule';
+  setActiveTab: (tab: 'Activity' | 'Fuel' | 'Maintenance' | 'Schedule') => void;
 }
 
 export default function DashboardTabs({ activeTab, setActiveTab }: DashboardTabsProps) {
+  const tabs = [
+    { id: 'Activity', icon: Activity, label: 'Activity' },
+    { id: 'Fuel', icon: Fuel, label: 'Fuel' },
+    { id: 'Maintenance', icon: Wrench, label: 'Maintenance' },
+    { id: 'Schedule', icon: Calendar, label: 'Schedule' },
+  ] as const;
+
   return (
-    <div className="flex gap-2 p-1 bg-zinc-100 rounded-xl overflow-x-auto no-scrollbar border border-zinc-200">
-      <button 
-        onClick={() => setActiveTab('Activity')}
-        className={`flex-1 min-w-30 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'Activity' ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
-      >
-        <Activity className="w-4 h-4" /> Timeline
-      </button>
-      <button 
-        onClick={() => setActiveTab('Fuel')}
-        className={`flex-1 min-w-30 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'Fuel' ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
-      >
-        <Fuel className="w-4 h-4" /> Fuel Logs
-      </button>
-      <button 
-        onClick={() => setActiveTab('Maintenance')}
-        className={`flex-1 min-w-30 flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'Maintenance' ? 'bg-white text-black shadow-sm' : 'text-zinc-500 hover:text-black hover:bg-zinc-50'}`}
-      >
-        <Wrench className="w-4 h-4" /> Service Logs
-      </button>
+    <div className="flex border-b border-zinc-200 gap-8">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`pb-4 text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all relative ${
+            activeTab === tab.id ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'
+          }`}
+        >
+          <tab.icon className="w-4 h-4" />
+          {tab.label}
+          {activeTab === tab.id && (
+            <motion.div 
+              layoutId="activeTab"
+              className="absolute bottom-0 left-0 right-0 h-1 bg-black rounded-t-full" 
+            />
+          )}
+        </button>
+      ))}
     </div>
   );
 }
