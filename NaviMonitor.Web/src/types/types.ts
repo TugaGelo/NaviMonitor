@@ -2,6 +2,7 @@ export interface MaintenanceMatrixItem {
   item: string;
   interval: number;
   action: string;
+  initial?: number;
 }
 
 export interface Vehicle {

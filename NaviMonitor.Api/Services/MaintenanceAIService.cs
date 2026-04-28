@@ -27,21 +27,25 @@ public class MaintenanceAIService
 
             string prompt = @"
                 Act as an expert mechanic. Analyze these pages from a maintenance schedule manual.
-                Combine the data from ALL provided images and extract a unified list of items that require:
-                - 'R' (Replace)
-                - 'C' (Clean)
-                - 'I' (Inspect)
+                Combine the data from ALL provided images and extract a unified list of maintenance tasks.
 
-                Rules:
-                1. Use 'km' for intervals. Ignore miles/months.
-                2. If an item has a repeating pattern (e.g., every 15,000km), use that as the 'interval'.
-                3. Handle variants (e.g., 'Manual Transmission Oil' vs 'Automatic') as separate items.
-                4. Ensure there are no duplicate items unless they represent different variants.
-                
-                Return ONLY a raw JSON object:
+                Instructions:
+                1. Differentiate between 'Initial' (break-in/first-time) service and 'Regular' (recurring) intervals.
+                2. Use 'km' for all distance values. Ignore miles or months.
+                3. The 'interval' field must represent the recurring pattern (e.g., every 4,000km).
+                4. The 'initial' field is for the first-ever check (e.g., the 1,000km break-in). If no specific initial check exists, omit the field or set to null.
+                5. Extract items for: 'R' (Replace), 'C' (Clean), and 'I' (Inspect).
+                6. Handle vehicle variants as separate line items.
+
+                Return ONLY a raw JSON object with this exact structure:
                 {
                   ""matrix"": [
-                    { ""item"": ""string"", ""interval"": number, ""action"": ""string (Replace, Clean, or Inspect)"" }
+                    { 
+                      ""item"": ""string"", 
+                      ""initial"": number or null, 
+                      ""interval"": number, 
+                      ""action"": ""string (Replace, Clean, or Inspect)"" 
+                    }
                   ]
                 }";
 
