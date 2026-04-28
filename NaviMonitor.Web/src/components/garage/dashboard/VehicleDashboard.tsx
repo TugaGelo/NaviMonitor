@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import axios from 'axios';
-import { CheckCircle2, RotateCcw, Search, Droplets } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../../../types/types';
 
 import DashboardHeader from './DashboardHeader';
 import MetricGrid from './MetricGrid';
 import DashboardTabs from './DashboardTabs';
-import FuelTable from './tables/FuelTable';
-import MaintenanceTable from './tables/MaintenanceTable';
-import MaintenanceScheduleTable from './tables/MaintenanceScheduleTable';
-import ActivityFeed from './ActivityFeed';
+import DashboardTabContent from './DashboardTabContent';
 
 interface DashboardProps {
   onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
@@ -97,6 +93,7 @@ export default function VehicleDashboard({
         serviceType: `${item} (${action})`,
         odometer: currentOdometer,
         price: 0,
+        serviceCategory: 'Maintenance',
         notes: `Automated log from Service Matrix milestone.`,
         date: new Date().toISOString().split('T')[0]
       };
@@ -130,88 +127,19 @@ export default function VehicleDashboard({
       <section className="space-y-6">
         <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
-        <AnimatePresence mode="wait">
-          {activeTab === 'Activity' ? (
-            <ActivityFeed 
-              key="feed" 
-              maintenanceLogs={maintenanceLogs} 
-              refuelLogs={refuelLogs} 
-            />
-          ) : (
-            <motion.div 
-              key={activeTab}
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm"
-            >
-              {activeTab === 'Fuel' && (
-                <div className="overflow-x-auto">
-                  <FuelTable 
-                    logs={refuelLogs} 
-                    vehicleId={vehicle.id} 
-                    onEdit={onOpenRefuelModal} 
-                    onDelete={onDeleteRefuelLog} 
-                  />
-                </div>
-              )}
-              
-              {activeTab === 'Maintenance' && (
-                <div className="overflow-x-auto">
-                  <MaintenanceTable 
-                    logs={maintenanceLogs} 
-                    vehicleId={vehicle.id} 
-                    onEdit={onOpenMaintenanceModal} 
-                    onDelete={onDeleteMaintenanceLog} 
-                  />
-                </div>
-              )}
-
-              {activeTab === 'Schedule' && (
-                <MaintenanceScheduleTable 
-                  matrix={maintenanceMatrix} 
-                  currentOdometer={currentOdometer} 
-                  logs={maintenanceLogs}
-                  onCellClick={handleMatrixAction}
-                />
-              )}
-
-              {activeTab !== 'Schedule' && (
-                <div className="px-6 py-4 border-t border-zinc-200 flex items-center bg-zinc-50/50">
-                  <span className="text-zinc-500 text-sm font-bold">
-                    Showing {activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} historical logs
-                  </span>
-                </div>
-              )}
-              
-              {activeTab === 'Schedule' && (
-                <div className="px-6 py-4 border-t border-zinc-200 flex flex-wrap gap-4 items-center justify-between bg-zinc-50/50">
-                  
-                  <span className="text-zinc-500 text-sm font-bold">
-                    Tracking {maintenanceMatrix.length} maintenance tasks
-                  </span>
-
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
-                      <Search className="w-3.5 h-3.5" /> Inspect
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
-                      <RotateCcw className="w-3.5 h-3.5 text-secondary" /> Replace
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
-                      <Droplets className="w-3.5 h-3.5 text-blue-500" /> Clean
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Done
-                    </div>
-                  </div>
-                  
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <DashboardTabContent 
+          activeTab={activeTab}
+          vehicleId={vehicle.id}
+          refuelLogs={refuelLogs}
+          maintenanceLogs={maintenanceLogs}
+          maintenanceMatrix={maintenanceMatrix}
+          currentOdometer={currentOdometer}
+          onOpenRefuelModal={onOpenRefuelModal}
+          onDeleteRefuelLog={onDeleteRefuelLog}
+          onOpenMaintenanceModal={onOpenMaintenanceModal}
+          onDeleteMaintenanceLog={onDeleteMaintenanceLog}
+          onMatrixAction={handleMatrixAction}
+        />
       </section>
     </motion.div>
   );
