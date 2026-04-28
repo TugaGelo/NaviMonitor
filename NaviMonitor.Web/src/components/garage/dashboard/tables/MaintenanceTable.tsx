@@ -10,6 +10,9 @@ interface MaintenanceTableProps {
 }
 
 export default function MaintenanceTable({ logs, vehicleId, onEdit, onDelete }: MaintenanceTableProps) {
+  
+  const headerStyle = "px-6 py-4 font-black text-[10px] text-zinc-500 uppercase tracking-widest";
+
   return (
     <motion.table 
       key="maint-table"
@@ -20,19 +23,19 @@ export default function MaintenanceTable({ logs, vehicleId, onEdit, onDelete }: 
       className="w-full text-left border-collapse"
     >
       <thead>
-        <tr className="bg-zinc-50/50 border-b border-zinc-100">
-          <th className="px-6 py-4 font-black text-[10px] text-zinc-400 uppercase tracking-widest">Date & Odo</th>
-          <th className="px-6 py-4 font-black text-[10px] text-zinc-400 uppercase tracking-widest">Type</th>
-          <th className="px-6 py-4 font-black text-[10px] text-zinc-400 uppercase tracking-widest">Service / Mod</th>
-          <th className="px-6 py-4 font-black text-[10px] text-zinc-400 uppercase tracking-widest">Cost</th>
-          <th className="px-6 py-4 font-black text-[10px] text-zinc-400 uppercase tracking-widest text-right">Actions</th>
+        <tr className="bg-zinc-50/80 border-b border-zinc-200">
+          <th className={headerStyle}>Date & Odo</th>
+          <th className={headerStyle}>Type</th>
+          <th className={headerStyle}>Service / Mod</th>
+          <th className={headerStyle}>Cost</th>
+          <th className={`${headerStyle} text-right`}>Actions</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-zinc-100">
         {logs.length === 0 ? (
           <tr>
             <td colSpan={5} className="px-6 py-12 text-center text-zinc-400 font-bold text-sm uppercase tracking-widest">
-              No records found
+              No maintenance records found
             </td>
           </tr>
         ) : (

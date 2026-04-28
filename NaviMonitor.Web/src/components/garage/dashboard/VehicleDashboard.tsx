@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { CheckCircle2, RotateCcw, Search, Droplets } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../../../types/types';
 
 import DashboardHeader from './DashboardHeader';
@@ -177,22 +178,35 @@ export default function VehicleDashboard({
               )}
 
               {activeTab !== 'Schedule' && (
-                <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
-                  <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                    System Registry
-                  </span>
+                <div className="px-6 py-4 border-t border-zinc-200 flex items-center bg-zinc-50/50">
                   <span className="text-zinc-500 text-sm font-bold">
-                    {`Showing ${activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} historical logs`}
+                    Showing {activeTab === 'Fuel' ? refuelLogs.length : maintenanceLogs.length} historical logs
                   </span>
-                  
                 </div>
               )}
               
               {activeTab === 'Schedule' && (
-                <div className="px-6 py-4 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+                <div className="px-6 py-4 border-t border-zinc-200 flex flex-wrap gap-4 items-center justify-between bg-zinc-50/50">
+                  
                   <span className="text-zinc-500 text-sm font-bold">
                     Tracking {maintenanceMatrix.length} maintenance tasks
                   </span>
+
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
+                      <Search className="w-3.5 h-3.5" /> Inspect
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
+                      <RotateCcw className="w-3.5 h-3.5 text-secondary" /> Replace
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
+                      <Droplets className="w-3.5 h-3.5 text-blue-500" /> Clean
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-zinc-400 tracking-widest">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Done
+                    </div>
+                  </div>
+                  
                 </div>
               )}
             </motion.div>

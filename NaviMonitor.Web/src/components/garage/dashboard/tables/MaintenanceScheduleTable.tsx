@@ -128,21 +128,6 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
           ))}
         </div>
       </div>
-
-      <div className="px-8 py-5 border-t border-zinc-200 flex flex-wrap gap-8 justify-end items-center bg-white">
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-          <Search className="w-4 h-4 text-zinc-400" /> Inspect
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-          <RotateCcw className="w-4 h-4 text-secondary" /> Replace
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-          <Droplets className="w-4 h-4 text-blue-500" /> Clean
-        </div>
-        <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Done
-        </div>
-      </div>
     </div>
   );
 }
