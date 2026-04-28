@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types/types';
+import type { Vehicle, RefuelLog, MaintenanceLog } from '../../../types/types';
 
-import DashboardHeader from './dashboard/DashboardHeader';
-import MetricGrid from './dashboard/MetricGrid';
-import DashboardTabs from './dashboard/DashboardTabs';
-import FuelTable from './dashboard/tables/FuelTable';
-import MaintenanceTable from './dashboard/tables/MaintenanceTable';
+import DashboardHeader from './DashboardHeader';
+import MetricGrid from './MetricGrid';
+import DashboardTabs from './DashboardTabs';
+import FuelTable from './tables/FuelTable';
+import MaintenanceTable from './tables/MaintenanceTable';
 
 interface DashboardProps {
   onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;

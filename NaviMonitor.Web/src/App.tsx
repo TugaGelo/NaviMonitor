@@ -6,11 +6,11 @@ import type { Vehicle, RefuelLog, MaintenanceLog } from './types/types';
 
 import Layout from './components/ui/Layout';
 import VehicleCard from './components/garage/VehicleCard';
-import AddVehicleModal from './components/garage/AddVehicleModal';
-import DeleteVehicleModal from './components/garage/DeleteVehicleModal';
-import AddRefuelModal from './components/garage/AddRefuelModal';
-import DeleteRefuelModal from './components/garage/DeleteRefuelModal';
-import VehicleDashboard from './components/garage/VehicleDashboard';
+import AddVehicleModal from './components/modals/vehicle/AddVehicleModal';
+import DeleteVehicleModal from './components/modals/vehicle/DeleteVehicleModal';
+import AddRefuelModal from './components/modals/refuel/AddRefuelModal';
+import DeleteRefuelModal from './components/modals/refuel/DeleteRefuelModal';
+import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 

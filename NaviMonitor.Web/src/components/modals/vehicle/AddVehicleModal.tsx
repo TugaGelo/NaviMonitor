@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { PlusCircle, Car, Bike, Save } from 'lucide-react';
-import BaseModal from '../ui/BaseModal';
-import type { Vehicle } from '../../types/types';
+import BaseModal from '../../ui/BaseModal';
+import type { Vehicle } from '../../../types/types';
 
 interface AddVehicleModalProps {
   isOpen: boolean;

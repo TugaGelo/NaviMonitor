@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Fuel, Car, Bike, Truck, Save } from 'lucide-react';
-import BaseModal from '../ui/BaseModal';
-import type { Vehicle, RefuelLog } from '../../types/types';
+import BaseModal from '../../ui/BaseModal';
+import type { Vehicle, RefuelLog } from '../../../types/types';
 
 interface AddRefuelModalProps {
   isOpen: boolean;
