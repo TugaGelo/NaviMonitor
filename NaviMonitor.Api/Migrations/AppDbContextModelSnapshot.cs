@@ -121,11 +121,17 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<int>("EngineSizeCC")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("HasSyncedManual")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("InsuranceExpiry")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MaintenanceMatrixJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Make")

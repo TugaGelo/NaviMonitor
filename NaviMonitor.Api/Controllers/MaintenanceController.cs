@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NaviMonitor.Api.Models;
+using NaviMonitor.Api.Services;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace NaviMonitor.Api.Controllers;
 
@@ -9,10 +13,12 @@ namespace NaviMonitor.Api.Controllers;
 public class MaintenanceController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly MaintenanceAIService _aiService;
 
-    public MaintenanceController(AppDbContext context)
+    public MaintenanceController(AppDbContext context, MaintenanceAIService aiService)
     {
         _context = context;
+        _aiService = aiService;
     }
 
     // GET: /api/maintenance
@@ -110,5 +116,42 @@ public class MaintenanceController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // POST: /api/maintenance/debug-scan
+    [HttpPost("debug-scan")]
+    public async Task<IActionResult> DebugScan(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("Please upload an image of a manual.");
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var fileBytes = ms.ToArray();
+
+        var jsonResult = await _aiService.ProcessManualImage(fileBytes);
+
+        return Content(jsonResult, "application/json");
+    }
+
+    // POST: /api/maintenance/sync-manual/1
+    [HttpPost("sync-manual/{vehicleId}")]
+    public async Task<IActionResult> SyncManual(int vehicleId, IFormFile file)
+    {
+        var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+        if (vehicle == null) return NotFound("Vehicle not found.");
+
+        if (file == null || file.Length == 0) return BadRequest("No image provided.");
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var jsonResult = await _aiService.ProcessManualImage(ms.ToArray());
+
+        vehicle.MaintenanceMatrixJson = jsonResult;
+        vehicle.HasSyncedManual = true;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Manual synced successfully!", data = jsonResult });
     }
 }

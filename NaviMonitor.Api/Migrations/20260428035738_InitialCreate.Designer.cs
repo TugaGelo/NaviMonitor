@@ -11,7 +11,7 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260427082454_InitialCreate")]
+    [Migration("20260428035738_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -124,11 +124,17 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<int>("EngineSizeCC")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("HasSyncedManual")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("InsuranceExpiry")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LicensePlate")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MaintenanceMatrixJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Make")

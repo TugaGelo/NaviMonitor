@@ -27,7 +27,9 @@ namespace NaviMonitor.Api.Migrations
                     EngineSizeCC = table.Column<int>(type: "INTEGER", nullable: false),
                     StartingOdometer = table.Column<int>(type: "INTEGER", nullable: false),
                     RegistrationExpiry = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    InsuranceExpiry = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    InsuranceExpiry = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    HasSyncedManual = table.Column<bool>(type: "INTEGER", nullable: false),
+                    MaintenanceMatrixJson = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

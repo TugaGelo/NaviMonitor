@@ -35,6 +35,9 @@ public class Vehicle
     public DateTime? RegistrationExpiry { get; set; }
     public DateTime? InsuranceExpiry { get; set; }
 
+    public bool HasSyncedManual { get; set; } = false;
+    public string? MaintenanceMatrixJson { get; set; }
+
     [JsonIgnore]
     public List<RefuelLog> RefuelLogs { get; set; } = new();
 
