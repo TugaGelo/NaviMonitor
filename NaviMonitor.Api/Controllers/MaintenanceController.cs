@@ -5,6 +5,7 @@ using NaviMonitor.Api.Models;
 using NaviMonitor.Api.Services;
 using System.IO;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace NaviMonitor.Api.Controllers;
 
@@ -23,82 +24,70 @@ public class MaintenanceController : ControllerBase
 
     // GET: /api/maintenance
     [HttpGet]
-    public async Task<IActionResult> GetAllLogs()
-    {
-        var logs = await _context.MaintenanceLogs.OrderByDescending(l => l.Date).ToListAsync();
-        return Ok(logs);
-    }
+    public async Task<IActionResult> GetAllLogs() => 
+        Ok(await _context.MaintenanceLogs.OrderByDescending(l => l.Date).ToListAsync());
 
     // GET: /api/maintenance/vehicle/1
     [HttpGet("vehicle/{vehicleId}")]
-    public async Task<IActionResult> GetLogsByVehicle(int vehicleId)
-    {
-        var logs = await _context.MaintenanceLogs
-            .Where(l => l.VehicleId == vehicleId)
-            .OrderByDescending(l => l.Date)
-            .ToListAsync();
-
-        return Ok(logs);
-    }
+    public async Task<IActionResult> GetLogsByVehicle(int vehicleId) => 
+        Ok(await _context.MaintenanceLogs.Where(l => l.VehicleId == vehicleId).OrderByDescending(l => l.Date).ToListAsync());
 
     // GET: /api/maintenance/1
     [HttpGet("{id}")]
     public async Task<IActionResult> GetLog(int id)
     {
         var log = await _context.MaintenanceLogs.FindAsync(id);
-
-        if (log == null)
-        {
-            return NotFound("Maintenance log not found.");
-        }
-
-        return Ok(log);
+        return log == null ? NotFound("Maintenance log not found.") : Ok(log);
     }
 
     // POST: /api/maintenance
     [HttpPost]
     public async Task<IActionResult> AddLog(MaintenanceLog newLog)
     {
-        var vehicleExists = await _context.Vehicles.AnyAsync(v => v.Id == newLog.VehicleId);
-        if (!vehicleExists)
-        {
-            return BadRequest($"Cannot add log. Vehicle with ID {newLog.VehicleId} does not exist.");
-        }
+        if (!await _context.Vehicles.AnyAsync(v => v.Id == newLog.VehicleId)) 
+            return BadRequest("Vehicle not found.");
 
         _context.MaintenanceLogs.Add(newLog);
         await _context.SaveChangesAsync();
-
         return CreatedAtAction(nameof(GetLog), new { id = newLog.Id }, newLog);
     }
 
-    // PUT: /api/maintenance/1
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateLog(int id, MaintenanceLog updatedLog)
+    // POST: /api/maintenance/analyze
+    [HttpPost("analyze")]
+    public async Task<IActionResult> AnalyzeManual(List<IFormFile> files)
     {
-        if (id != updatedLog.Id)
+        if (files == null || files.Count == 0) 
+            return BadRequest("Please upload at least one image of a manual.");
+
+        var imagesBytes = new List<byte[]>();
+        foreach (var file in files)
         {
-            return BadRequest("Log ID mismatch.");
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            imagesBytes.Add(ms.ToArray());
         }
 
-        _context.Entry(updatedLog).State = EntityState.Modified;
+        var jsonResult = await _aiService.ProcessManualImages(imagesBytes);
+        return Content(jsonResult, "application/json");
+    }
 
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await _context.MaintenanceLogs.AnyAsync(e => e.Id == id))
-            {
-                return NotFound("Maintenance log not found.");
-            }
-            else
-            {
-                throw;
-            }
-        }
+    // POST: /api/maintenance/vehicle/1/matrix
+    [HttpPost("vehicle/{vehicleId}/matrix")]
+    public async Task<IActionResult> SaveMaintenanceMatrix(int vehicleId, [FromBody] SaveMatrixRequest request)
+    {
+        var vehicle = await _context.Vehicles.FindAsync(vehicleId);
+        if (vehicle == null) return NotFound("Vehicle not found.");
 
-        return NoContent();
+        if (request.MatrixData == null)
+            return BadRequest("Maintenance matrix data is empty.");
+
+        string serializedJson = JsonSerializer.Serialize(request.MatrixData);
+
+        vehicle.MaintenanceMatrixJson = serializedJson;
+        vehicle.HasSyncedManual = true;
+
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Maintenance schedule saved successfully!" });
     }
 
     // DELETE: /api/maintenance/1
@@ -106,64 +95,15 @@ public class MaintenanceController : ControllerBase
     public async Task<IActionResult> DeleteLog(int id)
     {
         var log = await _context.MaintenanceLogs.FindAsync(id);
-
-        if (log == null)
-        {
-            return NotFound("Maintenance log not found.");
-        }
+        if (log == null) return NotFound("Maintenance log not found.");
 
         _context.MaintenanceLogs.Remove(log);
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
+}
 
-    // POST: /api/maintenance/debug-scan
-    [HttpPost("debug-scan")]
-    public async Task<IActionResult> DebugScan(List<IFormFile> files)
-    {
-        if (files == null || files.Count == 0)
-            return BadRequest("Please upload at least one image of a manual.");
-
-        var imagesBytes = new List<byte[]>();
-
-        foreach (var file in files)
-        {
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            imagesBytes.Add(ms.ToArray());
-        }
-
-        var jsonResult = await _aiService.ProcessManualImages(imagesBytes);
-
-        return Content(jsonResult, "application/json");
-    }
-
-    // POST: /api/maintenance/sync-manual/1
-    [HttpPost("sync-manual/{vehicleId}")]
-    public async Task<IActionResult> SyncManual(int vehicleId, List<IFormFile> files)
-    {
-        var vehicle = await _context.Vehicles.FindAsync(vehicleId);
-        if (vehicle == null) return NotFound("Vehicle not found.");
-
-        if (files == null || files.Count == 0) return BadRequest("Please upload at least one image.");
-
-        var imagesBytes = new List<byte[]>();
-
-        foreach (var file in files)
-        {
-            using var ms = new MemoryStream();
-            await file.CopyToAsync(ms);
-            imagesBytes.Add(ms.ToArray());
-        }
-
-        var jsonResult = await _aiService.ProcessManualImages(imagesBytes);
-
-        vehicle.MaintenanceMatrixJson = jsonResult;
-        vehicle.HasSyncedManual = true;
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Manual pages synced successfully!", data = jsonResult });
-    }
+public class SaveMatrixRequest
+{
+    public object MatrixData { get; set; } = default!;
 }
