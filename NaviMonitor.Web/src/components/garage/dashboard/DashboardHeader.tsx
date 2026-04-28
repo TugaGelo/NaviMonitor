@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Fuel, Wrench } from 'lucide-react';
+import { ArrowLeft, Fuel, Wrench, FileImage } from 'lucide-react';
 import type { Vehicle } from '../../../types/types';
 
 interface DashboardHeaderProps {
@@ -7,13 +7,15 @@ interface DashboardHeaderProps {
   activeTab: 'Fuel' | 'Maintenance';
   onOpenRefuelModal?: (vehicleId: number) => void;
   onOpenMaintenanceModal?: (vehicleId: number) => void;
+  onOpenSyncModal?: (vehicleId: number) => void;
 }
 
 export default function DashboardHeader({ 
   vehicle, 
   activeTab, 
   onOpenRefuelModal, 
-  onOpenMaintenanceModal 
+  onOpenMaintenanceModal,
+  onOpenSyncModal
 }: DashboardHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -34,12 +36,20 @@ export default function DashboardHeader({
             <Fuel className="w-4 h-4" /> New Fuel Log
           </button>
         ) : (
-          <button 
-            onClick={() => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicle.id)}
-            className="bg-secondary text-white px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95 flex items-center gap-2"
-          >
-            <Wrench className="w-4 h-4" /> Add Maintenance
-          </button>
+          <>
+            <button 
+              onClick={() => onOpenSyncModal && onOpenSyncModal(vehicle.id)}
+              className="bg-zinc-100 text-black border border-zinc-200 px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all active:scale-95 flex items-center gap-2"
+            >
+              <FileImage className="w-4 h-4" /> {vehicle.hasSyncedManual ? 'Update Manual' : 'Sync Manual'}
+            </button>
+            <button 
+              onClick={() => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicle.id)}
+              className="bg-secondary text-white px-6 py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95 flex items-center gap-2"
+            >
+              <Wrench className="w-4 h-4" /> Add Maintenance
+            </button>
+          </>
         )}
       </div>
     </div>

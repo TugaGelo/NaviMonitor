@@ -14,6 +14,7 @@ import DeleteRefuelModal from './components/modals/refuel/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
+import SyncManualModal from './components/modals/vehicle/SyncManualModal';
 
 export default function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -36,6 +37,9 @@ export default function App() {
   const [maintenanceLogToEdit, setMaintenanceLogToEdit] = useState<MaintenanceLog | null>(null);
   const [maintenanceLogToDelete, setMaintenanceLogToDelete] = useState<MaintenanceLog | null>(null);
   const [maintenanceModalOdo, setMaintenanceModalOdo] = useState<number>(0);
+
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncVehicleId, setSyncVehicleId] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -130,6 +134,11 @@ export default function App() {
             }}
             onDeleteMaintenanceLog={(log: MaintenanceLog) => setMaintenanceLogToDelete(log)}
             
+            onOpenSyncModal={(vehicleId: number) => {
+              setSyncVehicleId(vehicleId);
+              setIsSyncModalOpen(true);
+            }}
+
             refreshTrigger={refreshKey}
           />
         } />
@@ -143,6 +152,8 @@ export default function App() {
         {refuelLogToDelete && <DeleteRefuelModal key="del-ref" isOpen={true} onClose={() => setRefuelLogToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} log={refuelLogToDelete} />}
         {isMaintenanceModalOpen && <AddMaintenanceModModal key="add-maint" isOpen={true} onClose={() => { setIsMaintenanceModalOpen(false); setPreselectedMaintenanceId(null); setMaintenanceLogToEdit(null); }} onSuccess={() => setRefreshKey(k => k + 1)} vehicles={vehicles} preselectedVehicleId={preselectedMaintenanceId} logToEdit={maintenanceLogToEdit} currentOdometer={maintenanceModalOdo} />}
         {maintenanceLogToDelete && <DeleteMaintenanceModal key="del-maint" isOpen={true} onClose={() => setMaintenanceLogToDelete(null)} onSuccess={() => setRefreshKey(k => k + 1)} log={maintenanceLogToDelete} />}
+        {isSyncModalOpen && syncVehicleId && (<SyncManualModal key="sync-manual" isOpen={true} vehicleId={syncVehicleId} onClose={() => { setIsSyncModalOpen(false); setSyncVehicleId(null); }} onSuccess={() => setRefreshKey(k => k + 1)} />
+        )}
       </AnimatePresence>
 
     </Layout>

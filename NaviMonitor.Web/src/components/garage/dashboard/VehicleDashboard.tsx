@@ -16,6 +16,7 @@ interface DashboardProps {
   onDeleteRefuelLog?: (log: RefuelLog) => void;
   onOpenMaintenanceModal?: (vehicleId: number, logToEdit?: MaintenanceLog | null, currentOdometer?: number) => void;
   onDeleteMaintenanceLog?: (log: MaintenanceLog) => void;
+  onOpenSyncModal?: (vehicleId: number) => void;
   refreshTrigger?: number;
 }
 
@@ -24,6 +25,7 @@ export default function VehicleDashboard({
   onDeleteRefuelLog,
   onOpenMaintenanceModal,
   onDeleteMaintenanceLog,
+  onOpenSyncModal,
   refreshTrigger 
 }: DashboardProps) {
   const { id } = useParams<{ id: string }>(); 
@@ -83,6 +85,7 @@ export default function VehicleDashboard({
         activeTab={activeTab === 'Activity' ? 'Fuel' : activeTab}
         onOpenRefuelModal={onOpenRefuelModal} 
         onOpenMaintenanceModal={(vehicleId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vehicleId, null, currentOdometer)} 
+        onOpenSyncModal={onOpenSyncModal}
       />
 
       <MetricGrid 

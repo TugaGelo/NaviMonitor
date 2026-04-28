@@ -1,3 +1,9 @@
+export interface MaintenanceMatrixItem {
+  item: string;
+  interval: number;
+  action: string;
+}
+
 export interface Vehicle {
   id: number;
   vehicleType: string;
@@ -10,6 +16,8 @@ export interface Vehicle {
   startingOdometer: number;
   licensePlate: string;
   registrationExpiry?: string;
+  hasSyncedManual?: boolean;
+  maintenanceMatrixJson?: string;
 }
 
 export interface RefuelLog {
