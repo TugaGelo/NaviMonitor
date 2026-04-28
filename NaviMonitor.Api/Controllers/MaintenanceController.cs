@@ -120,38 +120,50 @@ public class MaintenanceController : ControllerBase
 
     // POST: /api/maintenance/debug-scan
     [HttpPost("debug-scan")]
-    public async Task<IActionResult> DebugScan(IFormFile file)
+    public async Task<IActionResult> DebugScan(List<IFormFile> files)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("Please upload an image of a manual.");
+        if (files == null || files.Count == 0)
+            return BadRequest("Please upload at least one image of a manual.");
 
-        using var ms = new MemoryStream();
-        await file.CopyToAsync(ms);
-        var fileBytes = ms.ToArray();
+        var imagesBytes = new List<byte[]>();
 
-        var jsonResult = await _aiService.ProcessManualImage(fileBytes);
+        foreach (var file in files)
+        {
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            imagesBytes.Add(ms.ToArray());
+        }
+
+        var jsonResult = await _aiService.ProcessManualImages(imagesBytes);
 
         return Content(jsonResult, "application/json");
     }
 
     // POST: /api/maintenance/sync-manual/1
     [HttpPost("sync-manual/{vehicleId}")]
-    public async Task<IActionResult> SyncManual(int vehicleId, IFormFile file)
+    public async Task<IActionResult> SyncManual(int vehicleId, List<IFormFile> files)
     {
         var vehicle = await _context.Vehicles.FindAsync(vehicleId);
         if (vehicle == null) return NotFound("Vehicle not found.");
 
-        if (file == null || file.Length == 0) return BadRequest("No image provided.");
+        if (files == null || files.Count == 0) return BadRequest("Please upload at least one image.");
 
-        using var ms = new MemoryStream();
-        await file.CopyToAsync(ms);
-        var jsonResult = await _aiService.ProcessManualImage(ms.ToArray());
+        var imagesBytes = new List<byte[]>();
+
+        foreach (var file in files)
+        {
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            imagesBytes.Add(ms.ToArray());
+        }
+
+        var jsonResult = await _aiService.ProcessManualImages(imagesBytes);
 
         vehicle.MaintenanceMatrixJson = jsonResult;
         vehicle.HasSyncedManual = true;
 
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Manual synced successfully!", data = jsonResult });
+        return Ok(new { message = "Manual pages synced successfully!", data = jsonResult });
     }
 }

@@ -18,7 +18,7 @@ public class MaintenanceAIService
         _logger = logger;
     }
 
-    public async Task<string> ProcessManualImage(byte[] imageBytes)
+    public async Task<string> ProcessManualImages(List<byte[]> imagesBytes)
     {
         try
         {
@@ -26,8 +26,8 @@ public class MaintenanceAIService
             var model = googleAi.GenerativeModel(model: "gemini-flash-latest");
 
             string prompt = @"
-                Act as an expert mechanic. Analyze this maintenance schedule.
-                Extract a list of items that require:
+                Act as an expert mechanic. Analyze these pages from a maintenance schedule manual.
+                Combine the data from ALL provided images and extract a unified list of items that require:
                 - 'R' (Replace)
                 - 'C' (Clean)
                 - 'I' (Inspect)
@@ -36,6 +36,7 @@ public class MaintenanceAIService
                 1. Use 'km' for intervals. Ignore miles/months.
                 2. If an item has a repeating pattern (e.g., every 15,000km), use that as the 'interval'.
                 3. Handle variants (e.g., 'Manual Transmission Oil' vs 'Automatic') as separate items.
+                4. Ensure there are no duplicate items unless they represent different variants.
                 
                 Return ONLY a raw JSON object:
                 {
@@ -44,6 +45,23 @@ public class MaintenanceAIService
                   ]
                 }";
 
+            var promptParts = new List<Mscc.GenerativeAI.Types.IPart>
+            {
+                new Mscc.GenerativeAI.Types.Part { Text = prompt }
+            };
+
+            foreach (var imgBytes in imagesBytes)
+            {
+                promptParts.Add(new Mscc.GenerativeAI.Types.Part
+                {
+                    InlineData = new Mscc.GenerativeAI.Types.InlineData
+                    {
+                        MimeType = "image/jpeg",
+                        Data = Convert.ToBase64String(imgBytes)
+                    }
+                });
+            }
+
             var request = new Mscc.GenerativeAI.Types.GenerateContentRequest
             {
                 Contents = new List<Mscc.GenerativeAI.Types.Content>
@@ -51,18 +69,7 @@ public class MaintenanceAIService
                     new Mscc.GenerativeAI.Types.Content
                     {
                         Role = "user",
-                        Parts = new List<Mscc.GenerativeAI.Types.IPart>
-                        {
-                            new Mscc.GenerativeAI.Types.Part { Text = prompt },
-                            new Mscc.GenerativeAI.Types.Part
-                            {
-                                InlineData = new Mscc.GenerativeAI.Types.InlineData
-                                {
-                                    MimeType = "image/png",
-                                    Data = Convert.ToBase64String(imageBytes)
-                                }
-                            }
-                        }
+                        Parts = promptParts
                     }
                 }
             };
