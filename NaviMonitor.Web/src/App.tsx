@@ -15,6 +15,7 @@ import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
 import GlobalFuelLogs from './components/garage/GlobalFuelLogs';
 import GlobalMaintenanceLogs from './components/garage/GlobalMaintenanceLogs';
 import GlobalStats from './components/garage/GlobalStats';
+import Support from './components/garage/Support';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 import SyncManualModal from './components/modals/vehicle/SyncManualModal';
@@ -150,6 +151,8 @@ export default function App() {
         <Route path="/stats" element={
           <GlobalStats vehicles={vehicles} />
         } />
+
+        <Route path="/support" element={<Support />} />
 
         <Route path="/vehicle/:id" element={
           <VehicleDashboard 
