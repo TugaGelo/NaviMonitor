@@ -103,7 +103,7 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-zinc-200 pb-8">
         <div>
           <h2 className="text-3xl font-extrabold text-black tracking-tight uppercase">Performance Stats</h2>
-          <p className="text-zinc-500 font-medium mt-1 uppercase tracking-widest text-[10px]">Fleet Aggregate // Real-Time Telemetry</p>
+          <p className="text-zinc-500 font-medium mt-1">Real-Time Telemetry</p>
         </div>
       </header>
 
