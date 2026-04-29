@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, RotateCcw, Droplets, CheckCircle2 } from 'lucide-react';
 import type { RefuelLog, MaintenanceLog, MaintenanceMatrixItem } from '../../../types/types';
 
-import ActivityFeed from './ActivityFeed';
+import ActivityFeed from '../../features/dashboard/ActivityFeed';
 import FuelTable from './tables/FuelTable';
 import MaintenanceTable from './tables/MaintenanceTable';
 import MaintenanceScheduleTable from './tables/MaintenanceScheduleTable';

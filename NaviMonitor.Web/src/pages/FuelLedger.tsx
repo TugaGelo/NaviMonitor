@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Edit2, Trash2, Fuel, DollarSign, TrendingDown } from 'lucide-react';
-import type { Vehicle, RefuelLog } from '../../types/types';
+import type { Vehicle, RefuelLog } from '../types/types';
 
 interface GlobalFuelLogsProps {
   vehicles: Vehicle[];

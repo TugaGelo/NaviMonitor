@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Edit2, Trash2, Wrench, Rocket, Search, Home } from 'lucide-react';
-import type { Vehicle, MaintenanceLog } from '../../types/types';
+import type { Vehicle, MaintenanceLog } from '../types/types';
 
 interface GlobalMaintenanceLogsProps {
   vehicles: Vehicle[];
