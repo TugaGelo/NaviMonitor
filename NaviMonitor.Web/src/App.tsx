@@ -14,6 +14,7 @@ import DeleteRefuelModal from './components/modals/refuel/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
 import GlobalFuelLogs from './components/garage/GlobalFuelLogs';
 import GlobalMaintenanceLogs from './components/garage/GlobalMaintenanceLogs';
+import GlobalStats from './components/garage/GlobalStats';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 import SyncManualModal from './components/modals/vehicle/SyncManualModal';
@@ -144,6 +145,10 @@ export default function App() {
             onDeleteMaintenanceLog={(log) => setMaintenanceLogToDelete(log)}
             refreshTrigger={refreshKey}
           />
+        } />
+
+        <Route path="/stats" element={
+          <GlobalStats vehicles={vehicles} />
         } />
 
         <Route path="/vehicle/:id" element={
