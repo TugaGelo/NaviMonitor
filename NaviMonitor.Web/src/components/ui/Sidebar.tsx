@@ -1,61 +1,87 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import { 
   LayoutDashboard, Fuel, Wrench, BarChart3, 
-  Settings, HelpCircle 
+  Settings, HelpCircle, LogOut, TableProperties, Plus
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const location = useLocation();
-  
-  const navItems = [
-    { name: 'Overview', icon: LayoutDashboard, path: '/' },
-    { name: 'Fuel Logs', icon: Fuel, path: '/fuel' },
-    { name: 'Maintenance', icon: Wrench, path: '/maintenance' },
-    { name: 'Stats', icon: BarChart3, path: '/stats' },
+  const { id } = useParams<{ id: string }>(); 
+
+  const contextLinks = [
+    { name: 'Fuel Logs', icon: Fuel, path: `/vehicle/${id}/fuel` },
+    { name: 'Maintenance', icon: Wrench, path: `/vehicle/${id}/maintenance` },
+    { name: 'V-Matrix', icon: TableProperties, path: `/vehicle/${id}/schedule` },
+    { name: 'Stats', icon: BarChart3, path: `/vehicle/${id}/stats` },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col py-8 h-screen w-64 border-r border-zinc-200 bg-white sticky top-0">
-      <div className="px-6 mb-10 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center shadow-md">
-          <div className="w-3 h-3 rounded-full bg-secondary animate-pulse"></div>
-        </div>
-        <div>
-          <h2 className="text-xl font-black tracking-tighter uppercase">Navi</h2>
-        </div>
+    <aside className="hidden md:flex flex-col py-6 px-4 h-screen w-64 border-r border-zinc-200 bg-white sticky top-0 z-50">
+      
+      <div className="px-2 mb-8 flex items-center gap-3">
+        <h1 className="text-2xl font-black tracking-tighter text-zinc-900">NAVI</h1>
+        <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" title="System Active"></div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-4">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path));
+      <div className="mb-4">
+        <NavLink 
+          to="/"
+          end
+          className={({ isActive }) => `
+            flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all
+            ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}
+          `}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          My Garage
+        </NavLink>
+      </div>
+
+      <div className="w-full h-px bg-zinc-200 my-2" />
+
+      <nav className="flex flex-col gap-1 grow mt-2">
+        {contextLinks.map((item) => {
+          const isDisabled = !id;
+          
           return (
-            <Link
+            <NavLink
               key={item.name}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm transition-all active:scale-95 ${
-                isActive 
-                ? 'bg-zinc-100 text-black border-r-4 border-secondary' 
-                : 'text-zinc-500 hover:bg-zinc-50 hover:pl-6'
-              }`}
+              to={isDisabled ? '#' : item.path}
+              className={({ isActive }) => `
+                flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all
+                ${isDisabled ? 'opacity-40 cursor-not-allowed text-zinc-400' : 'active:scale-95'}
+                ${isActive && !isDisabled 
+                  ? 'bg-zinc-100 text-black border-r-4 border-secondary' 
+                  : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}
+              `}
+              onClick={(e) => {
+                if (isDisabled) e.preventDefault();
+              }}
             >
               <item.icon className="w-5 h-5" />
               {item.name}
-            </Link>
+            </NavLink>
           );
         })}
       </nav>
 
-      <div className="px-4 mt-auto pt-8 border-t border-zinc-100 space-y-1">
-        <Link to="/settings" className="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-zinc-50 hover:pl-6 rounded-lg font-bold text-sm transition-all">
-          <Settings className="w-5 h-5" /> Settings
-        </Link>
-        <Link to="/support" className="flex items-center gap-3 px-4 py-3 text-zinc-500 hover:bg-zinc-50 hover:pl-6 rounded-lg font-bold text-sm transition-all">
-          <HelpCircle className="w-5 h-5" /> Support
-        </Link>
-        <button className="mt-6 w-full py-3 bg-secondary text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95">
-          New Entry
+      <div className="mt-auto flex flex-col pt-6 border-t border-zinc-100">
+        <div className="flex flex-col gap-1 mb-6">
+          <NavLink to="/settings" className="flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg font-bold text-sm transition-all">
+            <Settings className="w-5 h-5" /> Settings
+          </NavLink>
+          <NavLink to="/support" className="flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg font-bold text-sm transition-all">
+            <HelpCircle className="w-5 h-5" /> Support
+          </NavLink>
+          <button className="flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-secondary hover:bg-red-50 rounded-lg font-bold text-sm transition-all w-full text-left">
+            <LogOut className="w-5 h-5" /> Logout
+          </button>
+        </div>
+
+        <button className="w-full bg-secondary text-white py-3 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95 flex justify-center items-center gap-2">
+          <Plus className="w-4 h-4" /> New Entry
         </button>
       </div>
+
     </aside>
   );
 }
