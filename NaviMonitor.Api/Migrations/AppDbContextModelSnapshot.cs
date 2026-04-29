@@ -153,6 +153,10 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<int>("StartingOdometer")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("VehicleType")
                         .IsRequired()
                         .HasColumnType("TEXT");

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialAuthSetup : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,6 +17,7 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     VehicleType = table.Column<string>(type: "TEXT", nullable: false),
                     Nickname = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
                     Make = table.Column<string>(type: "TEXT", nullable: false),

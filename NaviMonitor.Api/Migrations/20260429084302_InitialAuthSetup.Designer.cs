@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260428035738_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260429084302_InitialAuthSetup")]
+    partial class InitialAuthSetup
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -155,6 +155,10 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<int>("StartingOdometer")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("VehicleType")
                         .IsRequired()

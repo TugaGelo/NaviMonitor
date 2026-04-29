@@ -7,6 +7,9 @@ public class Vehicle
 {
     public int Id { get; set; }
 
+    [Required(ErrorMessage = "A User ID is required to own a vehicle.")]
+    public string UserId { get; set; } = string.Empty;
+
     [Required(ErrorMessage = "Vehicle Type is required (e.g., Motorcycle, Car).")]
     public string VehicleType { get; set; } = string.Empty;
 
