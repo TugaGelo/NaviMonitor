@@ -4,9 +4,9 @@ import { Search, RotateCcw, Droplets, CheckCircle2 } from 'lucide-react';
 import type { RefuelLog, MaintenanceLog, MaintenanceMatrixItem } from '../../../types/types';
 
 import ActivityFeed from '../../features/dashboard/ActivityFeed';
-import FuelTable from './tables/FuelTable';
-import MaintenanceTable from './tables/MaintenanceTable';
-import MaintenanceScheduleTable from './tables/MaintenanceScheduleTable';
+import FuelTable from '../../features/tables/FuelTable.tsx';
+import MaintenanceTable from '../../features/tables/MaintenanceTable';
+import MaintenanceScheduleTable from '../../features/tables/MaintenanceScheduleTable';
 
 interface TabContentProps {
   activeTab: 'Activity' | 'Fuel' | 'Maintenance' | 'Schedule';

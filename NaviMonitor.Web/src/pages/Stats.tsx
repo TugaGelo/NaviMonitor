@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { DollarSign, Wrench, Calendar, LineChart, PieChart } from 'lucide-react';
-import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types/types';
+import type { Vehicle, RefuelLog, MaintenanceLog } from '../types/types';
 
 interface GlobalStatsProps {
   vehicles: Vehicle[];

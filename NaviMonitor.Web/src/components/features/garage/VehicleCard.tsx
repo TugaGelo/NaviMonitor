@@ -3,7 +3,7 @@ import { Gauge, CalendarDays, ChevronRight, ShieldAlert, Droplet, MoreHorizontal
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import type { Vehicle, RefuelLog } from '../../types/types';
+import type { Vehicle, RefuelLog } from '../../../types/types';
 
 interface VehicleCardProps {
   vehicle: Vehicle;

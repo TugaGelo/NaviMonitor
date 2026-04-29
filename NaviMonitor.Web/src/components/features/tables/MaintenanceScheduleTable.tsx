@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2, RotateCcw, Search, Droplets } from 'lucide-react';
-import type { MaintenanceMatrixItem, MaintenanceLog } from '../../../../types/types';
+import type { MaintenanceMatrixItem, MaintenanceLog } from '../../../types/types';
 
 interface MaintenanceScheduleTableProps {
   matrix: MaintenanceMatrixItem[];
