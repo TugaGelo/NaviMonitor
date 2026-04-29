@@ -34,7 +34,7 @@ export default function VehicleDashboard({
   const [fuelLogs, setFuelLogs] = useState<RefuelLog[]>([]);
   const [maintLogs, setMaintLogs] = useState<MaintenanceLog[]>([]);
   
-  const [maintenanceMatrix] = useState<MaintenanceMatrixItem[]>([]);  
+  const [maintenanceMatrix, setMaintenanceMatrix] = useState<MaintenanceMatrixItem[]>([]);  
   const [isLoading, setIsLoading] = useState(true);
   
   const [activeTab, setActiveTab] = useState<TabType>("Activity");
@@ -56,9 +56,22 @@ export default function VehicleDashboard({
         ]);
 
         if (isMounted) {
-          setVehicle(vehRes.data);
+          const fetchedVehicle = vehRes.data;
+          setVehicle(fetchedVehicle);
           setFuelLogs(fuelRes.data.sort((a: RefuelLog, b: RefuelLog) => new Date(b.date).getTime() - new Date(a.date).getTime()));
           setMaintLogs(maintRes.data.sort((a: MaintenanceLog, b: MaintenanceLog) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+
+          if (fetchedVehicle.maintenanceMatrixJson) {
+            try {
+              const parsedData = JSON.parse(fetchedVehicle.maintenanceMatrixJson);
+              setMaintenanceMatrix(parsedData.matrix || []);
+            } catch (error) {
+              console.error("Failed to parse maintenance matrix JSON", error);
+              setMaintenanceMatrix([]);
+            }
+          } else {
+            setMaintenanceMatrix([]);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch vehicle dashboard data", err);
@@ -72,8 +85,20 @@ export default function VehicleDashboard({
     return () => { isMounted = false; };
   }, [id, refreshTrigger]);
 
-  const handleMatrixAction = (item: string, action: string) => {
-    console.log(`Matrix action triggered: ${action} on ${item}`);
+  const handleMatrixAction = (item: string, action: string, targetOdo: number) => {
+    if (!vehicle) return;
+
+    const draftLog: MaintenanceLog = {
+      vehicleId: vehicle.id,
+      serviceType: `${action} ${item}`,
+      logType: 'Maintenance',
+      date: new Date().toISOString().split('T')[0],
+      odometer: targetOdo,
+      isDIY: false,
+      price: 0
+    };
+
+    onOpenMaintenanceModal(vehicle.id, draftLog, targetOdo);
   };
 
   if (isLoading) {

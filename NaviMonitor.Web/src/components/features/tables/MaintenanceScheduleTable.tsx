@@ -6,7 +6,7 @@ interface MaintenanceScheduleTableProps {
   matrix: MaintenanceMatrixItem[];
   currentOdometer: number;
   logs: MaintenanceLog[];
-  onCellClick: (task: string, action: string) => void;
+  onCellClick: (task: string, action: string, odoPoint: number) => void;
 }
 
 export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs, onCellClick }: MaintenanceScheduleTableProps) {
@@ -28,14 +28,15 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
   const columns = getColumns();
   const nextMilestone = columns.find(c => c >= currentOdometer) || columns[columns.length - 1];
 
-  const isCompleted = (taskName: string, odoPoint: number) => {
+  const isCompleted = (taskName: string, action: string, odoPoint: number) => {
     const tolerance = Math.max(500, masterInterval * 0.4); 
 
     return logs.some(log => {
       const safeLogName = (log.serviceType || '').toLowerCase();
       const safeTaskName = (taskName || '').toLowerCase().trim();
+      const safeAction = (action || '').toLowerCase().trim();
       
-      const isNameMatch = safeLogName.includes(safeTaskName);
+      const isNameMatch = safeLogName.includes(safeTaskName) || safeLogName === `${safeAction} ${safeTaskName}`;
       const isOdoMatch = Math.abs((log.odometer || 0) - odoPoint) <= tolerance;
 
       return isNameMatch && isOdoMatch;
@@ -62,7 +63,6 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
           className="min-w-225 grid" 
           style={{ gridTemplateColumns: `240px repeat(${columns.length}, 1fr)` }}
         >
-          {/* Header Row */}
           <div className={`${headerHeight} ${borderStyle} bg-zinc-50/80 p-4 flex items-center ${labelTextStyle}`}>
             Component
           </div>
@@ -94,15 +94,16 @@ export default function MaintenanceScheduleTable({ matrix, currentOdometer, logs
               
               {columns.map((odo) => {
                 const isApplicable = (item.initial === odo) || (odo > (item.initial || 0) && (odo - (item.initial || 0)) % item.interval === 0);
-                const done = isCompleted(item.item, odo);
+                const done = isCompleted(item.item, item.action, odo);
                 const isActive = odo === nextMilestone;
-                const canLog = isActive && isApplicable && !done;
+                
+                const canLog = isApplicable && !done;
 
                 return (
                   <button 
                     key={odo}
                     disabled={!canLog}
-                    onClick={() => onCellClick(item.item, item.action)}
+                    onClick={() => onCellClick(item.item, item.action, odo)}
                     className={`${rowHeight} ${borderStyle} flex flex-col justify-center items-center gap-0.5 group transition-all outline-none ${
                       isActive ? 'bg-zinc-900/2' : 'bg-white'
                     } ${canLog ? 'hover:bg-zinc-900/6 cursor-pointer' : 'cursor-default'}`}

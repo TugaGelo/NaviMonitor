@@ -19,12 +19,11 @@ interface TabContentProps {
   onDeleteRefuelLog?: (log: RefuelLog) => void;
   onOpenMaintenanceModal?: (vehicleId: number, logToEdit?: MaintenanceLog | null, currentOdometer?: number) => void;
   onDeleteMaintenanceLog?: (log: MaintenanceLog) => void;
-  onMatrixAction: (item: string, action: string) => void;
+  onMatrixAction: (item: string, action: string, odoPoint: number) => void;
 }
 
 export default function DashboardTabContent({
   activeTab, 
-  vehicleId, 
   refuelLogs, 
   maintenanceLogs, 
   maintenanceMatrix, 
@@ -57,7 +56,6 @@ export default function DashboardTabContent({
             {activeTab === 'Fuel' && (
               <FuelTable 
                 logs={refuelLogs} 
-                vehicleId={vehicleId} 
                 onEdit={onOpenRefuelModal} 
                 onDelete={onDeleteRefuelLog} 
               />
@@ -66,7 +64,6 @@ export default function DashboardTabContent({
             {activeTab === 'Maintenance' && (
               <MaintenanceTable 
                 logs={maintenanceLogs} 
-                vehicleId={vehicleId} 
                 onEdit={onOpenMaintenanceModal} 
                 onDelete={onDeleteMaintenanceLog} 
               />
