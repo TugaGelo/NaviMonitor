@@ -25,6 +25,7 @@ export default function VehicleDashboard({
   onDeleteRefuelLog,
   onOpenMaintenanceModal,
   onDeleteMaintenanceLog,
+  onOpenSyncModal,
   refreshTrigger
 }: VehicleDashboardProps) {
   const { id } = useParams<{ id: string }>();
@@ -128,7 +129,13 @@ export default function VehicleDashboard({
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
       
-      <DashboardHeader vehicle={vehicle} currentOdometer={currentOdo} />
+      <DashboardHeader 
+        vehicle={vehicle} 
+        currentOdometer={currentOdo}
+        onOpenRefuel={() => onOpenRefuelModal(vehicle.id)}
+        onOpenMaintenance={() => onOpenMaintenanceModal(vehicle.id, null, currentOdo)}
+        onOpenSync={() => onOpenSyncModal(vehicle.id)}
+      />
 
       <MetricGrid 
         avgEfficiency={avgEfficiency}
@@ -141,7 +148,6 @@ export default function VehicleDashboard({
 
       <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* 💡 FIX 4: Supply all required props to DashboardTabContent */}
       <DashboardTabContent 
         activeTab={activeTab}
         vehicleId={vehicle.id} 
