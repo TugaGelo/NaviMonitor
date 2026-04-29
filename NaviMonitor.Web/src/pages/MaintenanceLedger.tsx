@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { Edit2, Trash2, Wrench, Rocket, Search, Home } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { Vehicle, MaintenanceLog } from '../types/types';
+
+import MaintenanceTable from '../components/features/tables/MaintenanceTable';
 
 interface GlobalMaintenanceLogsProps {
   vehicles: Vehicle[];
@@ -114,90 +116,22 @@ export default function GlobalMaintenanceLogs({ vehicles, onOpenMaintenanceModal
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-zinc-200 rounded-lg pl-10 pr-4 py-2 text-sm font-medium text-black focus:border-black focus:ring-0 outline-none transition-all" 
+            className="w-full bg-white border border-zinc-200 rounded-lg pl-10 pr-4 py-2 text-sm font-medium text-black focus:border-black focus:ring-0 outline-none transition-all shadow-sm" 
             placeholder="Search logs or shops..." 
           />
         </div>
       </div>
 
       <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-sm">
-        
-        <div className="grid grid-cols-12 gap-4 p-4 border-b border-zinc-200 bg-zinc-50/80 text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-          <div className="col-span-2 pl-2">Date / Asset</div>
-          <div className="col-span-2">Odometer</div>
-          <div className="col-span-4">Service Type</div>
-          <div className="col-span-2">Shop Name</div>
-          <div className="col-span-2 text-right pr-2">Cost & Actions</div>
-        </div>
-
-        <div className="divide-y divide-zinc-100">
-          {filteredLogs.length === 0 ? (
-            <div className="p-12 text-center text-zinc-400 font-bold text-sm uppercase tracking-widest">
-              No service records found
-            </div>
-          ) : (
-            filteredLogs.map((log) => {
-              const vehicle = vehicles.find(v => v.id === log.vehicleId);
-              const isMod = log.logType === 'Modification';
-              
-              return (
-                <div key={log.id} className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-zinc-50/50 transition-colors group">
-                  
-                  <div className="col-span-2 pl-2 flex flex-col">
-                    <span className="font-bold text-sm text-black">{new Date(log.date).toLocaleDateString()}</span>
-                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-0.5">
-                      {vehicle ? vehicle.nickname : `ID: ${log.vehicleId}`}
-                    </span>
-                  </div>
-
-                  <div className="col-span-2 text-zinc-600 text-sm font-medium">
-                    {log.odometer.toLocaleString()} km
-                  </div>
-
-                  <div className="col-span-4 flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 ${
-                      isMod ? 'bg-black border-black text-white' : 'bg-white border-zinc-200 text-zinc-600'
-                    }`}>
-                      {isMod ? <Rocket className="w-4 h-4" /> : <Wrench className="w-4 h-4" />}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className={`text-sm font-bold ${isMod ? 'text-black' : 'text-zinc-800'}`}>
-                        {log.serviceType}
-                      </span>
-                      {log.isDIY ? (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 mt-0.5 uppercase tracking-widest">
-                          <Home className="w-3 h-3" /> DIY Service
-                        </span>
-                      ) : (
-                        isMod && <span className="inline-block mt-1 px-2 py-0.5 bg-black text-white font-black text-[9px] uppercase rounded w-fit tracking-widest">Modification</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="col-span-2 text-sm text-zinc-600 font-medium">
-                    {log.isDIY ? '—' : (log.shopName || 'Unknown Shop')}
-                  </div>
-
-                  <div className="col-span-2 flex items-center justify-end pr-2 gap-3">
-                    <span className="font-bold text-sm text-black">
-                      ₱{log.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                    <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => onOpenMaintenanceModal(log.vehicleId, log, log.odometer)} className="p-1.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded transition-all">
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                      <button onClick={() => onDeleteMaintenanceLog(log)} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded transition-all">
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-              );
-            })
-          )}
-        </div>
+        <MaintenanceTable 
+          logs={filteredLogs} 
+          vehicles={vehicles} 
+          showVehicle={true} 
+          onEdit={onOpenMaintenanceModal}
+          onDelete={onDeleteMaintenanceLog}
+        />
       </div>
+      
     </motion.div>
   );
 }
