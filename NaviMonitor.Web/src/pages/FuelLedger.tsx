@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Edit2, Trash2, Fuel, DollarSign, TrendingDown } from 'lucide-react';
 import type { Vehicle, RefuelLog } from '../types/types';
+import StatCard from '../components/ui/StatCard';
 
 interface GlobalFuelLogsProps {
   vehicles: Vehicle[];
@@ -76,29 +77,24 @@ export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRe
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-zinc-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-400 mb-4">
-            <DollarSign className="w-4 h-4" />
-            <span className="font-black text-[10px] uppercase tracking-widest">Total Garage Spend</span>
-          </div>
-          <span className="text-3xl font-black text-black">₱{totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-        </div>
-
-        <div className="bg-white border border-zinc-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-400 mb-4">
-            <Fuel className="w-4 h-4" />
-            <span className="font-black text-[10px] uppercase tracking-widest">Total Volume (All Assets)</span>
-          </div>
-          <span className="text-3xl font-black text-black">{totalVolume.toFixed(1)} <span className="text-xl text-zinc-400">L</span></span>
-        </div>
-
-        <div className="bg-white border border-zinc-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-400 mb-4">
-            <TrendingDown className="w-4 h-4" />
-            <span className="font-black text-[10px] uppercase tracking-widest">Avg. Price / Liter</span>
-          </div>
-          <span className="text-3xl font-black text-black">₱{avgPricePerLiter.toFixed(2)}</span>
-        </div>
+        <StatCard 
+          label="Total Garage Spend" 
+          value={totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+          prefix="₱" 
+          icon={DollarSign} 
+        />
+        <StatCard 
+          label="Total Volume (All Assets)" 
+          value={totalVolume.toFixed(1)} 
+          suffix="L" 
+          icon={Fuel} 
+        />
+        <StatCard 
+          label="Avg. Price / Liter" 
+          value={avgPricePerLiter.toFixed(2)} 
+          prefix="₱" 
+          icon={TrendingDown} 
+        />
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { DollarSign, Wrench, Calendar, LineChart, PieChart } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../types/types';
+import StatCard from '../components/ui/StatCard';
 
 interface GlobalStatsProps {
   vehicles: Vehicle[];
@@ -107,53 +108,33 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden group h-32">
-          <div className="flex justify-between items-start">
-            <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">Cost per KM</span>
-            <DollarSign className="text-zinc-300 w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-3xl font-black text-black">₱{costPerKm.toFixed(2)}</div>
-            <div className="text-xs font-bold text-zinc-400 mt-1 uppercase">Across all assets</div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-32">
-          <div className="flex justify-between items-start">
-            <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">Total Garage Spend</span>
-            <DollarSign className="text-zinc-300 w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-3xl font-black text-secondary">₱{totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
-            <div className="text-xs font-bold text-secondary/70 mt-1 uppercase tracking-widest">Fuel + Maint</div>
-          </div>
-          <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-100">
-            <div className="h-full bg-secondary w-full"></div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-32">
-          <div className="flex justify-between items-start">
-            <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">Recorded Distance</span>
-            <Calendar className="text-zinc-300 w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-3xl font-black text-black">{totalDistance.toLocaleString()} <span className="text-lg">km</span></div>
-            <div className="text-xs font-bold text-zinc-400 mt-1 uppercase tracking-widest">Total Tracked</div>
-          </div>
-        </div>
-
-        <div className="bg-white border border-zinc-200 rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden h-32">
-          <div className="flex justify-between items-start">
-            <span className="font-black text-[10px] text-zinc-400 uppercase tracking-widest">Service Events</span>
-            <Wrench className="text-zinc-300 w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-3xl font-black text-black">{maintLogs.length}</div>
-            <div className="text-xs font-bold text-zinc-400 mt-1 uppercase tracking-widest">Total Interventions</div>
-          </div>
-        </div>
+        <StatCard 
+          label="Cost per KM" 
+          value={costPerKm.toFixed(2)} 
+          prefix="₱" 
+          icon={DollarSign} 
+          trend={{ value: "Across all assets", isUp: true }}
+        />
+        <StatCard 
+          label="Total Garage Spend" 
+          value={totalSpend.toLocaleString(undefined, { minimumFractionDigits: 2 })} 
+          prefix="₱" 
+          icon={DollarSign} 
+          trend={{ value: "Fuel + Maint", isUp: true }}
+        />
+        <StatCard 
+          label="Recorded Distance" 
+          value={totalDistance.toLocaleString()} 
+          suffix="km" 
+          icon={Calendar} 
+          trend={{ value: "Total Tracked", isUp: true }}
+        />
+        <StatCard 
+          label="Service Events" 
+          value={maintLogs.length} 
+          icon={Wrench} 
+          trend={{ value: "Total Interventions", isUp: true }}
+        />
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">

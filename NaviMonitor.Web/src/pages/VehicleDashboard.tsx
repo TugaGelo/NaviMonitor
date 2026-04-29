@@ -2,145 +2,160 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import type { Vehicle, RefuelLog, MaintenanceLog } from '../types/types';
+import type { Vehicle, RefuelLog, MaintenanceLog, MaintenanceMatrixItem } from '../types/types';
 
 import DashboardHeader from '../components/features/dashboard/DashboardHeader';
-import MetricGrid from '../components/features/dashboard/MetricGrid';
 import DashboardTabs from '../components/features/dashboard/DashboardTabs';
 import DashboardTabContent from '../components/features/dashboard/DashboardTabContent';
+import MetricGrid from '../components/features/dashboard/MetricGrid';
 
-interface DashboardProps {
-  onOpenRefuelModal?: (vehicleId: number, logToEdit?: RefuelLog) => void;
-  onDeleteRefuelLog?: (log: RefuelLog) => void;
-  onOpenMaintenanceModal?: (vehicleId: number, logToEdit?: MaintenanceLog | null, currentOdometer?: number) => void;
-  onDeleteMaintenanceLog?: (log: MaintenanceLog) => void;
-  onOpenSyncModal?: (vehicleId: number) => void;
-  refreshTrigger?: number;
+type TabType = "Activity" | "Fuel" | "Maintenance" | "Schedule";
+
+interface VehicleDashboardProps {
+  onOpenRefuelModal: (vehicleId: number, log?: RefuelLog | null) => void;
+  onDeleteRefuelLog: (log: RefuelLog) => void;
+  onOpenMaintenanceModal: (vehicleId: number, log?: MaintenanceLog | null, currentOdo?: number) => void;
+  onDeleteMaintenanceLog: (log: MaintenanceLog) => void;
+  onOpenSyncModal: (vehicleId: number) => void;
+  refreshTrigger: number;
 }
 
-export default function VehicleDashboard({ 
-  onOpenRefuelModal, 
+export default function VehicleDashboard({
+  onOpenRefuelModal,
   onDeleteRefuelLog,
   onOpenMaintenanceModal,
   onDeleteMaintenanceLog,
-  onOpenSyncModal,
-  refreshTrigger 
-}: DashboardProps) {
-  const { id } = useParams<{ id: string }>(); 
+  refreshTrigger
+}: VehicleDashboardProps) {
+  const { id } = useParams<{ id: string }>();
+  
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
-  const [refuelLogs, setRefuelLogs] = useState<RefuelLog[]>([]);
-  const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
+  const [fuelLogs, setFuelLogs] = useState<RefuelLog[]>([]);
+  const [maintLogs, setMaintLogs] = useState<MaintenanceLog[]>([]);
+  
+  const [maintenanceMatrix] = useState<MaintenanceMatrixItem[]>([]);  
   const [isLoading, setIsLoading] = useState(true);
   
+  const [activeTab, setActiveTab] = useState<TabType>("Activity");
   const [timeFilter, setTimeFilter] = useState('All Time');
-  const [activeTab, setActiveTab] = useState<'Activity' | 'Fuel' | 'Maintenance' | 'Schedule'>('Activity');
 
   useEffect(() => {
-    const fetchData = async () => {
+    let isMounted = true;
+
+    const fetchVehicleData = async () => {
+      if (!id) return;
+      setIsLoading(true);
       try {
-        setIsLoading(true);
         const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
         
-        const vehicleRes = await axios.get(`${apiUrl}/vehicle/${id}`);
-        setVehicle(vehicleRes.data);
+        const [vehRes, fuelRes, maintRes] = await Promise.all([
+          axios.get(`${apiUrl}/vehicle/${id}`),
+          axios.get(`${apiUrl}/refuel/vehicle/${id}`),
+          axios.get(`${apiUrl}/maintenance/vehicle/${id}`)
+        ]);
 
-        try {
-           const logsRes = await axios.get(`${apiUrl}/refuel/vehicle/${id}`);
-           setRefuelLogs(logsRes.data);
-        } catch { setRefuelLogs([]); }
-
-        try {
-           const maintRes = await axios.get(`${apiUrl}/maintenance/vehicle/${id}`);
-           setMaintenanceLogs(maintRes.data);
-        } catch { setMaintenanceLogs([]); }
-
+        if (isMounted) {
+          setVehicle(vehRes.data);
+          setFuelLogs(fuelRes.data.sort((a: RefuelLog, b: RefuelLog) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+          setMaintLogs(maintRes.data.sort((a: MaintenanceLog, b: MaintenanceLog) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        }
       } catch (err) {
-        console.error("Error fetching dashboard data:", err);
+        console.error("Failed to fetch vehicle dashboard data", err);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
-    if (id) fetchData();
+
+    fetchVehicleData();
+
+    return () => { isMounted = false; };
   }, [id, refreshTrigger]);
 
-  if (isLoading || !vehicle) {
+  const handleMatrixAction = (item: string, action: string) => {
+    console.log(`Matrix action triggered: ${action} on ${item}`);
+  };
+
+  if (isLoading) {
     return (
-      <div className="p-20 text-center animate-pulse font-black uppercase tracking-widest text-zinc-400">
-        Syncing Core Systems...
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-8 h-8 border-4 border-zinc-200 border-t-black rounded-full animate-spin"></div>
+        <div className="text-zinc-400 font-bold uppercase tracking-widest text-xs">Loading Telemetry...</div>
       </div>
     );
   }
 
-  const allOdos = [...refuelLogs.map(l => l.odometer), ...maintenanceLogs.map(m => m.odometer)];
-  const currentOdometer = allOdos.length > 0 ? Math.max(...allOdos) : (vehicle.startingOdometer ?? 0);
+  if (!vehicle) {
+    return (
+      <div className="text-center py-20 text-zinc-400 font-bold uppercase tracking-widest">
+        Vehicle not found.
+      </div>
+    );
+  }
 
-  const totalSpent = refuelLogs.reduce((sum, log) => sum + log.totalCost, 0) + 
-                     maintenanceLogs.reduce((sum, log) => sum + log.price, 0);
-  
-  const totalVolume = refuelLogs.reduce((sum, log) => sum + log.volume, 0);
-  const distanceTraveled = Math.max(0, currentOdometer - (vehicle.startingOdometer ?? 0));
-  
-  const avgEfficiency = (totalVolume > 0 && distanceTraveled > 0) ? (distanceTraveled / totalVolume).toFixed(1) : "---";
-  const costPerKm = (distanceTraveled > 0 && totalSpent > 0) ? (totalSpent / distanceTraveled).toFixed(2) : "---";
+  const maxFuelOdo = fuelLogs.length > 0 ? Math.max(...fuelLogs.map(l => l.odometer)) : 0;
+  const maxMaintOdo = maintLogs.length > 0 ? Math.max(...maintLogs.map(l => l.odometer)) : 0;
+  const currentOdo = Math.max(vehicle.startingOdometer, maxFuelOdo, maxMaintOdo);
 
-  const maintenanceMatrix = vehicle.maintenanceMatrixJson 
-    ? JSON.parse(vehicle.maintenanceMatrixJson).matrix 
-    : [];
+  const cutoffDate = new Date();
+  if (timeFilter === '6 Months') {
+    cutoffDate.setMonth(cutoffDate.getMonth() - 6);
+  }
 
-  const handleMatrixAction = (item: string, action: string) => {
-    if (onOpenMaintenanceModal && vehicle) {
-      const prefillData: Partial<MaintenanceLog> = {
-        serviceType: `${item} (${action})`,
-        odometer: currentOdometer,
-        price: 0,
-        serviceCategory: 'Maintenance',
-        notes: `Automated log from Service Matrix milestone.`,
-        date: new Date().toISOString().split('T')[0]
-      };
-      onOpenMaintenanceModal(vehicle.id, prefillData as MaintenanceLog, currentOdometer);
-    }
-  };
+  const filteredFuelLogs = timeFilter === 'All Time' 
+    ? fuelLogs 
+    : fuelLogs.filter(log => new Date(log.date) >= cutoffDate);
+
+  const filteredMaintLogs = timeFilter === 'All Time'
+    ? maintLogs
+    : maintLogs.filter(log => new Date(log.date) >= cutoffDate);
+
+  const totalFuelSpend = filteredFuelLogs.reduce((sum, log) => sum + log.totalCost, 0);
+  const totalMaintSpend = filteredMaintLogs.reduce((sum, log) => sum + log.price, 0);
+  const filteredTotalSpent = totalFuelSpend + totalMaintSpend;
+
+  let totalDistance = 0;
+  if (filteredFuelLogs.length > 1) {
+    const minOdo = Math.min(...filteredFuelLogs.map(l => l.odometer));
+    const maxOdo = Math.max(...filteredFuelLogs.map(l => l.odometer));
+    totalDistance = maxOdo - minOdo;
+  }
+  const totalVolume = filteredFuelLogs.reduce((sum, log) => sum + log.volume, 0);
+  const avgEfficiency = totalVolume > 0 ? (totalDistance / totalVolume).toFixed(1) : "0.0";
+  const costPerKm = totalDistance > 0 ? (filteredTotalSpent / totalDistance).toFixed(2) : "0.00";
+
+  const nextServiceCountdown = currentOdo === 0 ? 3000 : 3000 - (currentOdo % 3000);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }} 
-      animate={{ opacity: 1, y: 0 }} 
-      className="space-y-8 pb-20"
-    >
-      <DashboardHeader 
-        vehicle={vehicle} 
-        activeTab={activeTab === 'Activity' ? 'Fuel' : (activeTab === 'Schedule' ? 'Maintenance' : activeTab)}
-        onOpenRefuelModal={onOpenRefuelModal} 
-        onOpenMaintenanceModal={(vId) => onOpenMaintenanceModal && onOpenMaintenanceModal(vId, null, currentOdometer)} 
-        onOpenSyncModal={onOpenSyncModal}
-      />
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+      
+      <DashboardHeader vehicle={vehicle} currentOdometer={currentOdo} />
 
       <MetricGrid 
         avgEfficiency={avgEfficiency}
         costPerKm={costPerKm}
-        totalSpent={totalSpent}
-        currentOdometer={currentOdometer}
+        totalSpent={filteredTotalSpent}
+        nextServiceDistance={nextServiceCountdown}
         timeFilter={timeFilter}
         setTimeFilter={setTimeFilter}
       />
 
-      <section className="space-y-6">
-        <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-        
-        <DashboardTabContent 
-          activeTab={activeTab}
-          vehicleId={vehicle.id}
-          refuelLogs={refuelLogs}
-          maintenanceLogs={maintenanceLogs}
-          maintenanceMatrix={maintenanceMatrix}
-          currentOdometer={currentOdometer}
-          onOpenRefuelModal={onOpenRefuelModal}
-          onDeleteRefuelLog={onDeleteRefuelLog}
-          onOpenMaintenanceModal={onOpenMaintenanceModal}
-          onDeleteMaintenanceLog={onDeleteMaintenanceLog}
-          onMatrixAction={handleMatrixAction}
-        />
-      </section>
+      <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
+      {/* 💡 FIX 4: Supply all required props to DashboardTabContent */}
+      <DashboardTabContent 
+        activeTab={activeTab}
+        vehicleId={vehicle.id} 
+        refuelLogs={fuelLogs} 
+        maintenanceLogs={maintLogs} 
+        maintenanceMatrix={maintenanceMatrix} 
+        currentOdometer={currentOdo}          
+        onOpenRefuelModal={onOpenRefuelModal}
+        onDeleteRefuelLog={onDeleteRefuelLog}
+        onOpenMaintenanceModal={(vId, log) => onOpenMaintenanceModal(vId, log, currentOdo)}
+        onDeleteMaintenanceLog={onDeleteMaintenanceLog}
+        onMatrixAction={handleMatrixAction}   
+      />
+
     </motion.div>
   );
 }
