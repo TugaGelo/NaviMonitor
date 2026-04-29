@@ -12,6 +12,7 @@ import DeleteVehicleModal from './components/modals/vehicle/DeleteVehicleModal';
 import AddRefuelModal from './components/modals/refuel/AddRefuelModal';
 import DeleteRefuelModal from './components/modals/refuel/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
+import GlobalFuelLogs from './components/garage/GlobalFuelLogs';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 import SyncManualModal from './components/modals/vehicle/SyncManualModal';
@@ -117,24 +118,37 @@ export default function App() {
           </div>
         } />
 
-        <Route path="/vehicle/:id" element={
-          <VehicleDashboard 
-            onOpenRefuelModal={(vehicleId: number, log?: RefuelLog) => {
+        <Route path="/fuel" element={
+          <GlobalFuelLogs 
+            vehicles={vehicles}
+            onOpenRefuelModal={(vehicleId, log) => {
               setPreselectedRefuelId(vehicleId);
               setRefuelLogToEdit(log || null);
               setIsRefuelModalOpen(true);
             }}
-            onDeleteRefuelLog={(log: RefuelLog) => setRefuelLogToDelete(log)}
+            onDeleteRefuelLog={(log) => setRefuelLogToDelete(log)}
+            refreshTrigger={refreshKey}
+          />
+        } />
+
+        <Route path="/vehicle/:id" element={
+          <VehicleDashboard 
+            onOpenRefuelModal={(vehicleId, log) => {
+              setPreselectedRefuelId(vehicleId);
+              setRefuelLogToEdit(log || null);
+              setIsRefuelModalOpen(true);
+            }}
+            onDeleteRefuelLog={(log) => setRefuelLogToDelete(log)}
             
-            onOpenMaintenanceModal={(vehicleId: number, log?: MaintenanceLog | null, currentOdo?: number) => {
+            onOpenMaintenanceModal={(vehicleId, log, currentOdo) => {
               setPreselectedMaintenanceId(vehicleId);
               setMaintenanceLogToEdit(log || null);
               setMaintenanceModalOdo(currentOdo || 0);
               setIsMaintenanceModalOpen(true);
             }}
-            onDeleteMaintenanceLog={(log: MaintenanceLog) => setMaintenanceLogToDelete(log)}
+            onDeleteMaintenanceLog={(log) => setMaintenanceLogToDelete(log)}
             
-            onOpenSyncModal={(vehicleId: number) => {
+            onOpenSyncModal={(vehicleId) => {
               setSyncVehicleId(vehicleId);
               setIsSyncModalOpen(true);
             }}

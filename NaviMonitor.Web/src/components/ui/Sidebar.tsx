@@ -7,8 +7,7 @@ import {
 export default function Sidebar() {
   const { id } = useParams<{ id: string }>(); 
 
-  const contextLinks = [
-    { name: 'Fuel Logs', icon: Fuel, path: `/vehicle/${id}/fuel` },
+  const vehicleContextLinks = [
     { name: 'Maintenance', icon: Wrench, path: `/vehicle/${id}/maintenance` },
     { name: 'V-Matrix', icon: TableProperties, path: `/vehicle/${id}/schedule` },
     { name: 'Stats', icon: BarChart3, path: `/vehicle/${id}/stats` },
@@ -22,7 +21,7 @@ export default function Sidebar() {
         <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" title="System Active"></div>
       </div>
 
-      <div className="mb-4">
+      <div className="flex flex-col gap-1 mb-4">
         <NavLink 
           to="/"
           end
@@ -34,12 +33,24 @@ export default function Sidebar() {
           <LayoutDashboard className="w-5 h-5" />
           My Garage
         </NavLink>
+
+        <NavLink 
+          to="/fuel"
+          className={({ isActive }) => `
+            flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all
+            ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}
+          `}
+        >
+          <Fuel className="w-5 h-5" />
+          Fuel Logs
+        </NavLink>
       </div>
 
       <div className="w-full h-px bg-zinc-200 my-2" />
 
       <nav className="flex flex-col gap-1 grow mt-2">
-        {contextLinks.map((item) => {
+        <p className="px-3 text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Vehicle Context</p>
+        {vehicleContextLinks.map((item) => {
           const isDisabled = !id;
           
           return (
@@ -48,7 +59,7 @@ export default function Sidebar() {
               to={isDisabled ? '#' : item.path}
               className={({ isActive }) => `
                 flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all
-                ${isDisabled ? 'opacity-40 cursor-not-allowed text-zinc-400' : 'active:scale-95'}
+                ${isDisabled ? 'opacity-30 cursor-not-allowed text-zinc-400' : 'active:scale-95'}
                 ${isActive && !isDisabled 
                   ? 'bg-zinc-100 text-black border-r-4 border-secondary' 
                   : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}
