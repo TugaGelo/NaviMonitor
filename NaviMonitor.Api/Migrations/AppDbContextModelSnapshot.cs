@@ -67,6 +67,10 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<string>("TirePosition")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
 
@@ -94,6 +98,10 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<double>("TotalCost")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");

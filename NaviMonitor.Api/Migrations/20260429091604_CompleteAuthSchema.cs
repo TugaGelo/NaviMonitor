@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialAuthSetup : Migration
+    public partial class CompleteAuthSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -43,6 +43,7 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
                     LogType = table.Column<string>(type: "TEXT", nullable: false),
                     ServiceCategory = table.Column<string>(type: "TEXT", nullable: true),
@@ -76,6 +77,7 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Odometer = table.Column<int>(type: "INTEGER", nullable: false),

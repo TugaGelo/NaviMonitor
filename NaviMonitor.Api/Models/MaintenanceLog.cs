@@ -7,6 +7,9 @@ public class MaintenanceLog
     public int Id { get; set; }
 
     [Required]
+    public string UserId { get; set; } = string.Empty;
+
+    [Required]
     public int VehicleId { get; set; }
 
     [Required(ErrorMessage = "Please specify if this is a Maintenance or Modification.")]

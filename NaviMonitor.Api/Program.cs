@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using NaviMonitor.Api.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NaviMonitor.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +23,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<NaviMonitor.Api.Services.MaintenanceAIService>();
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 

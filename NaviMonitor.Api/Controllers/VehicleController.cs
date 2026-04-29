@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NaviMonitor.Api.Models;
+using System.Security.Claims;
 
 namespace NaviMonitor.Api.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class VehicleController : ControllerBase
@@ -15,78 +18,50 @@ public class VehicleController : ControllerBase
         _context = context;
     }
 
-    // GET: /api/vehicle
+    private string CurrentUserId => User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+
     [HttpGet]
     public async Task<IActionResult> GetAllVehicles()
     {
-        var vehicles = await _context.Vehicles.ToListAsync();
+        // 🔍 Only show vehicles belonging to Gelo
+        var vehicles = await _context.Vehicles
+            .Where(v => v.UserId == CurrentUserId)
+            .ToListAsync();
         return Ok(vehicles);
     }
 
-    // GET: /api/vehicle/1
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVehicle(int id)
     {
-        var vehicle = await _context.Vehicles.FindAsync(id);
+        var vehicle = await _context.Vehicles
+            .FirstOrDefaultAsync(v => v.Id == id && v.UserId == CurrentUserId);
 
-        if (vehicle == null)
-        {
-            return NotFound("Vehicle not found in the garage.");
-        }
+        if (vehicle == null) return NotFound("Vehicle not found or you don't own it.");
 
         return Ok(vehicle);
     }
 
-    // POST: /api/vehicle
     [HttpPost]
     public async Task<IActionResult> AddVehicle(Vehicle newVehicle)
     {
-        _context.Vehicles.Add(newVehicle);
+        newVehicle.UserId = CurrentUserId;
 
+        _context.Vehicles.Add(newVehicle);
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetVehicle), new { id = newVehicle.Id }, newVehicle);
     }
 
-    // DELETE: /api/vehicle/1
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        var vehicle = await _context.Vehicles.FindAsync(id);
+        var vehicle = await _context.Vehicles
+            .FirstOrDefaultAsync(v => v.Id == id && v.UserId == CurrentUserId);
 
-        if (vehicle == null)
-        {
-            return NotFound("Vehicle not found.");
-        }
+        if (vehicle == null) return NotFound("Cannot delete what you don't own.");
 
         _context.Vehicles.Remove(vehicle);
         await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    // UPDATE: /api/vehicle/1
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateVehicle(int id, Vehicle vehicle)
-    {
-        if (id != vehicle.Id)
-        {
-            return BadRequest("ID mismatch");
-        }
-
-        _context.Entry(vehicle).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!_context.Vehicles.Any(e => e.Id == id))
-                return NotFound();
-            else
-                throw;
-        }
 
         return NoContent();
     }

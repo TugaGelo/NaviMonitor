@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260429084302_InitialAuthSetup")]
-    partial class InitialAuthSetup
+    [Migration("20260429091604_CompleteAuthSchema")]
+    partial class CompleteAuthSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,6 +70,10 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<string>("TirePosition")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
 
@@ -97,6 +101,10 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<double>("TotalCost")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("VehicleId")
                         .HasColumnType("INTEGER");
