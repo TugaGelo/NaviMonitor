@@ -8,7 +8,6 @@ export default function Sidebar() {
   const { id } = useParams<{ id: string }>(); 
 
   const vehicleContextLinks = [
-    { name: 'Maintenance', icon: Wrench, path: `/vehicle/${id}/maintenance` },
     { name: 'V-Matrix', icon: TableProperties, path: `/vehicle/${id}/schedule` },
     { name: 'Stats', icon: BarChart3, path: `/vehicle/${id}/stats` },
   ];
@@ -43,6 +42,17 @@ export default function Sidebar() {
         >
           <Fuel className="w-5 h-5" />
           Fuel Logs
+        </NavLink>
+
+        <NavLink 
+          to="/maintenance"
+          className={({ isActive }) => `
+            flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all
+            ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}
+          `}
+        >
+          <Wrench className="w-5 h-5" />
+          Maintenance
         </NavLink>
       </div>
 

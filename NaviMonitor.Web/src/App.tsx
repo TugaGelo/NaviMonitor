@@ -13,6 +13,7 @@ import AddRefuelModal from './components/modals/refuel/AddRefuelModal';
 import DeleteRefuelModal from './components/modals/refuel/DeleteRefuelModal';
 import VehicleDashboard from './components/garage/dashboard/VehicleDashboard';
 import GlobalFuelLogs from './components/garage/GlobalFuelLogs';
+import GlobalMaintenanceLogs from './components/garage/GlobalMaintenanceLogs';
 import AddMaintenanceModModal from './components/modals/maintenance/AddMaintenanceModModal';
 import DeleteMaintenanceModal from './components/modals/maintenance/DeleteMaintenanceModal';
 import SyncManualModal from './components/modals/vehicle/SyncManualModal';
@@ -127,6 +128,20 @@ export default function App() {
               setIsRefuelModalOpen(true);
             }}
             onDeleteRefuelLog={(log) => setRefuelLogToDelete(log)}
+            refreshTrigger={refreshKey}
+          />
+        } />
+
+        <Route path="/maintenance" element={
+          <GlobalMaintenanceLogs 
+            vehicles={vehicles}
+            onOpenMaintenanceModal={(vehicleId, log, currentOdo) => {
+              setPreselectedMaintenanceId(vehicleId);
+              setMaintenanceLogToEdit(log || null);
+              setMaintenanceModalOdo(currentOdo || 0);
+              setIsMaintenanceModalOpen(true);
+            }}
+            onDeleteMaintenanceLog={(log) => setMaintenanceLogToDelete(log)}
             refreshTrigger={refreshKey}
           />
         } />
