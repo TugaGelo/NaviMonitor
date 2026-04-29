@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Fuel, Car, Bike, Truck, Save } from 'lucide-react';
-import BaseModal from '../../ui/BaseModal';
-import ModalFooter from '../../ui/ModalFooter';
-import FormInput from '../../ui/FormInput';
+import BaseModal from '../../ui/modals/BaseModal';
+import ModalFooter from '../../ui/modals/ModalFooter';
+import FormInput from '../../ui/forms/FormInput';
 import type { Vehicle, RefuelLog } from '../../../types/types';
 
 interface AddRefuelModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicles: Vehicle[]; preselectedVehicleId?: number | null; logToEdit?: RefuelLog | null; }

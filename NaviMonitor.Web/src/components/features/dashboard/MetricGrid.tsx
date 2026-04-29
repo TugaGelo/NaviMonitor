@@ -1,5 +1,5 @@
 import { Filter, Zap, DollarSign, Wrench } from 'lucide-react';
-import StatCard from '../../ui/StatCard';
+import StatCard from '../../ui/display/StatCard';
 
 interface MetricGridProps {
   avgEfficiency: string;

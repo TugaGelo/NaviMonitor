@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
-import BaseModal from '../../ui/BaseModal';
-import DeleteConfirmation from '../../ui/DeleteConfirmation';
+import BaseModal from '../../ui/modals/BaseModal';
+import DeleteConfirmation from '../../ui/modals/DeleteConfirmation';
 import type { MaintenanceLog } from '../../../types/types';
 
 interface DeleteMaintenanceModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; log: MaintenanceLog; }

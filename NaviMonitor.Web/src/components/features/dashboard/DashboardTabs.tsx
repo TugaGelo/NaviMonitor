@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'; // 💡 Added this import
+import { motion } from 'framer-motion';
 import { Activity, Fuel, Wrench, Calendar } from 'lucide-react';
 
 interface DashboardTabsProps {

@@ -5,7 +5,7 @@ import { Plus, Fuel } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from './types/types';
 import { AnimatePresence } from 'framer-motion';
 
-import Layout from './components/ui/Layout';
+import Layout from './components/ui/layout/Layout';
 import VehicleCard from './components/features/garage/VehicleCard';
 import AddVehicleModal from './components/modals/vehicle/AddVehicleModal';
 import DeleteVehicleModal from './components/modals/vehicle/DeleteVehicleModal';

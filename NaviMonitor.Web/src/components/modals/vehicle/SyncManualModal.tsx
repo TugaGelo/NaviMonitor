@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import BaseModal from '../../ui/BaseModal';
+import BaseModal from '../../ui/modals/BaseModal';
 import UploadPhase from './UploadPhase';
 import ReviewPhase from './ReviewPhase';
 import type { MaintenanceMatrixItem } from '../../../types/types';

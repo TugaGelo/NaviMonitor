@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { PlusCircle, Car, Bike, Save } from 'lucide-react';
-import BaseModal from '../../ui/BaseModal';
-import ModalFooter from '../../ui/ModalFooter';
-import FormInput from '../../ui/FormInput';
-import SegmentedPicker from '../../ui/SegmentedPicker';
+import BaseModal from '../../ui/modals/BaseModal';
+import ModalFooter from '../../ui/modals/ModalFooter';
+import FormInput from '../../ui/forms/FormInput';
+import SegmentedPicker from '../../ui/forms/SegmentedPicker';
 import type { Vehicle } from '../../../types/types';
 
 interface AddVehicleModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicleToEdit?: Vehicle | null; }

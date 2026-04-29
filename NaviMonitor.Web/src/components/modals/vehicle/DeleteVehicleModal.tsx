@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
-import BaseModal from '../../ui/BaseModal';
-import DeleteConfirmation from '../../ui/DeleteConfirmation';
+import BaseModal from '../../ui/modals/BaseModal';
+import DeleteConfirmation from '../../ui/modals/DeleteConfirmation';
 import type { Vehicle } from '../../../types/types';
 
 interface Props { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicle: Vehicle | null; }
