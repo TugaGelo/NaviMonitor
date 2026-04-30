@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import api from '../../../lib/api'; 
 import BaseModal from '../../ui/modals/BaseModal';
 import UploadPhase from './UploadPhase';
 import ReviewPhase from './ReviewPhase';
@@ -21,8 +22,6 @@ export default function SyncManualModal({ isOpen, onClose, onSuccess, vehicleId 
   const [extractedData, setExtractedData] = useState<MaintenanceMatrixItem[]>([]);
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
 
   const handleAnalyze = async () => {
     if (files.length === 0) return;
@@ -33,7 +32,7 @@ export default function SyncManualModal({ isOpen, onClose, onSuccess, vehicleId 
     files.forEach(file => formData.append('files', file));
 
     try {
-      const response = await axios.post(`${apiUrl}/maintenance/analyze`, formData, {
+      const response = await api.post(`/maintenance/analyze`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -51,7 +50,8 @@ export default function SyncManualModal({ isOpen, onClose, onSuccess, vehicleId 
     setIsSaving(true);
     setError('');
     try {
-      await axios.post(`${apiUrl}/maintenance/vehicle/${vehicleId}/matrix`, {
+      // Changed to api.post
+      await api.post(`/maintenance/vehicle/${vehicleId}/matrix`, {
         matrixData: { matrix: extractedData }
       });
       onSuccess();

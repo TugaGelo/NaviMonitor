@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
 import BaseModal from '../../ui/modals/BaseModal';
 import DeleteConfirmation from '../../ui/modals/DeleteConfirmation';
 import type { Vehicle } from '../../../types/types';
@@ -15,8 +15,7 @@ export default function DeleteVehicleModal({ isOpen, onClose, onSuccess, vehicle
   const handleDelete = async () => {
     setIsDeleting(true); setError('');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      await axios.delete(`${apiUrl}/vehicle/${vehicle.id}`);
+      await api.delete(`/vehicle/${vehicle.id}`);
       onSuccess(); onClose();
     } catch (err) {
       console.error(err); setError('Failed to delete vehicle.');

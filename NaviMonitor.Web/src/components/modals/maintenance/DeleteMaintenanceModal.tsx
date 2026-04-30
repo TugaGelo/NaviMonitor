@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
 import BaseModal from '../../ui/modals/BaseModal';
 import DeleteConfirmation from '../../ui/modals/DeleteConfirmation';
 import type { MaintenanceLog } from '../../../types/types';
@@ -13,8 +13,7 @@ export default function DeleteMaintenanceModal({ isOpen, onClose, onSuccess, log
   const handleDelete = async () => {
     setIsDeleting(true); setError('');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      await axios.delete(`${apiUrl}/maintenance/${log.id}`);
+      await api.delete(`/maintenance/${log.id}`);
       onSuccess(); onClose();
     } catch (err) {
       console.error("Error deleting maintenance log:", err); setError("Failed to delete the log. Please try again.");

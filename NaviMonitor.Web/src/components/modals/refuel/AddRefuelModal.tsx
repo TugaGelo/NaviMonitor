@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
+import { useAuth } from '../../../context/auth/AuthContext';
 import { Fuel, Car, Bike, Truck, Save } from 'lucide-react';
 import BaseModal from '../../ui/modals/BaseModal';
 import ModalFooter from '../../ui/modals/ModalFooter';
@@ -9,6 +10,7 @@ import type { Vehicle, RefuelLog } from '../../../types/types';
 interface AddRefuelModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicles: Vehicle[]; preselectedVehicleId?: number | null; logToEdit?: RefuelLog | null; }
 
 export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit }: AddRefuelModalProps) {
+  const { user } = useAuth();
   const isEditMode = !!logToEdit;
   const hideVehiclePicker = !!preselectedVehicleId;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,8 +26,7 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
     let isMounted = true;
     const fetchLatestOdo = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        const res = await axios.get(`${apiUrl}/refuel/vehicle/${selectedVehicleId}`);
+        const res = await api.get(`/refuel/vehicle/${selectedVehicleId}`);
         if (!isMounted) return;
         const highestOdo = res.data.length > 0 ? Math.max(...res.data.map((l: RefuelLog) => l.odometer)) : (vehicles.find(v => v.id === selectedVehicleId)?.startingOdometer || 0);
         setFormData(prev => ({ ...prev, odometer: (highestOdo + 1).toString() }));
@@ -41,20 +42,31 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.id]: e.target.value });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!selectedVehicleId) return;
+    e.preventDefault(); 
+    if (!selectedVehicleId || !user) return;
+    
     setIsSubmitting(true); setError('');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      const payload = { vehicleId: selectedVehicleId, date: isEditMode && logToEdit ? logToEdit.date : new Date().toISOString(), odometer: Number(formData.odometer), volume: Number(formData.volume), totalCost: Number(formData.totalCost), fuelType: formData.fuelType };
-      if (isEditMode && logToEdit) await axios.put(`${apiUrl}/refuel/${logToEdit.id}`, { id: logToEdit.id, ...payload });
-      else await axios.post(`${apiUrl}/refuel`, payload);
+      const payload = { 
+        userId: user.uid,
+        vehicleId: selectedVehicleId, 
+        date: isEditMode && logToEdit ? logToEdit.date : new Date().toISOString(), 
+        odometer: Number(formData.odometer), 
+        volume: Number(formData.volume), 
+        totalCost: Number(formData.totalCost), 
+        fuelType: formData.fuelType 
+      };
+      
+      if (isEditMode && logToEdit) await api.put(`/refuel/${logToEdit.id}`, { id: logToEdit.id, ...payload });
+      else await api.post(`/refuel`, payload);
+      
       onSuccess(); onClose();
-      } catch (err) { 
-        console.error("Refuel submission error:", err);
-        setError('Submission failed.'); 
-      } finally { 
-        setIsSubmitting(false); 
-      }  
+    } catch (err) { 
+      console.error("Refuel submission error:", err);
+      setError('Submission failed.'); 
+    } finally { 
+      setIsSubmitting(false); 
+    }  
   };
 
   const activeVehicle = vehicles.find(v => v.id === selectedVehicleId);

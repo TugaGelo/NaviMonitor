@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
+import { useAuth } from '../../../context/auth/AuthContext';
 import { Wrench, Rocket, Store, Hammer, Phone, Save } from 'lucide-react';
 import BaseModal from '../../ui/modals/BaseModal';
 import ModalFooter from '../../ui/modals/ModalFooter';
@@ -18,15 +19,10 @@ interface AddMaintenanceModModalProps {
 }
 
 export default function AddMaintenanceModModal({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
-  vehicles, 
-  preselectedVehicleId, 
-  logToEdit, 
-  currentOdometer 
+  isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit, currentOdometer 
 }: AddMaintenanceModModalProps) {
   
+  const { user } = useAuth();
   const isEditMode = Boolean(logToEdit?.id && logToEdit.id > 0);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,16 +62,18 @@ export default function AddMaintenanceModModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
+    if (!user) return;
+
     setIsSubmitting(true); 
     setError('');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      
+      const payload = { ...formData, userId: user.uid };
+
       if (isEditMode && logToEdit) {
-        await axios.put(`${apiUrl}/maintenance/${logToEdit.id}`, formData);
+        await api.put(`/maintenance/${logToEdit.id}`, payload);
       } else {
-        await axios.post(`${apiUrl}/maintenance`, formData);
+        await api.post(`/maintenance`, payload);
       }
       
       onSuccess(); 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
+import { useAuth } from '../../../context/auth/AuthContext';
 import { PlusCircle, Car, Bike, Save } from 'lucide-react';
 import BaseModal from '../../ui/modals/BaseModal';
 import ModalFooter from '../../ui/modals/ModalFooter';
@@ -10,6 +11,7 @@ import type { Vehicle } from '../../../types/types';
 interface AddVehicleModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicleToEdit?: Vehicle | null; }
 
 export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToEdit }: AddVehicleModalProps) {
+  const { user } = useAuth();
   const isEditMode = !!vehicleToEdit;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -26,20 +28,40 @@ export default function AddVehicleModal({ isOpen, onClose, onSuccess, vehicleToE
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true); setError('');
+    
+    if (!user) {
+      setError('You must be logged in to add a vehicle.');
+      return;
+    }
+
+    setIsSubmitting(true); 
+    setError('');
+    
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      const payload = { ...formData, year: Number(formData.year), engineSizeCC: Number(formData.engineSizeCC) || 0, startingOdometer: Number(formData.startingOdometer) || 0, registrationExpiry: formData.registrationExpiry ? new Date(formData.registrationExpiry).toISOString() : null };
-      if (isEditMode && vehicleToEdit) await axios.put(`${apiUrl}/vehicle/${vehicleToEdit.id}`, { id: vehicleToEdit.id, ...payload });
-      else await axios.post(`${apiUrl}/vehicle`, payload);
-      onSuccess(); onClose();
-      } catch (err) { 
-        console.error("Vehicle submission error:", err);
-        setError('Failed to save vehicle.'); 
-      } finally { 
-        setIsSubmitting(false); 
+      const payload = { 
+        ...formData, 
+        userId: user.uid,
+        year: Number(formData.year), 
+        engineSizeCC: Number(formData.engineSizeCC) || 0, 
+        startingOdometer: Number(formData.startingOdometer) || 0, 
+        registrationExpiry: formData.registrationExpiry ? new Date(formData.registrationExpiry).toISOString() : null 
+      };
+      
+      if (isEditMode && vehicleToEdit) {
+        await api.put(`/vehicle/${vehicleToEdit.id}`, { id: vehicleToEdit.id, ...payload });
+      } else {
+        await api.post(`/vehicle`, payload);
       }
-    };
+      
+      onSuccess(); 
+      onClose();
+    } catch (err) { 
+      console.error("Vehicle submission error:", err);
+      setError('Failed to save vehicle.'); 
+    } finally { 
+      setIsSubmitting(false); 
+    }
+  };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title={isEditMode ? "Edit Vehicle" : "Add New Vehicle"} subtitle={isEditMode ? "Update your vehicle's details" : "Register a new asset to your Garage"}

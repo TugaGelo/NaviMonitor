@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../../../lib/api';
 import BaseModal from '../../ui/modals/BaseModal';
 import DeleteConfirmation from '../../ui/modals/DeleteConfirmation';
 import type { RefuelLog } from '../../../types/types';
@@ -13,8 +13,7 @@ export default function DeleteRefuelModal({ isOpen, onClose, onSuccess, log }: D
   const handleDelete = async () => {
     setIsDeleting(true); setError('');
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-      await axios.delete(`${apiUrl}/refuel/${log.id}`);
+      await api.delete(`/refuel/${log.id}`);
       onSuccess(); onClose();
     } catch (err) {
       console.error(err); setError('Failed to delete log. Please try again.');
