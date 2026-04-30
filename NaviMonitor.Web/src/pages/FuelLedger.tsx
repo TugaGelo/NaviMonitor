@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../lib/api';
+import { useSettings } from '../context/settings/SettingsContext';
 import { Fuel, DollarSign, TrendingDown } from 'lucide-react';
 import type { Vehicle, RefuelLog } from '../types/types';
 import StatCard from '../components/ui/display/StatCard';
@@ -14,6 +15,7 @@ interface GlobalFuelLogsProps {
 }
 
 export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRefuelLog, refreshTrigger }: GlobalFuelLogsProps) {
+  const { settings } = useSettings();
   const [logs, setLogs] = useState<RefuelLog[]>([]);
   const [isLoading, setIsLoading] = useState(vehicles.length > 0);
 
@@ -52,8 +54,13 @@ export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRe
   }, [vehicles, refreshTrigger]);
 
   const totalSpend = logs.reduce((sum, log) => sum + log.totalCost, 0);
-  const totalVolume = logs.reduce((sum, log) => sum + log.volume, 0);
-  const avgPricePerLiter = totalVolume > 0 ? (totalSpend / totalVolume) : 0;
+  
+  const rawTotalVolume = logs.reduce((sum, log) => sum + log.volume, 0);
+  const displayVolume = settings?.volumeUnit === 'gal' ? rawTotalVolume * 0.264172 : rawTotalVolume;
+  const avgPricePerUnit = displayVolume > 0 ? (totalSpend / displayVolume) : 0;
+  
+  const volLabel = settings?.volumeUnit === 'gal' ? 'gal' : 'L';
+  const priceLabel = settings?.volumeUnit === 'gal' ? 'Avg. Price / Gal' : 'Avg. Price / Liter';
 
   if (isLoading) {
     return (
@@ -81,20 +88,19 @@ export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRe
         />
         <StatCard 
           label="Total Volume (All Assets)" 
-          value={totalVolume.toFixed(1)} 
-          suffix="L" 
+          value={displayVolume.toFixed(1)} 
+          suffix={volLabel} 
           icon={Fuel} 
         />
         <StatCard 
-          label="Avg. Price / Liter" 
-          value={avgPricePerLiter.toFixed(2)} 
+          label={priceLabel} 
+          value={avgPricePerUnit.toFixed(2)} 
           prefix="₱" 
           icon={TrendingDown} 
         />
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden shadow-sm">
-        
         <FuelTable 
           logs={logs}
           vehicles={vehicles}
@@ -102,7 +108,6 @@ export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRe
           onEdit={onOpenRefuelModal}
           onDelete={onDeleteRefuelLog}
         />
-        
         <div className="px-6 py-4 border-t border-zinc-200 bg-zinc-50/50">
           <span className="text-zinc-500 text-sm font-bold">Showing {logs.length} global records</span>
         </div>

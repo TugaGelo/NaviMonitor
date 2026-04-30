@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/auth/AuthContext';
+import { useSettings } from '../../../context/settings/SettingsContext';
 import { Fuel, Car, Bike, Truck, Save } from 'lucide-react';
 import BaseModal from '../../ui/modals/BaseModal';
 import ModalFooter from '../../ui/modals/ModalFooter';
@@ -11,6 +12,7 @@ interface AddRefuelModalProps { isOpen: boolean; onClose: () => void; onSuccess:
 
 export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit }: AddRefuelModalProps) {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const isEditMode = !!logToEdit;
   const hideVehiclePicker = !!preselectedVehicleId;
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,15 +103,15 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
             <div className="space-y-5">
-              <FormInput id="odometer" label="Odometer Reading *" type="number" unit="km" value={formData.odometer} onChange={handleChange} required placeholder="0" />
-              <FormInput id="volume" label="Fuel Volume *" type="number" step="0.01" unit="Liters" value={formData.volume} onChange={handleChange} required placeholder="0.00" />
+              <FormInput id="odometer" label="Odometer Reading *" type="number" unit={settings?.distanceUnit || 'km'} value={formData.odometer} onChange={handleChange} required placeholder="0" />
+              <FormInput id="volume" label="Fuel Volume *" type="number" step="0.01" unit={settings?.volumeUnit === 'L' ? 'Liters' : 'Gallons'} value={formData.volume} onChange={handleChange} required placeholder="0.00" />
             </div>
             <div className="space-y-5">
-              <FormInput id="totalCost" label="Total Cost *" type="number" step="0.01" icon={<span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">₱</span>} value={formData.totalCost} onChange={handleChange} required placeholder="0.00" inputClassName="pl-8" />
+              <FormInput id="totalCost" label="Total Cost (₱) *" type="number" step="0.01" icon={<span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">₱</span>} value={formData.totalCost} onChange={handleChange} required placeholder="0.00" inputClassName="pl-8" />
               <div className="space-y-1">
                 <label className="text-xs font-bold text-black uppercase tracking-wider block">Fuel Type</label>
                 <div className="flex flex-wrap gap-2 pt-1">
-                  {['Unleaded', 'Premium', 'Diesel'].map((type) => (
+                  {(settings?.fuelTypes || ['Unleaded', 'Premium', 'Diesel']).map((type) => (
                     <button key={type} type="button" onClick={() => setFormData({...formData, fuelType: type})} className={`text-[10px] uppercase tracking-wider font-bold px-4 py-2 rounded-lg border transition-all ${formData.fuelType === type ? 'border-black bg-black text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300 hover:bg-white'}`}>{type}</button>
                   ))}
                 </div>

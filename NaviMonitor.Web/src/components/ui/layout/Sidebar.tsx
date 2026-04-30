@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../../context/auth/AuthContext';
 import { 
   LayoutDashboard, Fuel, Wrench, BarChart3, 
-  Settings, HelpCircle, LogOut, Plus, UserCircle, Bell
+  Settings, HelpCircle, LogOut, UserCircle
 } from 'lucide-react';
 import LogoutModal from '../../modals/auth/LogoutModal';
 
@@ -30,16 +30,8 @@ export default function Sidebar() {
             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" title="System Active"></div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-1.5 text-zinc-400 hover:text-black hover:bg-zinc-100 rounded-md transition-colors relative">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-secondary rounded-full"></span>
-            </button>
           </div>
         </div>
-
-        <button className="w-full bg-secondary text-white py-2.5 rounded-lg font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-md shadow-red-500/20 active:scale-95 flex justify-center items-center gap-2 mb-6">
-          <Plus className="w-4 h-4" /> New Entry
-        </button>
 
         <nav className="flex flex-col gap-1 grow">
           <NavLink to="/" end className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}`}>

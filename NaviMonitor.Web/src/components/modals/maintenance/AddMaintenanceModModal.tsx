@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/auth/AuthContext';
+import { useSettings } from '../../../context/settings/SettingsContext';
 import { Wrench, Rocket, Store, Hammer, Phone, Save } from 'lucide-react';
 import BaseModal from '../../ui/modals/BaseModal';
 import ModalFooter from '../../ui/modals/ModalFooter';
@@ -23,6 +24,7 @@ export default function AddMaintenanceModModal({
 }: AddMaintenanceModModalProps) {
   
   const { user } = useAuth();
+  const { settings } = useSettings();
   const isEditMode = Boolean(logToEdit?.id && logToEdit.id > 0);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,14 +114,14 @@ export default function AddMaintenanceModModal({
               <div className="space-y-2">
                 <FormInput label="Service / Mod Name *" name="serviceType" value={formData.serviceType} onChange={handleChange} required placeholder="e.g. Changed Oil" />
                 <div className="flex flex-wrap gap-2 pt-1">
-                  {["Change Oil", "Tire Swap", "Spark Plug", "Brakes", "Suspension", "Exhaust"].map(t => (
+                  {(settings?.serviceTypes || ["Oil Change", "Brakes", "Tire Swap"]).map(t => (
                     <button key={t} type="button" onClick={() => setFormData(prev => ({ ...prev, serviceType: t }))} className={`text-[10px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-lg border transition-all ${formData.serviceType === t ? 'border-black bg-black text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300 hover:bg-white'}`}>{t}</button>
                   ))}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormInput label="Date *" name="date" type="date" value={formData.date} onChange={handleChange} required />
-                <FormInput label="Odometer *" name="odometer" type="number" unit="km" value={formData.odometer || ''} onChange={handleChange} required placeholder="0" />
+                <FormInput label="Odometer *" name="odometer" type="number" unit={settings?.distanceUnit || 'km'} value={formData.odometer || ''} onChange={handleChange} required placeholder="0" />
               </div>
               <FormInput label="Total Price (₱)" name="price" type="number" icon={<span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">₱</span>} value={formData.price || ''} onChange={handleChange} placeholder="0.00" inputClassName="pl-8" />
             </div>

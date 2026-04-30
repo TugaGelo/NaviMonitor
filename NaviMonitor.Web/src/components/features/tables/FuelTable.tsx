@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Edit2, Trash2, Gauge } from 'lucide-react';
+import { useSettings } from '../../../context/settings/SettingsContext';
 import type { RefuelLog, Vehicle } from '../../../types/types';
 
 interface FuelTableProps {
@@ -11,7 +12,7 @@ interface FuelTableProps {
 }
 
 export default function FuelTable({ logs, vehicles, showVehicle, onEdit, onDelete }: FuelTableProps) {
-  
+  const { settings } = useSettings();
   const headerStyle = "px-6 py-4 font-black text-[10px] text-zinc-500 uppercase tracking-widest whitespace-nowrap";
 
   return (
@@ -43,6 +44,12 @@ export default function FuelTable({ logs, vehicles, showVehicle, onEdit, onDelet
           ) : (
             logs.map((log) => {
               const vehicle = vehicles?.find(v => v.id === log.vehicleId);
+              
+              // Dynamic Unit Calculations
+              const displayOdo = settings?.distanceUnit === 'mi' ? log.odometer * 0.621371 : log.odometer;
+              const displayVol = settings?.volumeUnit === 'gal' ? log.volume * 0.264172 : log.volume;
+              const distLabel = settings?.distanceUnit || 'km';
+              const volLabel = settings?.volumeUnit === 'gal' ? 'gal' : 'L';
 
               return (
                 <tr key={log.id} className="hover:bg-zinc-50/50 transition-colors group">
@@ -50,7 +57,7 @@ export default function FuelTable({ logs, vehicles, showVehicle, onEdit, onDelet
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-bold text-sm text-black">{new Date(log.date).toLocaleDateString()}</div>
                     <div className="flex items-center gap-1 text-zinc-400 text-[10px] font-bold uppercase mt-0.5">
-                      <Gauge className="w-3 h-3" /> {log.odometer.toLocaleString()} km
+                      <Gauge className="w-3 h-3" /> {displayOdo.toLocaleString(undefined, { maximumFractionDigits: 0 })} {distLabel}
                     </div>
                   </td>
 
@@ -63,8 +70,8 @@ export default function FuelTable({ logs, vehicles, showVehicle, onEdit, onDelet
                   )}
 
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className="font-bold text-black">{log.volume}</span>
-                    <span className="text-zinc-400 ml-1">L</span>
+                    <span className="font-bold text-black">{displayVol.toFixed(2)}</span>
+                    <span className="text-zinc-400 ml-1 font-bold">{volLabel}</span>
                   </td>
                   
                   <td className="px-6 py-4 font-black text-sm text-black whitespace-nowrap">

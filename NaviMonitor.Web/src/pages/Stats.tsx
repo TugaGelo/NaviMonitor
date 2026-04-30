@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../lib/api';
+import { useSettings } from '../context/settings/SettingsContext';
 import { DollarSign, Wrench, Calendar, LineChart, PieChart } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../types/types';
 import StatCard from '../components/ui/display/StatCard';
@@ -10,6 +11,7 @@ interface GlobalStatsProps {
 }
 
 export default function GlobalStats({ vehicles }: GlobalStatsProps) {
+  const { settings } = useSettings();
   const [fuelLogs, setFuelLogs] = useState<RefuelLog[]>([]);
   const [maintLogs, setMaintLogs] = useState<MaintenanceLog[]>([]);
   const [isLoading, setIsLoading] = useState(vehicles.length > 0);
@@ -52,17 +54,22 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
   const totalMaintSpend = maintLogs.reduce((sum, log) => sum + log.price, 0);
   const totalSpend = totalFuelSpend + totalMaintSpend;
 
-  let totalDistance = 0;
+  let rawTotalDistance = 0;
   vehicles.forEach(v => {
     const vLogs = fuelLogs.filter(l => l.vehicleId === v.id);
     if (vLogs.length > 1) {
       const minOdo = Math.min(...vLogs.map(l => l.odometer));
       const maxOdo = Math.max(...vLogs.map(l => l.odometer));
-      totalDistance += (maxOdo - minOdo);
+      rawTotalDistance += (maxOdo - minOdo);
     }
   });
 
-  const costPerKm = totalDistance > 0 ? (totalSpend / totalDistance) : 0;
+  const displayDistance = settings?.distanceUnit === 'mi' ? rawTotalDistance * 0.621371 : rawTotalDistance;
+  const costPerUnit = displayDistance > 0 ? (totalSpend / displayDistance) : 0;
+  
+  const distLabel = settings?.distanceUnit === 'mi' ? 'mi' : 'km';
+  const volLabel = settings?.volumeUnit === 'gal' ? 'gal' : 'L';
+  const costLabel = settings?.distanceUnit === 'mi' ? 'Cost per MI' : 'Cost per KM';
 
   const fuelPct = totalSpend > 0 ? Math.round((totalFuelSpend / totalSpend) * 100) : 0;
   const maintPct = totalSpend > 0 ? Math.round((totalMaintSpend / totalSpend) * 100) : 0;
@@ -107,8 +114,8 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          label="Cost per KM" 
-          value={costPerKm.toFixed(2)} 
+          label={costLabel} 
+          value={costPerUnit.toFixed(2)} 
           prefix="₱" 
           icon={DollarSign} 
           trend={{ value: "Across all assets", isUp: true }}
@@ -122,8 +129,8 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
         />
         <StatCard 
           label="Recorded Distance" 
-          value={totalDistance.toLocaleString()} 
-          suffix="km" 
+          value={displayDistance.toLocaleString(undefined, { maximumFractionDigits: 0 })} 
+          suffix={distLabel} 
           icon={Calendar} 
           trend={{ value: "Total Tracked", isUp: true }}
         />
@@ -153,11 +160,13 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
             </div>
 
             {last6Months.map((m, i) => {
-              const heightPct = Math.max((m.volume / maxVolume) * 100, 2); // min 2% height
+              const heightPct = Math.max((m.volume / maxVolume) * 100, 2);
+              const displayVol = settings?.volumeUnit === 'gal' ? m.volume * 0.264172 : m.volume;
+              
               return (
                 <div key={i} className="w-full relative z-10 flex flex-col items-center group h-full justify-end">
-                  <div className="absolute -top-8 bg-black text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                    {m.volume.toFixed(1)}L
+                  <div className="absolute -top-8 bg-black text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {displayVol.toFixed(1)} {volLabel}
                   </div>
                   <div 
                     className={`w-full rounded-t-sm transition-all duration-500 ${i === 5 ? 'bg-secondary' : 'bg-zinc-200 hover:bg-zinc-300'}`}
