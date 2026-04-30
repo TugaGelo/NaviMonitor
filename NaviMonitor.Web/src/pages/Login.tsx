@@ -1,11 +1,9 @@
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/auth/AuthContext';
 import { CarFront, ShieldCheck, Lock } from 'lucide-react';
 
 export default function Login() {
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   if (user) {
@@ -14,7 +12,7 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await loginWithGoogle();
       navigate('/');
     } catch (error) {
       console.error("Login failed:", error);
