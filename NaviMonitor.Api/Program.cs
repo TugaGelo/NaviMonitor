@@ -4,17 +4,19 @@ using Microsoft.IdentityModel.Tokens;
 using NaviMonitor.Api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
+var firebaseAuthority = builder.Configuration["Firebase:Authority"];
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://securetoken.google.com/navi-monitor";
+        options.Authority = firebaseAuthority;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "https://securetoken.google.com/navi-monitor",
+            ValidIssuer = firebaseAuthority,
             ValidateAudience = true,
-            ValidAudience = "navi-monitor",
+            ValidAudience = firebaseProjectId,
             ValidateLifetime = true
         };
     });
@@ -23,6 +25,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<NaviMonitor.Api.Services.MaintenanceAIService>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 

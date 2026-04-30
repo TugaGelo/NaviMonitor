@@ -2,13 +2,13 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBZJPtfIgRtnxYPQfaq7Pzs41vJDwY8Has",
-  authDomain: "navi-monitor.firebaseapp.com",
-  projectId: "navi-monitor",
-  storageBucket: "navi-monitor.firebasestorage.app",
-  messagingSenderId: "711609951499",
-  appId: "1:711609951499:web:f5a74274eefd143cbb6e0e",
-  measurementId: "G-S24F8PD3EV"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
