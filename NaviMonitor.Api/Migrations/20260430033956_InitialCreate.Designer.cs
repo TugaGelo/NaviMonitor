@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260429091604_CompleteAuthSchema")]
-    partial class CompleteAuthSchema
+    [Migration("20260430033956_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,6 +117,36 @@ namespace NaviMonitor.Api.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("RefuelLogs");
+                });
+
+            modelBuilder.Entity("NaviMonitor.Api.Models.UserSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DistanceUnit")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FuelTypesJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ServiceTypesJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VolumeUnit")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserSettings");
                 });
 
             modelBuilder.Entity("NaviMonitor.Api.Models.Vehicle", b =>

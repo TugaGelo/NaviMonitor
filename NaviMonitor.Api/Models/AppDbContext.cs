@@ -11,4 +11,5 @@ public class AppDbContext : DbContext
     public DbSet<RefuelLog> RefuelLogs { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<MaintenanceLog> MaintenanceLogs { get; set; }
+    public DbSet<UserSettings> UserSettings { get; set; }
 }

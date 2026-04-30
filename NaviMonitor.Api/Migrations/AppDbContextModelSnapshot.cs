@@ -116,6 +116,36 @@ namespace NaviMonitor.Api.Migrations
                     b.ToTable("RefuelLogs");
                 });
 
+            modelBuilder.Entity("NaviMonitor.Api.Models.UserSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DistanceUnit")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FuelTypesJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ServiceTypesJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VolumeUnit")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserSettings");
+                });
+
             modelBuilder.Entity("NaviMonitor.Api.Models.Vehicle", b =>
                 {
                     b.Property<int>("Id")

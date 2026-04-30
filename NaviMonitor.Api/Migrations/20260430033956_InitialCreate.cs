@@ -6,11 +6,27 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class CompleteAuthSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "UserSettings",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    DistanceUnit = table.Column<string>(type: "TEXT", nullable: false),
+                    VolumeUnit = table.Column<string>(type: "TEXT", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false),
+                    FuelTypesJson = table.Column<string>(type: "TEXT", nullable: false),
+                    ServiceTypesJson = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSettings", x => x.UserId);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
@@ -115,6 +131,9 @@ namespace NaviMonitor.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefuelLogs");
+
+            migrationBuilder.DropTable(
+                name: "UserSettings");
 
             migrationBuilder.DropTable(
                 name: "Vehicles");
