@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import { Fuel, DollarSign, TrendingDown } from 'lucide-react';
 import type { Vehicle, RefuelLog } from '../types/types';
 import StatCard from '../components/ui/display/StatCard';
@@ -29,9 +29,7 @@ export default function GlobalFuelLogs({ vehicles, onOpenRefuelModal, onDeleteRe
 
       setIsLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        
-        const promises = vehicles.map(v => axios.get(`${apiUrl}/refuel/vehicle/${v.id}`));
+        const promises = vehicles.map(v => api.get(`/refuel/vehicle/${v.id}`));
         const results = await Promise.all(promises);
         
         if (isMounted) {

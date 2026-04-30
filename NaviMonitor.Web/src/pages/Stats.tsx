@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import { DollarSign, Wrench, Calendar, LineChart, PieChart } from 'lucide-react';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../types/types';
 import StatCard from '../components/ui/display/StatCard';
@@ -25,10 +25,8 @@ export default function GlobalStats({ vehicles }: GlobalStatsProps) {
 
       setIsLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        
-        const fuelPromises = vehicles.map(v => axios.get(`${apiUrl}/refuel/vehicle/${v.id}`));
-        const maintPromises = vehicles.map(v => axios.get(`${apiUrl}/maintenance/vehicle/${v.id}`));
+        const fuelPromises = vehicles.map(v => api.get(`/refuel/vehicle/${v.id}`));
+        const maintPromises = vehicles.map(v => api.get(`/maintenance/vehicle/${v.id}`));
         
         const [fuelResults, maintResults] = await Promise.all([
           Promise.all(fuelPromises),

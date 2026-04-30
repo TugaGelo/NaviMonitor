@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api';
 import { Search } from 'lucide-react';
 import type { Vehicle, MaintenanceLog } from '../types/types';
 
@@ -32,8 +32,7 @@ export default function GlobalMaintenanceLogs({ vehicles, onOpenMaintenanceModal
 
       setIsLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        const promises = vehicles.map(v => axios.get(`${apiUrl}/maintenance/vehicle/${v.id}`));
+        const promises = vehicles.map(v => api.get(`/maintenance/vehicle/${v.id}`));
         const results = await Promise.all(promises);
         
         if (isMounted) {

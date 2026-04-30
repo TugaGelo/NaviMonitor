@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../lib/api'; 
 import type { Vehicle, RefuelLog, MaintenanceLog, MaintenanceMatrixItem } from '../types/types';
 
 import DashboardHeader from '../components/features/dashboard/DashboardHeader';
@@ -47,12 +47,10 @@ export default function VehicleDashboard({
       if (!id) return;
       setIsLoading(true);
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        
         const [vehRes, fuelRes, maintRes] = await Promise.all([
-          axios.get(`${apiUrl}/vehicle/${id}`),
-          axios.get(`${apiUrl}/refuel/vehicle/${id}`),
-          axios.get(`${apiUrl}/maintenance/vehicle/${id}`)
+          api.get(`/vehicle/${id}`),
+          api.get(`/refuel/vehicle/${id}`),
+          api.get(`/maintenance/vehicle/${id}`)
         ]);
 
         if (isMounted) {
