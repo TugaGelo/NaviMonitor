@@ -24,16 +24,13 @@ export default function Sidebar() {
     <>
       <aside className="hidden md:flex flex-col py-6 px-4 h-screen w-64 border-r border-zinc-200 bg-white sticky top-0 z-50">
         
-        <div className="px-2 mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tighter text-zinc-900">NAVI</h1>
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" title="System Active"></div>
-          </div>
-          <div className="flex items-center gap-2">
-          </div>
+        <div className="pb-3 mb-3 border-b border-zinc-200 flex items-center justify-center w-full">
+          <h1 className="text-5xl font-black tracking-tighter text-black uppercase">
+            NAVI
+          </h1>
         </div>
 
-        <nav className="flex flex-col gap-1 grow">
+                <nav className="flex flex-col gap-1 grow">
           <NavLink to="/" end className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}`}>
             <LayoutDashboard className="w-5 h-5" /> My Garage
           </NavLink>
@@ -51,14 +48,13 @@ export default function Sidebar() {
         <div className="mt-auto flex flex-col pt-6 border-t border-zinc-100 space-y-4">
           <div className="bg-zinc-50 rounded-xl p-3 border border-zinc-100">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600">
+              <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 shrink-0">
                 <UserCircle className="w-6 h-6" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-black text-black uppercase truncate max-w-30" title={user?.email || 'User'}>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-xs font-black text-black uppercase truncate" title={user?.email || 'User'}>
                   {user?.email?.split('@')[0] || 'User'}
                 </span>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">Pro Account</span>
               </div>
             </div>
             
