@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Gauge, CalendarDays, ChevronRight, ShieldAlert, Droplet, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../../lib/api';
 import type { Vehicle, RefuelLog } from '../../../types/types';
 
 interface VehicleCardProps {
@@ -20,8 +20,7 @@ export default function VehicleCard({ vehicle, onEdit, onDelete, refreshTrigger 
   useEffect(() => {
     const fetchLatestLog = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7041/api';
-        const response = await axios.get(`${apiUrl}/refuel/vehicle/${vehicle.id}`);
+        const response = await api.get(`/refuel/vehicle/${vehicle.id}`);
         const logs = response.data;
         if (logs && logs.length > 0) {
           setLatestLog(logs[0]);
