@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 var firebaseAuthority = builder.Configuration["Firebase:Authority"];
 
+// --- 1. Services Configuration ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -45,8 +46,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 
 app.UseAuthentication();

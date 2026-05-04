@@ -9,4 +9,8 @@ bin/
 obj/
 *.user
 
+node_modules/
+.expo/
+dist/
+build/
 .env
