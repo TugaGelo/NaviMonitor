@@ -8,7 +8,14 @@ import ModalFooter from '../../ui/modals/ModalFooter';
 import FormInput from '../../ui/forms/FormInput';
 import type { Vehicle, RefuelLog } from '../../../types/types';
 
-interface AddRefuelModalProps { isOpen: boolean; onClose: () => void; onSuccess: () => void; vehicles: Vehicle[]; preselectedVehicleId?: number | null; logToEdit?: RefuelLog | null; }
+interface AddRefuelModalProps { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSuccess: () => void; 
+  vehicles: Vehicle[]; 
+  preselectedVehicleId?: number | null; 
+  logToEdit?: RefuelLog | null; 
+}
 
 export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, preselectedVehicleId, logToEdit }: AddRefuelModalProps) {
   const { user } = useAuth();
@@ -19,8 +26,20 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
   const [error, setError] = useState('');
   const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(preselectedVehicleId || (vehicles.length > 0 ? vehicles[0].id : null));
 
+  const formatDateForInput = (dateString?: string) => {
+    if (!dateString) {
+      const today = new Date();
+      return new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    }
+    return new Date(dateString).toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
-    odometer: logToEdit?.odometer?.toString() || '', volume: logToEdit?.volume?.toString() || '', totalCost: logToEdit?.totalCost?.toString() || '', fuelType: logToEdit?.fuelType || 'Unleaded'
+    date: formatDateForInput(logToEdit?.date),
+    odometer: logToEdit?.odometer?.toString() || '', 
+    volume: logToEdit?.volume?.toString() || '', 
+    totalCost: logToEdit?.totalCost?.toString() || '', 
+    fuelType: logToEdit?.fuelType || 'Unleaded'
   });
 
   useEffect(() => {
@@ -52,7 +71,7 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
       const payload = { 
         userId: user.uid,
         vehicleId: selectedVehicleId, 
-        date: isEditMode && logToEdit ? logToEdit.date : new Date().toISOString(), 
+        date: new Date(formData.date).toISOString(), 
         odometer: Number(formData.odometer), 
         volume: Number(formData.volume), 
         totalCost: Number(formData.totalCost), 
@@ -103,21 +122,23 @@ export default function AddRefuelModal({ isOpen, onClose, onSuccess, vehicles, p
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
             <div className="space-y-5">
+              <FormInput id="date" label="Refuel Date *" type="date" value={formData.date} onChange={handleChange} required />
               <FormInput id="odometer" label="Odometer Reading *" type="number" unit={settings?.distanceUnit || 'km'} value={formData.odometer} onChange={handleChange} required placeholder="0" />
-              <FormInput id="volume" label="Fuel Volume *" type="number" step="0.01" unit={settings?.volumeUnit === 'L' ? 'Liters' : 'Gallons'} value={formData.volume} onChange={handleChange} required placeholder="0.00" />
             </div>
             <div className="space-y-5">
+              <FormInput id="volume" label="Fuel Volume *" type="number" step="0.01" unit={settings?.volumeUnit === 'L' ? 'Liters' : 'Gallons'} value={formData.volume} onChange={handleChange} required placeholder="0.00" />
               <FormInput id="totalCost" label="Total Cost (₱) *" type="number" step="0.01" icon={<span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-zinc-400">₱</span>} value={formData.totalCost} onChange={handleChange} required placeholder="0.00" inputClassName="pl-8" />
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-black uppercase tracking-wider block">Fuel Type</label>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {(settings?.fuelTypes || ['Unleaded', 'Premium', 'Diesel']).map((type) => (
-                    <button key={type} type="button" onClick={() => setFormData({...formData, fuelType: type})} className={`text-[10px] uppercase tracking-wider font-bold px-4 py-2 rounded-lg border transition-all ${formData.fuelType === type ? 'border-black bg-black text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300 hover:bg-white'}`}>{type}</button>
-                  ))}
-                </div>
-              </div>
             </div>
           </section>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-black uppercase tracking-wider block">Fuel Type</label>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {(settings?.fuelTypes || ['Unleaded', 'Premium', 'Diesel']).map((type) => (
+                <button key={type} type="button" onClick={() => setFormData({...formData, fuelType: type})} className={`text-[10px] uppercase tracking-wider font-bold px-4 py-2 rounded-lg border transition-all ${formData.fuelType === type ? 'border-black bg-black text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-zinc-300 hover:bg-white'}`}>{type}</button>
+              ))}
+            </div>
+          </div>
         </div>
         <ModalFooter onClose={onClose} isSubmitting={isSubmitting} submitLabel="Log" submitIcon={isEditMode ? Save : Fuel} isEditMode={isEditMode} />
       </form>
