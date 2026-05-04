@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { LayoutGrid, Car, Activity, Bell } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 export default function TabLayout() {
   return (
@@ -43,12 +44,22 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color }) => <LayoutGrid size={24} color={color} strokeWidth={2.5} />,
         }}
+        listeners={{
+          tabPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
+        }}
       />
       <Tabs.Screen
         name="fleet"
         options={{
           title: 'Fleet',
           tabBarIcon: ({ color }) => <Car size={24} color={color} strokeWidth={2.5} />,
+        }}
+        listeners={{
+          tabPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
         }}
       />
       <Tabs.Screen
@@ -57,12 +68,22 @@ export default function TabLayout() {
           title: 'Health',
           tabBarIcon: ({ color }) => <Activity size={24} color={color} strokeWidth={2.5} />,
         }}
+        listeners={{
+          tabPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
+        }}
       />
       <Tabs.Screen
         name="alerts"
         options={{
           title: 'Alerts',
           tabBarIcon: ({ color }) => <Bell size={24} color={color} strokeWidth={2.5} />,
+        }}
+        listeners={{
+          tabPress: () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          },
         }}
       />
     </Tabs>
