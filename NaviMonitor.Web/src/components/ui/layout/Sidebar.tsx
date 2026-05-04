@@ -30,7 +30,7 @@ export default function Sidebar() {
           </h1>
         </div>
 
-                <nav className="flex flex-col gap-1 grow">
+        <nav className="flex flex-col gap-1 grow">
           <NavLink to="/" end className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg font-bold text-sm transition-all ${isActive ? 'bg-zinc-100 text-black' : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900'}`}>
             <LayoutDashboard className="w-5 h-5" /> My Garage
           </NavLink>
