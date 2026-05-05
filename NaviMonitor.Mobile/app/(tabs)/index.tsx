@@ -16,10 +16,10 @@ export default function GarageScreen() {
           key={vehicle.id}
           name={vehicle.nickname}
           model={`${vehicle.year} ${vehicle.model}`}
-          odometer={vehicle.odo}
-          ltoReg={vehicle.ltoReg}
-          lastRefuel={vehicle.lastRefuel}
-          type={vehicle.type}
+          odometer={vehicle.startingOdometer.toString()} 
+          ltoReg={vehicle.registrationExpiry || 'Not Set'}
+          lastRefuel="Check Logs"
+          type={vehicle.vehicleType as 'CAR' | 'BIKE'}
           onPress={() => {
             console.log("📍 Tapped vehicle ID:", vehicle.id);
             router.push({
