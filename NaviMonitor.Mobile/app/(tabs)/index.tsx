@@ -1,31 +1,34 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text } from 'react-native';
+import { useRouter } from 'expo-router';
 import VehicleCard from '../../components/VehicleCard';
+import { VEHICLES } from '../../constants/vehicles';
 
 export default function GarageScreen() {
+  const router = useRouter();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.subHeader}>Select a vehicle to view dashboard</Text>
       
-      {/* Example Vehicle 1 */}
-      <VehicleCard 
-        name="Coco"
-        model="2026 Honda Navi • Black/White"
-        odometer="200"
-        ltoReg="May 4, 2026"
-        lastRefuel="May 4"
-        type="CAR"
-      />
-
-      {/* Example Vehicle 2 */}
-      <VehicleCard 
-        name="Thunder"
-        model="2023 Honda Navi • Red"
-        odometer="3,500"
-        ltoReg="Oct 12, 2026"
-        lastRefuel="Apr 28"
-        type="BIKE"
-      />
+      {VEHICLES.map((vehicle) => (
+        <VehicleCard 
+          key={vehicle.id}
+          name={vehicle.nickname}
+          model={`${vehicle.year} ${vehicle.model}`}
+          odometer={vehicle.odo}
+          ltoReg={vehicle.ltoReg}
+          lastRefuel={vehicle.lastRefuel}
+          type={vehicle.type}
+          onPress={() => {
+            console.log("📍 Tapped vehicle ID:", vehicle.id);
+            router.push({
+              pathname: '/vehicle/[id]',
+              params: { id: vehicle.id }
+            });
+          }}    
+        />
+      ))}
     </ScrollView>
   );
 }

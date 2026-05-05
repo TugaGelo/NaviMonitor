@@ -3,7 +3,6 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
 
-// We wrap the navigation logic in its own component so it can use the useAuth hook
 function RootLayoutNav() {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -12,19 +11,20 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading) return;
 
-    const inTabsGroup = segments[0] === '(tabs)';
+    const isAtLogin = segments[0] === 'login';
 
-    if (user && !inTabsGroup) {
+    if (user && isAtLogin) {
       router.replace('/(tabs)');
-    } else if (!user && inTabsGroup) {
+    } else if (!user && !isAtLogin) {
       router.replace('/login');
     }
   }, [user, loading, segments, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" options={{ animation: 'fade' }} />
-      <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="vehicle/[id]" options={{ presentation: 'card' }} /> 
     </Stack>
   );
 }

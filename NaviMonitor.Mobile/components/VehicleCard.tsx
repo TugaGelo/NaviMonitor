@@ -9,11 +9,12 @@ interface VehicleCardProps {
   ltoReg: string;
   lastRefuel: string;
   type: 'CAR' | 'BIKE';
+  onPress: () => void;
 }
 
-export default function VehicleCard({ name, model, odometer, ltoReg, lastRefuel, type }: VehicleCardProps) {
+export default function VehicleCard({ name, model, odometer, ltoReg, lastRefuel, type, onPress }: VehicleCardProps) {
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={onPress}>
       <View style={styles.header}>
         <View>
           <Text style={styles.name}>{name}</Text>
