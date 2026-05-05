@@ -34,6 +34,16 @@ export interface MaintenanceLog {
   notes?: string;
 }
 
+export interface RefuelLog {
+  id?: number;
+  vehicleId: number;
+  date: string;
+  odometer: number;
+  volume: number;
+  totalCost: number;
+  fuelType?: string;
+}
+
 export const VEHICLES: Vehicle[] = [
   {
     id: 1,
@@ -72,71 +82,16 @@ export const VEHICLES: Vehicle[] = [
 ];
 
 export const MOCK_LOGS: MaintenanceLog[] = [
-  {
-    id: 1,
-    vehicleId: 2,
-    logType: 'Maintenance',
-    date: '2025-05-01',
-    odometer: 1000,
-    serviceType: 'Engine Oil',
-    price: 850,
-    isDIY: true,
-    notes: 'Fully Synthetic'
-  },
-  {
-    id: 2,
-    vehicleId: 2,
-    logType: 'Maintenance',
-    date: '2025-05-01',
-    odometer: 1000,
-    serviceType: 'Fuel Line',
-    price: 0,
-    isDIY: true,
-    notes: 'Inspected, looks good'
-  },
-  {
-    id: 3,
-    vehicleId: 2,
-    logType: 'Maintenance',
-    date: '2025-08-15',
-    odometer: 2500,
-    serviceType: 'Brake Fluid Flush',
-    price: 1200,
-    isDIY: false,
-    notes: 'Motul DOT 4 - Done at JT Mechanics'
-  },
-  {
-    id: 4,
-    vehicleId: 2,
-    logType: 'Maintenance',
-    date: '2025-11-02',
-    odometer: 3100,
-    serviceType: 'Spark Plug',
-    price: 350,
-    isDIY: true,
-    notes: 'NGK Iridium'
-  },
-  {
-    id: 5,
-    vehicleId: 2,
-    logType: 'Maintenance',
-    date: '2026-02-10',
-    odometer: 3450,
-    serviceType: 'Rear Tire Replacement',
-    price: 4500,
-    isDIY: false,
-    notes: 'Pirelli Diablo Rosso Sport'
-  },
+  { id: 1, vehicleId: 2, logType: 'Maintenance', date: '2025-05-01', odometer: 1000, serviceType: 'Engine Oil', price: 850, isDIY: true, notes: 'Fully Synthetic' },
+  { id: 2, vehicleId: 2, logType: 'Maintenance', date: '2025-05-01', odometer: 1000, serviceType: 'Fuel Line', price: 0, isDIY: true, notes: 'Inspected, looks good' },
+  { id: 3, vehicleId: 2, logType: 'Maintenance', date: '2025-08-15', odometer: 2500, serviceType: 'Brake Fluid Flush', price: 1200, isDIY: false, notes: 'Motul DOT 4 - Done at JT Mechanics' },
+  { id: 4, vehicleId: 2, logType: 'Maintenance', date: '2025-11-02', odometer: 3100, serviceType: 'Spark Plug', price: 350, isDIY: true, notes: 'NGK Iridium' },
+  { id: 5, vehicleId: 2, logType: 'Maintenance', date: '2026-02-10', odometer: 3450, serviceType: 'Rear Tire Replacement', price: 4500, isDIY: false, notes: 'Pirelli Diablo Rosso Sport' },
+  { id: 6, vehicleId: 1, logType: 'Maintenance', date: '2026-06-01', odometer: 1000, serviceType: 'Engine Oil', price: 900, isDIY: false, notes: 'Dealer Break-in Service' }
+];
 
-  {
-    id: 6,
-    vehicleId: 1,
-    logType: 'Maintenance',
-    date: '2026-06-01',
-    odometer: 1000,
-    serviceType: 'Engine Oil',
-    price: 900,
-    isDIY: false,
-    notes: 'Dealer Break-in Service'
-  }
+export const MOCK_FUEL: RefuelLog[] = [
+  { id: 1, vehicleId: 2, date: '2026-05-04', odometer: 3480, volume: 3.2, totalCost: 210, fuelType: 'Premium' },
+  { id: 2, vehicleId: 2, date: '2026-04-28', odometer: 3200, volume: 3.5, totalCost: 230, fuelType: 'Premium' },
+  { id: 3, vehicleId: 2, date: '2026-04-15', odometer: 2900, volume: 3.1, totalCost: 200, fuelType: 'Unleaded' },
 ];

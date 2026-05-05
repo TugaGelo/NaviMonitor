@@ -14,7 +14,7 @@ export interface Milestone {
 }
 
 export function generateTimeline(vehicle: Vehicle, logs: MaintenanceLog[], currentOdo: number): Milestone[] {
-  if (!vehicle.maintenanceMatrixJson) return [];
+  if (!vehicle.maintenanceMatrixJson || vehicle.maintenanceMatrixJson === '[]') return [];
 
   const matrix: MaintenanceMatrixItem[] = JSON.parse(vehicle.maintenanceMatrixJson);
   const milestoneMap = new Map<number, TimelineTask[]>();
