@@ -11,11 +11,14 @@ import ScheduleTimeline from '../../components/ScheduleTimeline';
 import MaintenanceHistory from '../../components/MaintenanceHistory';
 import FuelHistory from '../../components/FuelHistory';
 import ActivityFeed from '../../components/ActivityFeed';
+import AddRefuelModal from '../../components/modals/AddRefuelModal';
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Activity');
+  
+  const [isRefuelModalOpen, setIsRefuelModalOpen] = useState(false);
 
   const vehicle = VEHICLES.find(v => v.id === Number(id));
   
@@ -31,7 +34,6 @@ export default function VehicleDetailScreen() {
     return MOCK_FUEL.filter(f => f.vehicleId === vehicle.id);
   }, [vehicle]);
 
-  // TRANSFORM DATA
   const activityEvents = useMemo(() => {
     return generateActivityFeed(vehicleLogs, vehicleFuel);
   }, [vehicleLogs, vehicleFuel]);
@@ -76,7 +78,10 @@ export default function VehicleDetailScreen() {
               <Text style={styles.vMatrixBtnText}>V-Matrix</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#000' }]}>
+            <TouchableOpacity 
+              style={[styles.actionBtn, { backgroundColor: '#000' }]}
+              onPress={() => setIsRefuelModalOpen(true)}
+            >
               <MaterialCommunityIcons name="gas-station" size={18} color="#fff" />
               <Text style={styles.actionBtnText}>Fuel Log</Text>
             </TouchableOpacity>
@@ -125,6 +130,17 @@ export default function VehicleDetailScreen() {
         </View>
 
       </ScrollView>
+
+      <AddRefuelModal 
+        isOpen={isRefuelModalOpen}
+        onClose={() => setIsRefuelModalOpen(false)}
+        vehicleNickname={vehicle.nickname}
+        onSave={(data) => {
+          console.log("Saving Refuel Data:", data);
+          // In the future: api.post('/refuel', data)
+        }}
+      />
+
     </View>
   );
 }
