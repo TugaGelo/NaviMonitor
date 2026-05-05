@@ -12,6 +12,7 @@ import MaintenanceHistory from '../../components/MaintenanceHistory';
 import FuelHistory from '../../components/FuelHistory';
 import ActivityFeed from '../../components/ActivityFeed';
 import AddRefuelModal from '../../components/modals/AddRefuelModal';
+import AddServiceModal from '../../components/modals/AddServiceModal';
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -19,6 +20,7 @@ export default function VehicleDetailScreen() {
   const [activeTab, setActiveTab] = useState('Activity');
   
   const [isRefuelModalOpen, setIsRefuelModalOpen] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
 
   const vehicle = VEHICLES.find(v => v.id === Number(id));
   
@@ -86,7 +88,10 @@ export default function VehicleDetailScreen() {
               <Text style={styles.actionBtnText}>Fuel Log</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: '#b7102a' }]}>
+            <TouchableOpacity 
+              style={[styles.actionBtn, { backgroundColor: '#b7102a' }]}
+              onPress={() => setIsServiceModalOpen(true)}
+            >
               <MaterialCommunityIcons name="wrench" size={18} color="#fff" />
               <Text style={styles.actionBtnText}>Service</Text>
             </TouchableOpacity>
@@ -138,6 +143,16 @@ export default function VehicleDetailScreen() {
         onSave={(data) => {
           console.log("Saving Refuel Data:", data);
           // In the future: api.post('/refuel', data)
+        }}
+      />
+
+      <AddServiceModal 
+        isOpen={isServiceModalOpen}
+        onClose={() => setIsServiceModalOpen(false)}
+        vehicleNickname={vehicle.nickname}
+        onSave={(data) => {
+          console.log("Saving Service Data:", data);
+          // In the future: api.post('/service', data)
         }}
       />
 
