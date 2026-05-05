@@ -1,91 +1,68 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
-import { LayoutGrid, Car, Activity, Bell } from 'lucide-react-native';
-import * as Haptics from 'expo-haptics';
+import { BlurView } from 'expo-blur';
+import { StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: '#E63946',
-        tabBarInactiveTintColor: '#a1a1aa',
-        tabBarStyle: {
-          position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 24 : 16,
-          left: 20,
-          right: 20,
-          elevation: 0,
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: 32,
-          height: 64,
-          paddingBottom: Platform.OS === 'ios' ? 16 : 8,
-          paddingTop: 8,
-          borderWidth: 1,
-          borderColor: 'rgba(229, 231, 235, 0.5)',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
+        headerShown: true,
+        headerTitleAlign: 'center',
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: '#fcf9f8' },
+        headerTitleStyle: { 
+          fontWeight: '900', 
+          letterSpacing: 2,
+          color: '#000'
         },
-        tabBarLabelStyle: {
-          fontFamily: 'Inter',
-          fontSize: 10,
-          fontWeight: 'bold',
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-          marginTop: 4,
-        }
-      }}>
+        headerRight: () => (
+          <TouchableOpacity style={{ marginRight: 20 }}>
+            <MaterialCommunityIcons name="account-circle-outline" size={28} color="#000" />
+          </TouchableOpacity>
+        ),
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#ba1a1a', 
+        tabBarInactiveTintColor: '#7e7576',
+        tabBarStyle: styles.tabBar,
+        tabBarBackground: () => (
+          <BlurView intensity={80} style={StyleSheet.absoluteFill} tint="light" />
+        ),
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <LayoutGrid size={24} color={color} strokeWidth={2.5} />,
-        }}
-        listeners={{
-          tabPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          },
+          title: 'GARAGE',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="view-dashboard" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="fleet"
+        name="logs"
         options={{
-          title: 'Fleet',
-          tabBarIcon: ({ color }) => <Car size={24} color={color} strokeWidth={2.5} />,
-        }}
-        listeners={{
-          tabPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="health"
-        options={{
-          title: 'Health',
-          tabBarIcon: ({ color }) => <Activity size={24} color={color} strokeWidth={2.5} />,
-        }}
-        listeners={{
-          tabPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="alerts"
-        options={{
-          title: 'Alerts',
-          tabBarIcon: ({ color }) => <Bell size={24} color={color} strokeWidth={2.5} />,
-        }}
-        listeners={{
-          tabPress: () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          },
+          title: 'LOGS',
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="fuel" size={24} color={color} />,
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    bottom: 25,
+    left: 20,
+    right: 20,
+    elevation: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderRadius: 50,
+    height: 70,
+    borderWidth: 1,
+    borderColor: 'rgba(207, 196, 197, 0.5)',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    paddingTop: 10,
+    overflow: 'hidden',
+  },
+});
