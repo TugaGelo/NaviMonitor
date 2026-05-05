@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { VEHICLES, MOCK_LOGS } from '../../constants/vehicles';
 import { generateTimeline } from '../../utils/maintenanceEngine';
 import ScheduleTimeline from '../../components/ScheduleTimeline';
+import MaintenanceHistory from '../../components/MaintenanceHistory';
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -15,14 +16,18 @@ export default function VehicleDetailScreen() {
   
   const currentOdo = 3500; 
 
+  const vehicleLogs = useMemo(() => {
+    if (!vehicle) return [];
+    return MOCK_LOGS.filter(l => l.vehicleId === vehicle.id);
+  }, [vehicle]);
+
   const timelineMilestones = useMemo(() => {
     if (!vehicle || !vehicle.maintenanceMatrixJson) return [];
     
     if (vehicle.maintenanceMatrixJson === '[]') return [];
 
-    const vehicleLogs = MOCK_LOGS.filter(l => l.vehicleId === vehicle.id);
     return generateTimeline(vehicle, vehicleLogs, currentOdo);
-  }, [vehicle, currentOdo]);
+  }, [vehicle, currentOdo, vehicleLogs]);
 
   if (!vehicle) {
     return <View style={styles.center}><Text style={styles.errorText}>Vehicle not found.</Text></View>;
@@ -86,7 +91,6 @@ export default function VehicleDetailScreen() {
           </View>
         </View>
 
-        {/* 5. DYNAMIC CONTENT AREA */}
         <View style={styles.feedArea}>
           {activeTab === 'Schedule' ? (
             timelineMilestones.length > 0 ? (
@@ -98,6 +102,8 @@ export default function VehicleDetailScreen() {
                 <Text style={styles.emptySubText}>Sync a manual to see the V-Matrix.</Text>
               </View>
             )
+          ) : activeTab === 'Maintenance' ? (
+            <MaintenanceHistory logs={vehicleLogs} />
           ) : (
             <Text style={{ textAlign: 'center', color: '#7e7576', marginTop: 40 }}>
               {activeTab} Feed coming soon...
@@ -114,7 +120,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: 16, color: '#ba1a1a', fontWeight: '600' },
   container: { flex: 1, backgroundColor: '#fcf9f8' },
-  content: { paddingBottom: 150 }, // Padding for floating nav bar
+  content: { paddingBottom: 150 },
   
   header: {
     flexDirection: 'row',

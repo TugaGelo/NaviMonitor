@@ -81,6 +81,7 @@ export const MOCK_LOGS: MaintenanceLog[] = [
     serviceType: 'Engine Oil',
     price: 850,
     isDIY: true,
+    notes: 'Fully Synthetic'
   },
   {
     id: 2,
@@ -91,5 +92,51 @@ export const MOCK_LOGS: MaintenanceLog[] = [
     serviceType: 'Fuel Line',
     price: 0,
     isDIY: true,
+    notes: 'Inspected, looks good'
+  },
+  {
+    id: 3,
+    vehicleId: 2,
+    logType: 'Maintenance',
+    date: '2025-08-15',
+    odometer: 2500,
+    serviceType: 'Brake Fluid Flush',
+    price: 1200,
+    isDIY: false,
+    notes: 'Motul DOT 4 - Done at JT Mechanics'
+  },
+  {
+    id: 4,
+    vehicleId: 2,
+    logType: 'Maintenance',
+    date: '2025-11-02',
+    odometer: 3100,
+    serviceType: 'Spark Plug',
+    price: 350,
+    isDIY: true,
+    notes: 'NGK Iridium'
+  },
+  {
+    id: 5,
+    vehicleId: 2,
+    logType: 'Maintenance',
+    date: '2026-02-10',
+    odometer: 3450,
+    serviceType: 'Rear Tire Replacement',
+    price: 4500,
+    isDIY: false,
+    notes: 'Pirelli Diablo Rosso Sport'
+  },
+
+  {
+    id: 6,
+    vehicleId: 1,
+    logType: 'Maintenance',
+    date: '2026-06-01',
+    odometer: 1000,
+    serviceType: 'Engine Oil',
+    price: 900,
+    isDIY: false,
+    notes: 'Dealer Break-in Service'
   }
 ];
