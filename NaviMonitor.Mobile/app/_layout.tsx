@@ -1,7 +1,6 @@
-import 'react-native-get-random-values';
+import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
 
 function RootLayoutNav() {
   const { user, loading } = useAuth();
@@ -11,20 +10,20 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading) return;
 
-    const isAtLogin = segments[0] === 'login';
+    const inAuthGroup = segments[0] === '(auth)';
 
-    if (user && isAtLogin) {
+    if (!user && !inAuthGroup) {
+      router.replace('/(auth)/login'); 
+    } else if (user && inAuthGroup) {
       router.replace('/(tabs)');
-    } else if (!user && !isAtLogin) {
-      router.replace('/login');
     }
   }, [user, loading, segments, router]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="vehicle/[id]" options={{ presentation: 'card' }} /> 
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="vehicle/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
     </Stack>
   );
 }

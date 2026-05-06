@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Svg, Path, Defs, Pattern, Rect } from 'react-native-svg';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 
 const { height } = Dimensions.get('window');
 
@@ -37,7 +39,21 @@ export default function LoginScreen() {
 
         <View style={styles.centerBlock}>
           <View style={styles.heroSection}>
-            <Text style={styles.heroTitle}>Track Every Mile.{'\n'}Master Every Service.</Text>
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              delayLongPress={1000} 
+              onLongPress={async () => {
+                console.log("🛠️ Secret Dev Login Triggered!");
+                try {
+                  await signInWithEmailAndPassword(auth, 'dev@test.com', 'password123');
+                } catch (e: any) {
+                  console.error("Dev Login Failed:", e.message);
+                }
+              }}
+            >
+              <Text style={styles.heroTitle}>Track Every Mile.{'\n'}Master Every Service.</Text>
+            </TouchableOpacity>
+            
             <Text style={styles.heroSubtitle}>
               Advanced telemetry and fleet management for the modern enterprise.
             </Text>

@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
 var firebaseAuthority = builder.Configuration["Firebase:Authority"];
 
-// --- 1. Services Configuration ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -32,9 +31,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
+    options.AddPolicy("AllowMobileAndWeb",
         policy => policy
-            .WithOrigins("http://localhost:5173")
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
@@ -51,11 +50,9 @@ else
     app.UseHttpsRedirection();
 }
 
-app.UseCors("AllowReactApp");
-
+app.UseCors("AllowMobileAndWeb");
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
