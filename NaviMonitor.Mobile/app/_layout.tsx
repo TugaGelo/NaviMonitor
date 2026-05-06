@@ -2,11 +2,9 @@ import '../global.css';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { initDatabase } from './lib/database';
+import { initDatabase } from '../lib/database';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
@@ -15,9 +13,8 @@ export default function RootLayout() {
     async function setupApp() {
       try {
         await initDatabase();
-        console.log("Local SQLite Database Initialized");
       } catch (e) {
-        console.error("Failed to initialize database:", e);
+        console.error(e);
       } finally {
         setDbReady(true);
         await SplashScreen.hideAsync();
@@ -26,21 +23,18 @@ export default function RootLayout() {
     setupApp();
   }, []);
 
-  if (!dbReady) {
-    return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
-  }
+  if (!dbReady) return null;
 
   return (
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
         <Stack.Screen 
           name="vehicle/create" 
           options={{ 
             presentation: 'transparentModal', 
-            animation: 'fade',
-            headerShown: false,
+            animation: 'fade', 
+            headerShown: false 
           }} 
         />
       </Stack>

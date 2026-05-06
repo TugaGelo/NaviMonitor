@@ -1,7 +1,16 @@
 import * as SQLite from 'expo-sqlite';
 
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+
+export async function getDb() {
+  if (!dbInstance) {
+    dbInstance = await SQLite.openDatabaseAsync('navimonitor.db');
+  }
+  return dbInstance;
+}
+
 export async function initDatabase() {
-  const db = await SQLite.openDatabaseAsync('navimonitor.db');
+  const db = await getDb();
   
   await db.execAsync(`
     PRAGMA journal_mode = WAL;

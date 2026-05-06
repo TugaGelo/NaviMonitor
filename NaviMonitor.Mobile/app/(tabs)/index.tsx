@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { VehicleRepository } from '../lib/localRepository';
+import { VehicleRepository } from '../../lib/localRepository';
 import { Vehicle } from '../../types';
 import VehicleCard from '../../components/VehicleCard';
 

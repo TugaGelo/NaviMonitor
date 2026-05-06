@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { X, Car, Motorbike, Save, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { VehicleRepository } from '../lib/localRepository';
+import { VehicleRepository } from '../../lib/localRepository';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -115,7 +115,11 @@ export default function AddVehicleScreen() {
   return (
     <View className="flex-1 justify-end">
       
-      <Pressable className="absolute inset-0 bg-black/50" onPress={closeForm} />
+      <Pressable 
+        className="absolute inset-0" 
+        style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} 
+        onPress={closeForm} 
+      />
 
       <Animated.View 
         style={{ 
@@ -126,7 +130,10 @@ export default function AddVehicleScreen() {
           ] 
         }}
       >
-        <View className="flex-1 bg-white rounded-t-[24px] shadow-2xl overflow-hidden">
+        <View 
+          className="flex-1 bg-white rounded-t-[24px] overflow-hidden"
+          style={{ elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.15, shadowRadius: 20 }}
+        >
           
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
             <View className="flex-row justify-between items-start">
@@ -142,18 +149,18 @@ export default function AddVehicleScreen() {
             <View className="mt-3 flex-row bg-[#f3f4f6] p-1 rounded-lg w-full max-w-[800px]">
               {['Car', 'Motorcycle'].map((type) => {
                 const isActive = form.vehicleType === type;
+                const IconComponent = type === 'Car' ? Car : Motorbike;
+
                 return (
                   <Pressable
                     key={type}
                     onPress={() => setForm({ ...form, vehicleType: type })}
-                    className={`flex-1 flex-row items-center justify-center py-1.5 rounded-md ${
-                      isActive ? 'bg-black shadow-sm' : 'bg-transparent'
+                    className={`flex-1 flex-row items-center justify-center py-2 rounded-md ${
+                      isActive ? 'bg-black' : 'bg-transparent'
                     }`}
+                    style={isActive ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                   >
-                    {type === 'Car' 
-                      ? <Car size={24} color={isActive ? '#fff' : '#6b7280'} />
-                      : <Motorbike size={24} color={isActive ? '#fff' : '#6b7280'} />
-                    }
+                    <IconComponent size={20} color={isActive ? '#fff' : '#6b7280'} />
                     <Text className={`ml-2 text-sm ${isActive ? 'text-white font-semibold' : 'text-[#6b7280] font-medium'}`}>
                       {type === 'Motorcycle' ? 'Bike' : type}
                     </Text>
