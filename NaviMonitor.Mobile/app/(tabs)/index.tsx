@@ -1,31 +1,54 @@
-import { StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { VehicleRepository } from '../lib/localRepository';
+import { Vehicle } from '../../types';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function TestGarageScreen() {
+  const [testVehicles, setTestVehicles] = useState<Vehicle[]>([]);
 
-export default function TabOneScreen() {
+  const refreshData = async () => {
+    const data = await VehicleRepository.getVehicles();
+    setTestVehicles(data);
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, []);
+
+  const handleAddTest = async () => {
+    await VehicleRepository.addVehicle({
+      vehicleType: 'Car',
+      nickname: `Test Car ${Date.now().toString().slice(-4)}`,
+      make: 'TestMake',
+      model: 'TestModel',
+      year: 2024,
+      color: 'Black',
+      engineSizeCC: 2000,
+      startingOdometer: 100,
+      licensePlate: 'TEST-123',
+    });
+    refreshData();
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
+    <View style={{ flex: 1, padding: 50, backgroundColor: '#fff' }}>
+      <Text style={{ fontSize: 24, fontWeight: '900', marginBottom: 20 }}>🛠 Database Lab</Text>
+      
+      <TouchableOpacity 
+        onPress={handleAddTest}
+        style={{ backgroundColor: '#000', padding: 15, borderRadius: 10, marginBottom: 20 }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>+ Add Dummy Vehicle</Text>
+      </TouchableOpacity>
+
+      <ScrollView>
+        {testVehicles.map(v => (
+          <View key={v.id} style={{ padding: 15, borderBottomWidth: 1, borderColor: '#eee' }}>
+            <Text style={{ fontWeight: 'bold' }}>{v.nickname} (ID: {v.id})</Text>
+            <Text style={{ fontSize: 12, color: '#666' }}>Synced Status: {v.is_synced === 1 ? '✅ Yes' : '❌ No (Local)'}</Text>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
