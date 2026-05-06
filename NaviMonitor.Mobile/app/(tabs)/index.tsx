@@ -1,54 +1,70 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useState, useEffect } from 'react';
+import { View, Text, FlatList, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { Plus } from 'lucide-react-native';
 import { VehicleRepository } from '../lib/localRepository';
 import { Vehicle } from '../../types';
+import VehicleCard from '../../components/VehicleCard';
 
-export default function TestGarageScreen() {
-  const [testVehicles, setTestVehicles] = useState<Vehicle[]>([]);
+export default function GarageScreen() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refreshData = async () => {
+  const loadData = async () => {
+    setIsLoading(true);
     const data = await VehicleRepository.getVehicles();
-    setTestVehicles(data);
+    setVehicles(data);
+    setIsLoading(false);
   };
 
-  useEffect(() => {
-    refreshData();
-  }, []);
-
-  const handleAddTest = async () => {
-    await VehicleRepository.addVehicle({
-      vehicleType: 'Car',
-      nickname: `Test Car ${Date.now().toString().slice(-4)}`,
-      make: 'TestMake',
-      model: 'TestModel',
-      year: 2024,
-      color: 'Black',
-      engineSizeCC: 2000,
-      startingOdometer: 100,
-      licensePlate: 'TEST-123',
-    });
-    refreshData();
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   return (
-    <View style={{ flex: 1, padding: 50, backgroundColor: '#fff' }}>
-      <Text style={{ fontSize: 24, fontWeight: '900', marginBottom: 20 }}>🛠 Database Lab</Text>
+    <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       
-      <TouchableOpacity 
-        onPress={handleAddTest}
-        style={{ backgroundColor: '#000', padding: 15, borderRadius: 10, marginBottom: 20 }}
-      >
-        <Text style={{ color: '#fff', fontWeight: 'bold', textAlign: 'center' }}>+ Add Dummy Vehicle</Text>
-      </TouchableOpacity>
+      {/* Custom Typography Header */}
+      <View className="px-6 mt-4 mb-6 flex-row justify-between items-end">
+        <View>
+          <Text className="text-primary text-3xl font-black tracking-tight">Your Fleet</Text>
+          <Text className="text-on-surface-variant text-sm mt-1 font-medium">Manage and monitor vehicle telemetry.</Text>
+        </View>
+      </View>
 
-      <ScrollView>
-        {testVehicles.map(v => (
-          <View key={v.id} style={{ padding: 15, borderBottomWidth: 1, borderColor: '#eee' }}>
-            <Text style={{ fontWeight: 'bold' }}>{v.nickname} (ID: {v.id})</Text>
-            <Text style={{ fontSize: 12, color: '#666' }}>Synced Status: {v.is_synced === 1 ? '✅ Yes' : '❌ No (Local)'}</Text>
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+      {/* Main Vehicle List */}
+      <FlatList
+        data={vehicles}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
+        renderItem={({ item }) => <VehicleCard vehicle={item} />}
+        ListEmptyComponent={
+          !isLoading ? (
+            <Pressable 
+              className="bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-2xl p-8 items-center justify-center min-h-[200px]"
+              onPress={() => { /* Navigate to Add Modal later */ }}
+            >
+              <View className="w-16 h-16 rounded-full bg-surface-container items-center justify-center mb-4">
+                <Plus size={32} color="#000" />
+              </View>
+              <Text className="text-primary text-lg font-bold">Add Vehicle</Text>
+              <Text className="text-on-surface-variant text-center mt-2">Register a new unit to your tracking dashboard.</Text>
+            </Pressable>
+          ) : null
+        }
+      />
+
+      {/* Floating Action Button */}
+      <Pressable 
+        className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center"
+        style={{ elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 }}
+      >
+        <Plus size={28} color="#fff" />
+      </Pressable>
+
+    </SafeAreaView>
   );
 }
