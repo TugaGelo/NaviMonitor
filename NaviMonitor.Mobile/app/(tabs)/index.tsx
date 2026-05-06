@@ -1,13 +1,15 @@
 import { View, Text, FlatList, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { VehicleRepository } from '../lib/localRepository';
 import { Vehicle } from '../../types';
 import VehicleCard from '../../components/VehicleCard';
 
 export default function GarageScreen() {
+  const router = useRouter();
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -27,7 +29,6 @@ export default function GarageScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       
-      {/* Custom Typography Header */}
       <View className="px-6 mt-4 mb-6 flex-row justify-between items-end">
         <View>
           <Text className="text-primary text-3xl font-black tracking-tight">Your Fleet</Text>
@@ -35,7 +36,6 @@ export default function GarageScreen() {
         </View>
       </View>
 
-      {/* Main Vehicle List */}
       <FlatList
         data={vehicles}
         keyExtractor={(item) => item.id.toString()}
@@ -57,8 +57,8 @@ export default function GarageScreen() {
         }
       />
 
-      {/* Floating Action Button */}
       <Pressable 
+        onPress={() => router.push('/vehicle/create')}
         className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center"
         style={{ elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 }}
       >

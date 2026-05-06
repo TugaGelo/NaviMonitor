@@ -3,7 +3,8 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { initDatabase } from './lib/database';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,19 +23,27 @@ export default function RootLayout() {
         await SplashScreen.hideAsync();
       }
     }
-
     setupApp();
   }, []);
 
   if (!dbReady) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#fff' }} />
-    );
+    return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <SafeAreaProvider>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        
+        <Stack.Screen 
+          name="vehicle/create" 
+          options={{ 
+            presentation: 'transparentModal', 
+            animation: 'fade',
+            headerShown: false,
+          }} 
+        />
+      </Stack>
+    </SafeAreaProvider>
   );
 }
