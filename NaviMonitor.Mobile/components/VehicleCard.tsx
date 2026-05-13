@@ -25,14 +25,14 @@ export default function VehicleCard({ vehicle, onRefresh }: Props) {
 
   const handleEdit = () => {
     setShowActionSheet(false);
-    Alert.alert("Coming Soon", "Edit screen will be implemented next.");
+    router.push(`/vehicle/edit/${vehicle.id}` as Href);
   };
 
   const triggerDeleteConfirm = () => {
     setShowActionSheet(false);
     setTimeout(() => {
       setShowDeleteDialog(true);
-    }, 300);
+    }, 50);
   };
 
   const executeDelete = async () => {

@@ -46,5 +46,44 @@ export const VehicleRepository = {
   async deleteVehicle(id: number) {
     const db = await getDb();
     await db.runAsync(`DELETE FROM Vehicles WHERE id = ?`, [id]);
+  },
+
+  async getVehicleById(id: number) {
+    const db = await getDb();
+    const result = await db.getFirstAsync<Vehicle>(
+      `SELECT * FROM Vehicles WHERE id = ?`, 
+      [id]
+    );
+    return result;
+  },
+
+  async updateVehicle(vehicle: Vehicle) {
+    const db = await getDb();
+    
+    const safeYear = Number(vehicle.year) || new Date().getFullYear();
+    const safeEngineSize = Number(vehicle.engineSizeCC) || 0;
+    const safeOdometer = Number(vehicle.startingOdometer) || 0;
+    const safeExpiry = vehicle.registrationExpiry ? String(vehicle.registrationExpiry) : '';
+
+    await db.runAsync(
+      `UPDATE Vehicles SET 
+        vehicleType = ?, nickname = ?, make = ?, model = ?, year = ?, 
+        color = ?, engineSizeCC = ?, startingOdometer = ?, licensePlate = ?, 
+        registrationExpiry = ?, is_synced = 0
+       WHERE id = ?`,
+      [
+        vehicle.vehicleType || 'Car', 
+        vehicle.nickname || '',
+        vehicle.make || '', 
+        vehicle.model || '', 
+        safeYear, 
+        vehicle.color || '',
+        safeEngineSize, 
+        safeOdometer, 
+        vehicle.licensePlate || '', 
+        safeExpiry, 
+        vehicle.id
+      ]
+    );
   }
 };

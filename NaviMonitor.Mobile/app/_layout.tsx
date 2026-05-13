@@ -3,7 +3,6 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { initDatabase } from '../lib/database';
-import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
@@ -29,11 +28,21 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        
         <Stack.Screen 
           name="vehicle/create" 
           options={{ 
             presentation: 'transparentModal', 
             animation: 'fade', 
+            headerShown: false 
+          }} 
+        />
+        
+        <Stack.Screen 
+          name="vehicle/edit/[id]" 
+          options={{ 
+            presentation: 'transparentModal', 
+            animation: 'none',
             headerShown: false 
           }} 
         />
