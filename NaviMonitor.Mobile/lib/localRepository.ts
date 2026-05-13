@@ -8,7 +8,7 @@ const generateOfflineId = () => -Math.floor(Math.random() * 999999) - 1;
 export const VehicleRepository = {
 
   async addVehicle(vehicle: Omit<Vehicle, 'id'>) {
-    const db = await getDb(); // Safe connection
+    const db = await getDb(); 
     const offlineId = generateOfflineId();
 
     const safeYear = Number(vehicle.year) || new Date().getFullYear();
@@ -24,18 +24,9 @@ export const VehicleRepository = {
         registrationExpiry, hasSyncedManual, is_synced
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
-        offlineId, 
-        DEV_USER_ID, 
-        vehicle.vehicleType || 'Car', 
-        vehicle.nickname || '',
-        vehicle.make || '', 
-        vehicle.model || '', 
-        safeYear, 
-        vehicle.color || '',
-        safeEngineSize, 
-        safeOdometer, 
-        vehicle.licensePlate || '',
-        safeExpiry, 
+        offlineId, DEV_USER_ID, vehicle.vehicleType || 'Car', vehicle.nickname || '',
+        vehicle.make || '', vehicle.model || '', safeYear, vehicle.color || '',
+        safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry, 
         vehicle.hasSyncedManual ? 1 : 0
       ]
     );
@@ -44,11 +35,16 @@ export const VehicleRepository = {
   },
 
   async getVehicles() {
-    const db = await getDb(); // Safe connection
+    const db = await getDb(); 
     const result = await db.getAllAsync<Vehicle>(
       `SELECT * FROM Vehicles WHERE userId = ? ORDER BY id DESC`,
       [DEV_USER_ID]
     );
     return result;
+  },
+
+  async deleteVehicle(id: number) {
+    const db = await getDb();
+    await db.runAsync(`DELETE FROM Vehicles WHERE id = ?`, [id]);
   }
 };

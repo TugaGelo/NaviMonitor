@@ -40,12 +40,17 @@ export default function GarageScreen() {
         data={vehicles}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
-        renderItem={({ item }) => <VehicleCard vehicle={item} />}
+        renderItem={({ item }) => (
+          <VehicleCard 
+            vehicle={item} 
+            onRefresh={loadData}
+          />
+        )}
         ListEmptyComponent={
           !isLoading ? (
             <Pressable 
               className="bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-2xl p-8 items-center justify-center min-h-[200px]"
-              onPress={() => { /* Navigate to Add Modal later */ }}
+              onPress={() => router.push('/vehicle/create')}
             >
               <View className="w-16 h-16 rounded-full bg-surface-container items-center justify-center mb-4">
                 <Plus size={32} color="#000" />
