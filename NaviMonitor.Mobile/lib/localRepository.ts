@@ -85,5 +85,71 @@ export const VehicleRepository = {
         vehicle.id
       ]
     );
+  },
+
+  async getVehicleStats(vehicleId: number) {
+    const db = await getDb();
+
+    const vehicle = await db.getFirstAsync<{startingOdometer: number}>(
+      `SELECT startingOdometer FROM Vehicles WHERE id = ?`, [vehicleId]
+    );
+    const startingOdo = vehicle?.startingOdometer || 0;
+
+    const fuelStats = await db.getFirstAsync<{totalFuelCost: number, maxOdo: number, minOdo: number, totalVol: number}>(
+      `SELECT 
+        SUM(totalCost) as totalFuelCost, 
+        MAX(odometer) as maxOdo, 
+        MIN(odometer) as minOdo, 
+        SUM(volume) as totalVol 
+       FROM RefuelLogs WHERE vehicleId = ?`, 
+      [vehicleId]
+    );
+
+    const maintStats = await db.getFirstAsync<{totalMaintCost: number, maxOdo: number}>(
+      `SELECT 
+        SUM(price) as totalMaintCost, 
+        MAX(odometer) as maxOdo 
+       FROM MaintenanceLogs WHERE vehicleId = ?`, 
+      [vehicleId]
+    );
+
+    const totalSpent = (fuelStats?.totalFuelCost || 0) + (maintStats?.totalMaintCost || 0);
+
+    const currentOdo = Math.max(
+      startingOdo,
+      fuelStats?.maxOdo || 0,
+      maintStats?.maxOdo || 0
+    );
+
+    let avgEfficiency = 0;
+    if (fuelStats && fuelStats.totalVol > 0 && fuelStats.maxOdo > fuelStats.minOdo) {
+      avgEfficiency = (fuelStats.maxOdo - fuelStats.minOdo) / fuelStats.totalVol;
+    }
+
+    return {
+      totalSpent,
+      currentOdo,
+      avgEfficiency: avgEfficiency.toFixed(1)
+    };
+  },
+
+  async getVehicleTimeline(vehicleId: number) {
+    const db = await getDb();
+
+    const refuels = await db.getAllAsync<any>(
+      `SELECT *, 'Refuel' as feedType FROM RefuelLogs WHERE vehicleId = ?`, 
+      [vehicleId]
+    );
+
+    const maints = await db.getAllAsync<any>(
+      `SELECT *, logType as feedType FROM MaintenanceLogs WHERE vehicleId = ?`, 
+      [vehicleId]
+    );
+
+    const timeline = [...refuels, ...maints].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    return timeline;
   }
 };
