@@ -1,5 +1,5 @@
 import { getDb } from './database';
-import type { Vehicle, RefuelLog } from '../types';
+import type { Vehicle, RefuelLog, MaintenanceLog } from '../types';
 
 export const DEV_USER_ID = "DEV_USER_GELO";
 
@@ -173,5 +173,39 @@ export const VehicleRepository = {
     );
 
     return offlineId;
-  }
+  },
+
+  async addMaintenanceLog(log: Omit<MaintenanceLog, 'id' | 'is_synced'>) {
+    const db = await getDb();
+    const offlineId = generateOfflineId();
+
+    await db.runAsync(
+      `INSERT INTO MaintenanceLogs (
+        id, vehicleId, logType, serviceCategory, date, odometer, 
+        serviceType, price, isDIY, shopName, mechanicName, 
+        contactNumber, notes, nextServiceOdometer, nextServiceDate, 
+        tirePosition, is_synced
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      [
+        offlineId, 
+        log.vehicleId, 
+        log.logType, 
+        log.serviceCategory || null, 
+        log.date, 
+        log.odometer,
+        log.serviceType, 
+        log.price, 
+        log.isDIY ? 1 : 0, 
+        log.shopName || null, 
+        log.mechanicName || null,
+        log.contactNumber || null, 
+        log.notes || null, 
+        log.nextServiceOdometer || null, 
+        log.nextServiceDate || null,
+        log.tirePosition || null
+      ]
+    );
+
+    return offlineId;
+  },
 };

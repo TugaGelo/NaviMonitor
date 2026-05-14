@@ -179,7 +179,7 @@ export default function VehicleDashboard() {
             <Text className="text-white font-bold text-sm">Log Fuel</Text>
           </Pressable>
           <Pressable 
-            onPress={() => alert('Log Service Screen Coming Next!')}
+            onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}`)}
             className="flex-1 bg-[#b7102a] py-3.5 rounded-xl flex-row items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-red-900/20"
           >
             <Wrench size={18} color="#fff" />

@@ -55,6 +55,15 @@ export default function RootLayout() {
             headerShown: false 
           }} 
         />
+
+        <Stack.Screen 
+          name="vehicle/log/service" 
+          options={{ 
+            presentation: 'transparentModal', 
+            animation: 'none', 
+            headerShown: false 
+          }} 
+        />
       </Stack>
     </SafeAreaProvider>
   );
