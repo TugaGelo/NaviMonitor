@@ -49,20 +49,20 @@ export default function VehicleDashboard() {
   const costPerKm = distanceCovered > 0 ? (stats.totalSpent / distanceCovered).toFixed(2) : "0.00";
 
   return (
-    <SafeAreaView className="flex-1 bg-[#fcf9f8] relative" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#fcf9f8] relative" edges={['top']}>   
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       <View className="bg-[#fcf9f8] flex-row justify-between items-center px-6 h-16 border-b border-[#e5e2e1] z-50">
         <Pressable onPress={() => router.back()} className="p-2 -ml-2 active:opacity-50">
           <ArrowLeft size={24} color="#1c1b1b" />
         </Pressable>
-        <Text className="text-[#1c1b1b] font-black text-lg tracking-tighter uppercase">Vehicle Hub</Text>
+        <Text className="text-[#1c1b1b] font-black text-lg tracking-tighter uppercase">Command Center</Text>
         <Pressable onPress={() => router.push(`/vehicle/edit/${vehicle.id}`)} className="p-2 -mr-2 active:opacity-50">
           <Edit2 size={20} color="#1c1b1b" />
         </Pressable>
       </View>
-      
-      <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 200 }} showsVerticalScrollIndicator={false}>
+
+      <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 200 }} showsVerticalScrollIndicator={false}>       
         <View className="bg-[#1b1b1b] rounded-2xl flex-col justify-end min-h-[140px] p-5 mb-6 shadow-sm overflow-hidden relative">
           <View className="z-10">
             <Text className="text-white text-4xl font-black uppercase tracking-tighter mb-2">{vehicle.nickname}</Text>
@@ -81,7 +81,7 @@ export default function VehicleDashboard() {
 
         <View className="flex-row flex-wrap justify-between gap-y-4 mb-6">
           <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2 gap-1">
+            <View className="flex-row items-center mb-2">
               <Banknote size={16} color="#848484" className="mr-2" />
               <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Total Spent</Text>
             </View>
@@ -89,7 +89,7 @@ export default function VehicleDashboard() {
           </View>
           
           <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2 gap-1">
+            <View className="flex-row items-center mb-2">
               <Gauge size={16} color="#848484" className="mr-2" />
               <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Efficiency</Text>
             </View>
@@ -97,7 +97,7 @@ export default function VehicleDashboard() {
           </View>
 
           <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2 gap-1">
+            <View className="flex-row items-center mb-2">
               <Wallet size={16} color="#848484" className="mr-2" />
               <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Cost Per Km</Text>
             </View>
@@ -105,7 +105,7 @@ export default function VehicleDashboard() {
           </View>
 
           <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2 gap-1">
+            <View className="flex-row items-center mb-2">
               <History size={16} color="#848484" className="mr-2" />
               <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Current Odo</Text>
             </View>
@@ -172,7 +172,7 @@ export default function VehicleDashboard() {
       <View className="absolute bottom-[90px] left-0 right-0 px-6 z-40">
         <View className="flex-row gap-3">
           <Pressable 
-            onPress={() => alert('Log Fuel Screen Coming Next!')}
+            onPress={() => router.push(`/vehicle/log/fuel?vehicleId=${vehicle.id}`)}
             className="flex-1 bg-[#1b1b1b] py-3.5 rounded-xl flex-row items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-black/20"
           >
             <Fuel size={18} color="#fff" />

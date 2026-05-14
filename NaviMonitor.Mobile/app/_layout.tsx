@@ -42,7 +42,16 @@ export default function RootLayout() {
           name="vehicle/edit/[id]" 
           options={{ 
             presentation: 'transparentModal', 
-            animation: 'none',
+            animation: 'none', 
+            headerShown: false 
+          }} 
+        />
+
+        <Stack.Screen 
+          name="vehicle/log/fuel" 
+          options={{ 
+            presentation: 'transparentModal', 
+            animation: 'none', 
             headerShown: false 
           }} 
         />

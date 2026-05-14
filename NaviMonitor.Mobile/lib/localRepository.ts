@@ -1,5 +1,5 @@
 import { getDb } from './database';
-import type { Vehicle } from '../types';
+import type { Vehicle, RefuelLog } from '../types';
 
 export const DEV_USER_ID = "DEV_USER_GELO";
 
@@ -151,5 +151,27 @@ export const VehicleRepository = {
     );
 
     return timeline;
+  },
+
+  async addRefuelLog(log: Omit<RefuelLog, 'id' | 'is_synced'>) {
+    const db = await getDb();
+    const offlineId = generateOfflineId();
+
+    await db.runAsync(
+      `INSERT INTO RefuelLogs (
+        id, vehicleId, date, odometer, volume, totalCost, fuelType, is_synced
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+      [
+        offlineId, 
+        log.vehicleId, 
+        log.date, 
+        log.odometer, 
+        log.volume, 
+        log.totalCost, 
+        log.fuelType || 'Unleaded'
+      ]
+    );
+
+    return offlineId;
   }
 };
