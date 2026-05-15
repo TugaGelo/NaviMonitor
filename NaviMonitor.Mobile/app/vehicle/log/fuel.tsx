@@ -39,7 +39,7 @@ const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, ke
 
 export default function QuickRefuelLogScreen() {
   const router = useRouter();
-  const { vehicleId } = useLocalSearchParams();
+  const { vehicleId, editId } = useLocalSearchParams();
   
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const keyboardOffset = useRef(new Animated.Value(0)).current;
@@ -54,18 +54,36 @@ export default function QuickRefuelLogScreen() {
     fuelType: 'Unleaded'
   });
 
-  // Fetch current stats to validate odometer
   useEffect(() => {
     const fetchStats = async () => {
       if (vehicleId) {
         const stats = await VehicleRepository.getVehicleStats(Number(vehicleId));
         setCurrentOdo(stats.currentOdo);
-        // Pre-fill with +1 so the user doesn't have to backspace the old exact mileage
-        setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
+        if (!editId) {
+          setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
+        }
       }
     };
     fetchStats();
-  }, [vehicleId]);
+  }, [vehicleId, editId]);
+
+  useEffect(() => {
+    const fetchEditData = async () => {
+      if (editId) {
+        const log = await VehicleRepository.getFuelLogById(Number(editId));
+        if (log) {
+          setForm({
+            date: log.date,
+            odometer: log.odometer.toString(),
+            volume: log.volume.toString(),
+            totalCost: log.totalCost.toString(),
+            fuelType: log.fuelType || 'Unleaded'
+          });
+        }
+      }
+    };
+    fetchEditData();
+  }, [editId]);
 
   useEffect(() => {
     Animated.spring(slideAnim, {
@@ -103,20 +121,32 @@ export default function QuickRefuelLogScreen() {
     }
 
     const newOdo = parseInt(form.odometer);
-    if (newOdo < currentOdo) {
+    if (!editId && newOdo < currentOdo) {
       Alert.alert("Invalid Odometer", `Your last recorded odometer is ${currentOdo} km. You cannot enter a lower number.`);
       return;
     }
 
     try {
-      await VehicleRepository.addRefuelLog({
-        vehicleId: Number(vehicleId),
-        date: form.date,
-        odometer: newOdo,
-        volume: parseFloat(form.volume),
-        totalCost: parseFloat(form.totalCost),
-        fuelType: form.fuelType
-      });
+      if (editId) {
+        await VehicleRepository.updateFuelLog({
+          id: Number(editId),
+          vehicleId: Number(vehicleId),
+          date: form.date,
+          odometer: newOdo,
+          volume: parseFloat(form.volume),
+          totalCost: parseFloat(form.totalCost),
+          fuelType: form.fuelType
+        });
+      } else {
+        await VehicleRepository.addRefuelLog({
+          vehicleId: Number(vehicleId),
+          date: form.date,
+          odometer: newOdo,
+          volume: parseFloat(form.volume),
+          totalCost: parseFloat(form.totalCost),
+          fuelType: form.fuelType
+        });
+      }
       closeForm();
     } catch (e) {
       Alert.alert("Error", "Failed to save refuel log.");
@@ -133,7 +163,7 @@ export default function QuickRefuelLogScreen() {
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
             <View className="flex-row justify-between items-start">
               <View>
-                <Text className="text-2xl font-bold text-[#111827] tracking-tight">Quick Refuel Log</Text>
+                <Text className="text-2xl font-bold text-[#111827] tracking-tight">{editId ? 'Edit Fuel Log' : 'Quick Refuel Log'}</Text>
                 <Text className="text-sm text-[#6b7280] mt-1">Record your gas station visit</Text>
               </View>
               <Pressable onPress={closeForm} className="p-1 -mr-2">
@@ -219,7 +249,7 @@ export default function QuickRefuelLogScreen() {
               style={{ shadowColor: '#b7102a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}
             >
               <Save size={24} color="#fff" />
-              <Text className="text-white text-base font-bold ml-1">Save Log</Text>
+              <Text className="text-white text-base font-bold ml-1">{editId ? 'Update Log' : 'Save Log'}</Text>
             </Pressable>
           </View>
 

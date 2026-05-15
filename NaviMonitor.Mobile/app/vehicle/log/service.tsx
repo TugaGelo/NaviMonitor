@@ -43,7 +43,7 @@ const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, ke
 
 export default function AddServiceLogScreen() {
   const router = useRouter();
-  const { vehicleId } = useLocalSearchParams();
+  const { vehicleId, editId } = useLocalSearchParams();
   
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const keyboardOffset = useRef(new Animated.Value(0)).current;
@@ -73,11 +73,36 @@ export default function AddServiceLogScreen() {
       if (vehicleId) {
         const stats = await VehicleRepository.getVehicleStats(Number(vehicleId));
         setCurrentOdo(stats.currentOdo);
-        setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
+        if (!editId) {
+          setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
+        }
       }
     };
     fetchStats();
-  }, [vehicleId]);
+  }, [vehicleId, editId]);
+
+  useEffect(() => {
+    const fetchEditData = async () => {
+      if (editId) {
+        const log = await VehicleRepository.getMaintenanceLogById(Number(editId));
+        if (log) {
+          setForm({
+            logType: log.logType as 'Maintenance' | 'Modification',
+            serviceType: log.serviceType,
+            date: log.date,
+            odometer: log.odometer.toString(),
+            price: log.price.toString(),
+            isDIY: Number(log.isDIY) === 1,
+            shopName: log.shopName || '',
+            mechanicName: log.mechanicName || '',
+            contactNumber: log.contactNumber || '',
+            notes: log.notes || ''
+          });
+        }
+      }
+    };
+    fetchEditData();
+  }, [editId]);
 
   useEffect(() => {
     Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 65, friction: 10 }).start();
@@ -127,25 +152,42 @@ export default function AddServiceLogScreen() {
     }
 
     const newOdo = parseInt(form.odometer);
-    if (newOdo < currentOdo) {
+    if (!editId && newOdo < currentOdo) {
       Alert.alert("Invalid Odometer", `Your last recorded odometer is ${currentOdo} km. You cannot enter a lower number.`);
       return;
     }
 
     try {
-      await VehicleRepository.addMaintenanceLog({
-        vehicleId: Number(vehicleId),
-        logType: form.logType,
-        serviceType: form.serviceType,
-        date: form.date,
-        odometer: newOdo,
-        price: parseFloat(form.price),
-        isDIY: form.isDIY,
-        shopName: form.shopName,
-        mechanicName: form.mechanicName,
-        contactNumber: form.contactNumber,
-        notes: form.notes
-      });
+      if (editId) {
+        await VehicleRepository.updateMaintenanceLog({
+          id: Number(editId),
+          vehicleId: Number(vehicleId),
+          logType: form.logType,
+          serviceType: form.serviceType,
+          date: form.date,
+          odometer: newOdo,
+          price: parseFloat(form.price),
+          isDIY: form.isDIY,
+          shopName: form.shopName,
+          mechanicName: form.mechanicName,
+          contactNumber: form.contactNumber,
+          notes: form.notes
+        });
+      } else {
+        await VehicleRepository.addMaintenanceLog({
+          vehicleId: Number(vehicleId),
+          logType: form.logType,
+          serviceType: form.serviceType,
+          date: form.date,
+          odometer: newOdo,
+          price: parseFloat(form.price),
+          isDIY: form.isDIY,
+          shopName: form.shopName,
+          mechanicName: form.mechanicName,
+          contactNumber: form.contactNumber,
+          notes: form.notes
+        });
+      }
       closeForm();
     } catch (e) {
       Alert.alert("Error", "Failed to save service log.");
@@ -162,7 +204,7 @@ export default function AddServiceLogScreen() {
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
             <View className="flex-row justify-between items-start">
               <View>
-                <Text className="text-2xl font-bold text-[#111827] tracking-tight">Service Log</Text>
+                <Text className="text-2xl font-bold text-[#111827] tracking-tight">{editId ? 'Edit Service Log' : 'Service Log'}</Text>
                 <Text className="text-sm text-[#6b7280] mt-1">
                   {form.logType === 'Maintenance' ? 'Record garage services and checkups' : 'Track your custom upgrades'}
                 </Text>
@@ -275,7 +317,7 @@ export default function AddServiceLogScreen() {
                 style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}
               >
                 <Save size={24} color="#fff" />
-                <Text className="text-white text-base font-bold ml-1">Record {form.logType}</Text>
+                <Text className="text-white text-base font-bold ml-1">{editId ? 'Update Record' : `Record ${form.logType}`}</Text>
               </Pressable>
             </View>
 

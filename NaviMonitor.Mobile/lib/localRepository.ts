@@ -82,7 +82,7 @@ export const VehicleRepository = {
         safeOdometer, 
         vehicle.licensePlate || '', 
         safeExpiry, 
-        vehicle.id
+        vehicle.id!
       ]
     );
   },
@@ -163,7 +163,7 @@ export const VehicleRepository = {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         offlineId, 
-        log.vehicleId, 
+        log.vehicleId!,
         log.date, 
         log.odometer, 
         log.volume, 
@@ -173,6 +173,33 @@ export const VehicleRepository = {
     );
 
     return offlineId;
+  },
+
+  async getFuelLogById(id: number) {
+    const db = await getDb();
+    return await db.getFirstAsync<RefuelLog>(`SELECT * FROM RefuelLogs WHERE id = ?`, [id]);
+  },
+
+  async updateFuelLog(log: RefuelLog) {
+    const db = await getDb();
+    await db.runAsync(
+      `UPDATE RefuelLogs SET 
+        date = ?, odometer = ?, volume = ?, totalCost = ?, fuelType = ?, is_synced = 0 
+       WHERE id = ?`,
+      [
+        log.date, 
+        log.odometer, 
+        log.volume, 
+        log.totalCost, 
+        log.fuelType || 'Unleaded', 
+        log.id! // <-- Added '!'
+      ]
+    );
+  },
+
+  async deleteFuelLog(id: number) {
+    const db = await getDb();
+    await db.runAsync(`DELETE FROM RefuelLogs WHERE id = ?`, [id]);
   },
 
   async addMaintenanceLog(log: Omit<MaintenanceLog, 'id' | 'is_synced'>) {
@@ -188,7 +215,7 @@ export const VehicleRepository = {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         offlineId, 
-        log.vehicleId, 
+        log.vehicleId!,
         log.logType, 
         log.serviceCategory || null, 
         log.date, 
@@ -208,4 +235,44 @@ export const VehicleRepository = {
 
     return offlineId;
   },
+
+  async getMaintenanceLogById(id: number) {
+    const db = await getDb();
+    return await db.getFirstAsync<MaintenanceLog>(`SELECT * FROM MaintenanceLogs WHERE id = ?`, [id]);
+  },
+
+  async updateMaintenanceLog(log: MaintenanceLog) {
+    const db = await getDb();
+    await db.runAsync(
+      `UPDATE MaintenanceLogs SET 
+        logType = ?, serviceCategory = ?, date = ?, odometer = ?, 
+        serviceType = ?, price = ?, isDIY = ?, shopName = ?, mechanicName = ?, 
+        contactNumber = ?, notes = ?, nextServiceOdometer = ?, nextServiceDate = ?, 
+        tirePosition = ?, is_synced = 0 
+       WHERE id = ?`,
+      [
+        log.logType, 
+        log.serviceCategory || null, 
+        log.date, 
+        log.odometer, 
+        log.serviceType, 
+        log.price, 
+        log.isDIY ? 1 : 0, 
+        log.shopName || null, 
+        log.mechanicName || null, 
+        log.contactNumber || null, 
+        log.notes || null, 
+        log.nextServiceOdometer || null, 
+        log.nextServiceDate || null, 
+        log.tirePosition || null, 
+        log.id! // <-- Added '!'
+      ]
+    );
+  },
+
+  async deleteMaintenanceLog(id: number) {
+    const db = await getDb();
+    await db.runAsync(`DELETE FROM MaintenanceLogs WHERE id = ?`, [id]);
+  }
+
 };
