@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   ArrowLeft, Edit2, Gauge, Banknote, Wallet, 
   History, AlertTriangle, ChevronRight, Fuel, Wrench, 
-  Car, Bike, BarChart3
+  Car, Bike, BarChart3, Rocket
 } from 'lucide-react-native';
 import { VehicleRepository } from '../../lib/localRepository';
 import { Vehicle } from '../../types';
@@ -22,14 +22,22 @@ export default function VehicleDashboard() {
   useFocusEffect(
     useCallback(() => {
       const loadData = async () => {
-        if (id) {
-          const vData = await VehicleRepository.getVehicleById(Number(id));
-          const sData = await VehicleRepository.getVehicleStats(Number(id));
-          const tData = await VehicleRepository.getVehicleTimeline(Number(id));
-          
-          if (vData) setVehicle(vData);
-          if (sData) setStats(sData);
-          if (tData) setTimeline(tData);
+        if (id && !isNaN(Number(id))) {
+          try {
+            setLoading(true);
+            const vData = await VehicleRepository.getVehicleById(Number(id));
+            const sData = await VehicleRepository.getVehicleStats(Number(id));
+            const tData = await VehicleRepository.getVehicleTimeline(Number(id));
+            
+            if (vData) setVehicle(vData);
+            if (sData) setStats(sData);
+            if (tData) setTimeline(tData);
+          } catch (error) {
+            console.error("Dashboard DB Error:", error);
+          } finally {
+            setLoading(false);
+          }
+        } else {
           setLoading(false);
         }
       };
@@ -37,10 +45,22 @@ export default function VehicleDashboard() {
     }, [id])
   );
 
-  if (loading || !vehicle) {
+  if (loading) {
     return (
       <View className="flex-1 bg-[#fcf9f8] items-center justify-center">
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="#b7102a" />
+      </View>
+    );
+  }
+
+  if (!vehicle) {
+    return (
+      <View className="flex-1 bg-[#fcf9f8] items-center justify-center px-6">
+        <AlertTriangle size={48} color="#b7102a" className="mb-4" />
+        <Text className="text-lg font-bold text-[#1c1b1b] mb-4">Vehicle not found.</Text>
+        <Pressable onPress={() => router.replace('/(tabs)')} className="bg-[#1b1b1b] px-6 py-3 rounded-lg">
+          <Text className="text-white font-bold">Go to Garage</Text>
+        </Pressable>
       </View>
     );
   }
@@ -131,7 +151,10 @@ export default function VehicleDashboard() {
         <View className="flex-col mb-4">
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-xl font-bold text-[#1c1b1b]">Recent Logs</Text>
-            <Pressable className="flex-row items-center gap-1 active:opacity-50">
+            <Pressable 
+              onPress={() => router.push(`/vehicle/log/history?vehicleId=${vehicle.id}`)}
+              className="flex-row items-center gap-1 active:opacity-50"
+            >
               <Text className="text-sm font-medium text-[#848484]">View All</Text>
               <ChevronRight size={16} color="#848484" />
             </Pressable>
@@ -145,16 +168,17 @@ export default function VehicleDashboard() {
             <View className="ml-4 pl-6 border-l border-dashed border-[#dcd9d9] flex-col gap-8 py-2">
               {timeline.slice(0, 5).map((log, idx) => {
                 const isFuel = log.feedType === 'Refuel';
+                const isMod = log.feedType === 'Modification';
                 return (
                   <View key={`${log.feedType}-${log.id}-${idx}`} className="relative flex-row items-center justify-between">
                     <View className={`absolute -left-[37px] top-1/2 -translate-y-[12px] w-6 h-6 rounded-full border-2 border-[#fcf9f8] flex items-center justify-center z-10 ${isFuel ? 'bg-[#1b1b1b]' : 'bg-[#b7102a]'}`}>
-                      {isFuel ? <Fuel size={12} color="#fff" /> : <Wrench size={12} color="#fff" />}
+                      {isFuel ? <Fuel size={12} color="#fff" /> : (isMod ? <Rocket size={12} color="#fff" /> : <Wrench size={12} color="#fff" />)}
                     </View>
                     
                     <View className="flex-1">
                       <Text className="text-sm font-bold uppercase tracking-wide text-[#1c1b1b]">{isFuel ? 'Fuel Refill' : log.serviceType}</Text>
                       <Text className="text-xs text-[#848484] mt-0.5">
-                        {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {isFuel ? `${log.volume}L` : (log.isDIY ? 'DIY' : 'Shop')}
+                        {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {isFuel ? `${log.volume}L` : (log.isDIY ? 'DIY' : (log.shopName || 'Shop'))}
                       </Text>
                     </View>
 
@@ -195,8 +219,11 @@ export default function VehicleDashboard() {
           <Text className="text-[10px] font-bold text-[#b7102a] mt-1">Garage</Text>
         </Pressable>
         
-        <Pressable className="flex-col items-center justify-center w-16 opacity-50">
-          <Fuel size={22} color="#4c4546" />
+        <Pressable 
+          onPress={() => router.push(`/vehicle/log/history?vehicleId=${vehicle.id}`)}
+          className="flex-col items-center justify-center w-16 opacity-50 active:opacity-100"
+        >
+          <History size={22} color="#4c4546" />
           <Text className="text-[10px] font-bold text-[#4c4546] mt-1">Logs</Text>
         </Pressable>
 
