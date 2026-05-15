@@ -3,9 +3,9 @@ import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from 'expo-rou
 import { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
-  ArrowLeft, Edit2, Gauge, Banknote, Wallet, 
-  History, AlertTriangle, ChevronRight, Fuel, Wrench, 
-  Car, Bike, BarChart3, Rocket
+  ArrowLeft, Settings, Plus, Gauge, Banknote, Wallet, 
+  History, ChevronRight, Fuel, Wrench, Rocket, 
+  Car, Bike, LayoutGrid, Activity
 } from 'lucide-react-native';
 import { VehicleRepository } from '../../lib/localRepository';
 import { Vehicle } from '../../types';
@@ -56,7 +56,6 @@ export default function VehicleDashboard() {
   if (!vehicle) {
     return (
       <View className="flex-1 bg-[#fcf9f8] items-center justify-center px-6">
-        <AlertTriangle size={48} color="#b7102a" className="mb-4" />
         <Text className="text-lg font-bold text-[#1c1b1b] mb-4">Vehicle not found.</Text>
         <Pressable onPress={() => router.replace('/(tabs)')} className="bg-[#1b1b1b] px-6 py-3 rounded-lg">
           <Text className="text-white font-bold">Go to Garage</Text>
@@ -72,118 +71,161 @@ export default function VehicleDashboard() {
     <SafeAreaView className="flex-1 bg-[#fcf9f8] relative" edges={['top']}>   
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View className="bg-[#fcf9f8] flex-row justify-between items-center px-6 h-16 border-b border-[#e5e2e1] z-50">
+      {/* Top App Bar */}
+      <View className="bg-[#fcf9f8] flex-row justify-between items-center px-6 h-14 z-50">
         <Pressable onPress={() => router.back()} className="p-2 -ml-2 active:opacity-50">
           <ArrowLeft size={24} color="#1c1b1b" />
         </Pressable>
-        <Text className="text-[#1c1b1b] font-black text-lg tracking-tighter uppercase">Command Center</Text>
+        <Text className="text-[#b7102a] font-black text-[14px] tracking-[0.2em] uppercase">Garage</Text>
         <Pressable onPress={() => router.push(`/vehicle/edit/${vehicle.id}`)} className="p-2 -mr-2 active:opacity-50">
-          <Edit2 size={20} color="#1c1b1b" />
+          <Settings size={22} color="#1c1b1b" />
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1 px-6 pt-6" contentContainerStyle={{ paddingBottom: 200 }} showsVerticalScrollIndicator={false}>       
-        <View className="bg-[#1b1b1b] rounded-2xl flex-col justify-end min-h-[140px] p-5 mb-6 shadow-sm overflow-hidden relative">
-          <View className="z-10">
-            <Text className="text-white text-4xl font-black uppercase tracking-tighter mb-2">{vehicle.nickname}</Text>
-            <View className="flex-row items-center flex-wrap gap-2">
-              <Text className="text-zinc-400 font-bold text-xs">{vehicle.year}</Text>
-              <Text className="text-zinc-600">•</Text>
-              <Text className="text-zinc-400 font-bold text-xs">{vehicle.make} {vehicle.model}</Text>
-              <Text className="text-zinc-600">•</Text>
+      <ScrollView 
+        className="flex-1 px-6 pt-4" 
+        contentContainerStyle={{ paddingBottom: 140 }} 
+        showsVerticalScrollIndicator={false}
+      >       
+        {/* Typography Header */}
+        <View className="flex-row justify-between items-start mb-8">
+          <View className="flex-1 pr-4">
+            <Text className="text-[40px] leading-tight font-black tracking-tight text-[#1c1b1b] uppercase">
+              {vehicle.nickname}
+            </Text>
+            <View className="flex-row items-center flex-wrap gap-1 mt-1">
+              <Text className="font-medium text-[#848484] text-[13px]">{vehicle.year}</Text>
+              <Text className="text-[#cfc4c5] text-xs">•</Text>
+              <Text className="font-medium text-[#848484] text-[13px]">{vehicle.make} {vehicle.model}</Text>
+              <Text className="text-[#cfc4c5] text-xs">•</Text>
               <View className="flex-row items-center gap-1">
-                <Gauge size={14} color="#fff" />
-                <Text className="text-white font-bold text-xs uppercase tracking-wider">{stats.currentOdo.toLocaleString()} KM</Text>
+                <Gauge size={12} color="#848484" />
+                <Text className="font-medium text-[#848484] text-[13px]">{stats.currentOdo.toLocaleString()} km</Text>
               </View>
             </View>
           </View>
+          <View className="mt-2">
+            {vehicle.vehicleType === 'Car' ? <Car size={40} color="#1c1b1b" strokeWidth={1.5} /> : <Bike size={40} color="#1c1b1b" strokeWidth={1.5} />}
+          </View>
         </View>
 
-        <View className="flex-row flex-wrap justify-between gap-y-4 mb-6">
-          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2">
-              <Banknote size={16} color="#848484" className="mr-2" />
-              <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Total Spent</Text>
+        {/* Trinity Action Row */}
+        <View className="flex-row gap-3 mb-8">
+          <Pressable 
+            onPress={() => router.push(`/vehicle/log/fuel?vehicleId=${vehicle.id}`)}
+            className="flex-1 bg-[#1b1b1b] rounded-full py-3 flex-row items-center justify-center gap-1 active:scale-95 transition-transform"
+          >
+            <Plus size={16} color="#fff" />
+            <Text className="text-white font-bold text-[13px]">Fuel</Text>
+          </Pressable>
+          <Pressable 
+            onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}`)}
+            className="flex-1 bg-[#b7102a] rounded-full py-3 flex-row items-center justify-center gap-1 active:scale-95 transition-transform"
+          >
+            <Plus size={16} color="#fff" />
+            <Text className="text-white font-bold text-[13px]">Service</Text>
+          </Pressable>
+          <Pressable className="flex-1 bg-transparent border border-[#cfc4c5] rounded-full py-3 flex-row items-center justify-center gap-1 active:scale-95 transition-transform">
+            <Plus size={16} color="#1c1b1b" />
+            <Text className="text-[#1c1b1b] font-bold text-[13px]">Matrix</Text>
+          </Pressable>
+        </View>
+
+        {/* Matrix Health Monitor */}
+        <View className="bg-white border border-[#e5e2e1] rounded-2xl p-5 mb-6 shadow-sm shadow-black/5">
+          <Text className="font-bold text-[16px] text-[#1c1b1b] mb-4">General Health</Text>
+          <View className="w-full bg-[#f0eded] rounded-full h-2 mb-3 overflow-hidden">
+            <View className="bg-[#10b981] h-2 rounded-full" style={{ width: '75%' }}></View>
+          </View>
+          <Text className="font-medium text-[#848484] text-[13px]">
+            Next Service: <Text className="font-bold text-[#1c1b1b]">Oil Change in 1,200 km</Text>
+          </Text>
+        </View>
+
+        {/* Performance Grid */}
+        <View className="flex-row flex-wrap justify-between gap-y-3 mb-10">
+          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
+            <View className="flex-row items-center gap-1.5">
+              <Banknote size={14} color="#848484" />
+              <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Total Spent</Text>
             </View>
-            <Text className="text-xl font-bold text-[#1c1b1b]">₱{stats.totalSpent.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>
+            <View className="flex-row items-baseline">
+              <Text className="text-[14px] font-bold text-[#1c1b1b] mr-0.5">₱</Text>
+              <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.totalSpent.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</Text>
+            </View>
           </View>
           
-          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2">
-              <Gauge size={16} color="#848484" className="mr-2" />
-              <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Efficiency</Text>
+          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
+            <View className="flex-row items-center gap-1.5">
+              <Gauge size={14} color="#848484" />
+              <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Avg Efficiency</Text>
             </View>
-            <Text className="text-xl font-bold text-[#1c1b1b]">{stats.avgEfficiency} <Text className="text-sm font-normal text-[#848484]">km/L</Text></Text>
+            <View className="flex-row items-baseline gap-1">
+              <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.avgEfficiency}</Text>
+              <Text className="font-medium text-[#848484] text-[11px]">km/L</Text>
+            </View>
           </View>
 
-          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2">
-              <Wallet size={16} color="#848484" className="mr-2" />
-              <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Cost Per Km</Text>
+          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
+            <View className="flex-row items-center gap-1.5">
+              <Wallet size={14} color="#848484" />
+              <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Cost Per KM</Text>
             </View>
-            <Text className="text-xl font-bold text-[#1c1b1b]">₱{costPerKm}</Text>
+            <View className="flex-row items-baseline">
+              <Text className="text-[14px] font-bold text-[#1c1b1b] mr-0.5">₱</Text>
+              <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{costPerKm}</Text>
+            </View>
           </View>
 
-          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-xl p-4 flex-col justify-between shadow-sm">
-            <View className="flex-row items-center mb-2">
-              <History size={16} color="#848484" className="mr-2" />
-              <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">Current Odo</Text>
+          <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
+            <View className="flex-row items-center gap-1.5">
+              <History size={14} color="#848484" />
+              <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Current Odo</Text>
             </View>
-            <Text className="text-xl font-bold text-[#1c1b1b]">{stats.currentOdo.toLocaleString()} <Text className="text-sm font-normal text-[#848484]">km</Text></Text>
+            <View className="flex-row items-baseline gap-1">
+              <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.currentOdo.toLocaleString()}</Text>
+              <Text className="font-medium text-[#848484] text-[11px]">km</Text>
+            </View>
           </View>
         </View>
 
-        <View className="bg-white border border-[#ffdad6] rounded-xl p-4 mb-8 shadow-sm">
-          <View className="flex-row items-start justify-between mb-3">
-            <View className="flex-row items-center gap-2">
-              <AlertTriangle size={18} color="#b7102a" />
-              <Text className="text-xs font-bold uppercase tracking-wider text-[#b7102a]">Maintenance Health</Text>
-            </View>
-            <View className="bg-[#ffdad6] px-2 py-1 rounded-full">
-              <Text className="text-[10px] font-bold text-[#93000a]">Matrix Pending</Text>
-            </View>
-          </View>
-          <View className="w-full bg-[#f0eded] rounded-full h-2">
-            <View className="bg-[#b7102a] h-2 rounded-full" style={{ width: '100%' }}></View>
-          </View>
-        </View>
-
+        {/* Recent Logs */}
         <View className="flex-col mb-4">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-bold text-[#1c1b1b]">Recent Logs</Text>
+          <View className="flex-row items-center justify-between mb-6">
+            <Text className="text-[22px] font-black text-[#1c1b1b] tracking-tight">Recent Logs</Text>
             <Pressable 
               onPress={() => router.push(`/vehicle/log/history?vehicleId=${vehicle.id}`)}
               className="flex-row items-center gap-1 active:opacity-50"
             >
-              <Text className="text-sm font-medium text-[#848484]">View All</Text>
+              <Text className="text-[13px] font-bold text-[#848484]">View All</Text>
               <ChevronRight size={16} color="#848484" />
             </Pressable>
           </View>
 
           {timeline.length === 0 ? (
-            <View className="py-8 border-2 border-dashed border-[#e5e2e1] rounded-2xl items-center justify-center">
-              <Text className="text-[#848484] font-bold text-xs uppercase tracking-widest">No logs recorded yet</Text>
+            <View className="py-10 border-2 border-dashed border-[#e5e2e1] rounded-2xl items-center justify-center">
+              <Text className="text-[#848484] font-bold text-[11px] uppercase tracking-widest">No logs recorded yet</Text>
             </View>
           ) : (
-            <View className="ml-4 pl-6 border-l border-dashed border-[#dcd9d9] flex-col gap-8 py-2">
-              {timeline.slice(0, 5).map((log, idx) => {
+            <View className="ml-5 pl-7 border-l border-dashed border-[#cfc4c5] flex-col space-y-8 py-2">
+              {timeline.slice(0, 3).map((log, idx) => {
                 const isFuel = log.feedType === 'Refuel';
                 const isMod = log.feedType === 'Modification';
                 return (
-                  <View key={`${log.feedType}-${log.id}-${idx}`} className="relative flex-row items-center justify-between">
-                    <View className={`absolute -left-[37px] top-1/2 -translate-y-[12px] w-6 h-6 rounded-full border-2 border-[#fcf9f8] flex items-center justify-center z-10 ${isFuel ? 'bg-[#1b1b1b]' : 'bg-[#b7102a]'}`}>
-                      {isFuel ? <Fuel size={12} color="#fff" /> : (isMod ? <Rocket size={12} color="#fff" /> : <Wrench size={12} color="#fff" />)}
+                  <View key={`${log.feedType}-${log.id}-${idx}`} className="relative flex-row justify-between items-start">
+                    <View className={`absolute -left-[45px] top-0 w-8 h-8 rounded-full border-4 border-[#fcf9f8] flex items-center justify-center z-10 ${isFuel ? 'bg-[#1b1b1b]' : 'bg-[#b7102a]'}`}>
+                      {isFuel ? <Fuel size={14} color="#fff" /> : (isMod ? <Rocket size={14} color="#fff" /> : <Wrench size={14} color="#fff" />)}
                     </View>
                     
-                    <View className="flex-1">
-                      <Text className="text-sm font-bold uppercase tracking-wide text-[#1c1b1b]">{isFuel ? 'Fuel Refill' : log.serviceType}</Text>
-                      <Text className="text-xs text-[#848484] mt-0.5">
+                    <View className="flex-1 pr-4 mt-0.5">
+                      <Text className="text-[13px] font-bold uppercase tracking-wide text-[#1c1b1b]">{isFuel ? 'Fuel Refill' : log.serviceType}</Text>
+                      <Text className="text-[12px] font-medium text-[#848484] mt-1">
                         {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {isFuel ? `${log.volume}L` : (log.isDIY ? 'DIY' : (log.shopName || 'Shop'))}
                       </Text>
                     </View>
 
-                    <View className="items-end">
-                      <Text className="text-sm font-black text-[#1c1b1b]">- ₱{(isFuel ? log.totalCost : log.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>
+                    <View className="items-end mt-0.5">
+                      <Text className="text-[15px] font-black text-[#1c1b1b]">- ₱{(isFuel ? log.totalCost : log.price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</Text>
                     </View>
                   </View>
                 );
@@ -193,49 +235,32 @@ export default function VehicleDashboard() {
         </View>
       </ScrollView>
 
-      <View className="absolute bottom-[90px] left-0 right-0 px-6 z-40">
-        <View className="flex-row gap-3">
-          <Pressable 
-            onPress={() => router.push(`/vehicle/log/fuel?vehicleId=${vehicle.id}`)}
-            className="flex-1 bg-[#1b1b1b] py-3.5 rounded-xl flex-row items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-black/20"
-          >
-            <Fuel size={18} color="#fff" />
-            <Text className="text-white font-bold text-sm">Log Fuel</Text>
+      {/* Floating Bottom Nav (The Trinity) */}
+      <View className="absolute bottom-8 left-0 right-0 items-center pointer-events-box-none z-50">
+        <View className="flex-row items-center justify-between bg-[rgba(255,255,255,0.95)] px-2 py-2 rounded-full w-[85%] max-w-[340px] shadow-lg shadow-black/10 border border-[#e5e2e1]">
+          
+          {/* Active: Dashboard */}
+          <Pressable className="flex-col items-center justify-center bg-[#f6f3f2] rounded-full w-[30%] py-2.5">
+            <LayoutGrid size={20} color="#b7102a" strokeWidth={2.5} />
+            <Text className="font-bold text-[#b7102a] text-[9px] uppercase tracking-wider mt-1">Dash</Text>
           </Pressable>
+
+          {/* Inactive: Logs */}
           <Pressable 
-            onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}`)}
-            className="flex-1 bg-[#b7102a] py-3.5 rounded-xl flex-row items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg shadow-red-900/20"
+            onPress={() => router.push(`/vehicle/log/history?vehicleId=${vehicle.id}`)}
+            className="flex-col items-center justify-center w-[30%] py-2.5 opacity-60 active:opacity-100"
           >
-            <Wrench size={18} color="#fff" />
-            <Text className="text-white font-bold text-sm">Log Service</Text>
+            <History size={20} color="#1c1b1b" strokeWidth={2} />
+            <Text className="font-bold text-[#1c1b1b] text-[9px] uppercase tracking-wider mt-1">Logs</Text>
           </Pressable>
+
+          {/* Inactive: Matrix */}
+          <Pressable className="flex-col items-center justify-center w-[30%] py-2.5 opacity-60 active:opacity-100">
+            <Activity size={20} color="#1c1b1b" strokeWidth={2} />
+            <Text className="font-bold text-[#1c1b1b] text-[9px] uppercase tracking-wider mt-1">Matrix</Text>
+          </Pressable>
+
         </View>
-      </View>
-
-      <View className="absolute bottom-0 w-full bg-white border-t border-[#e5e2e1] flex-row justify-around items-center h-[80px] pb-5 z-50">
-        <Pressable onPress={() => router.push('/(tabs)')} className="flex-col items-center justify-center w-16 opacity-100 relative group">
-          <View className="absolute bg-[#ffdad8] rounded-full w-10 h-10 -z-10 opacity-50" />
-          {vehicle.vehicleType === 'Car' ? <Car size={22} color="#b7102a" /> : <Bike size={22} color="#b7102a" />}
-          <Text className="text-[10px] font-bold text-[#b7102a] mt-1">Garage</Text>
-        </Pressable>
-        
-        <Pressable 
-          onPress={() => router.push(`/vehicle/log/history?vehicleId=${vehicle.id}`)}
-          className="flex-col items-center justify-center w-16 opacity-50 active:opacity-100"
-        >
-          <History size={22} color="#4c4546" />
-          <Text className="text-[10px] font-bold text-[#4c4546] mt-1">Logs</Text>
-        </Pressable>
-
-        <Pressable className="flex-col items-center justify-center w-16 opacity-50">
-          <Wrench size={22} color="#4c4546" />
-          <Text className="text-[10px] font-bold text-[#4c4546] mt-1">Service</Text>
-        </Pressable>
-
-        <Pressable className="flex-col items-center justify-center w-16 opacity-50">
-          <BarChart3 size={22} color="#4c4546" />
-          <Text className="text-[10px] font-bold text-[#4c4546] mt-1">Stats</Text>
-        </Pressable>
       </View>
 
     </SafeAreaView>
