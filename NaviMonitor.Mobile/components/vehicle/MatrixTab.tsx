@@ -1,9 +1,18 @@
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useMemo, memo } from 'react';
-import { Shield, ShieldAlert, AlertTriangle } from 'lucide-react-native';
+import { Shield, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import PageHeader from './PageHeader';
 
 export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
+  const router = useRouter();
+
+  const handleAISync = () => {
+    router.push({
+      pathname: '/vehicle/matrix/sync',
+      params: { vehicleId: vehicle.id }
+    });
+  };
   
   const matrixData = useMemo(() => {
     if (!vehicle?.maintenanceMatrixJson) return [];
@@ -67,6 +76,17 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
           <Text className="text-[#848484] font-bold text-xs uppercase tracking-widest text-center">
             No Maintenance Matrix Configured
           </Text>
+          
+          <Pressable 
+            onPress={handleAISync}
+            className="mt-8 bg-[#1c1b1b] flex-row items-center justify-center px-6 py-4 rounded-xl active:scale-95 transition-transform shadow-md shadow-black/20"
+          >
+            <Sparkles size={20} color="#ffffff" className="mr-3" />
+            <Text className="text-white font-black text-[14px] uppercase tracking-widest">
+              AI Sync Manual
+            </Text>
+          </Pressable>
+
         </View>
       </View>
     );
@@ -156,6 +176,18 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
               </Pressable>
             );
           })}
+
+          {/* Re-Sync Button for Populated State */}
+          <Pressable 
+            onPress={handleAISync} 
+            className="mt-2 py-4 border-2 border-dashed border-[#cfc4c5] rounded-xl flex-row items-center justify-center gap-2 active:bg-[#f0eded] mb-6"
+          >
+            <Sparkles size={18} color="#848484" />
+            <Text className="font-bold text-[12px] text-[#848484] uppercase tracking-wider">
+              Re-Sync AI Matrix
+            </Text>
+          </Pressable>
+
         </View>
       </View>
     </ScrollView>
