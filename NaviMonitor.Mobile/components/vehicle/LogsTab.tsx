@@ -3,6 +3,7 @@ import { useState, useMemo, memo } from 'react';
 import { Inbox } from 'lucide-react-native';
 import { calculateTabStats } from '../../lib/statsEngine';
 import TimelineItem from './TimelineItem';
+import StatCard from './StatCard';
 
 const FILTER_TABS = ['All', 'Fuel', 'Service', 'Mods'];
 
@@ -81,26 +82,23 @@ export const LogsTab = memo(({ vehicle, rawLogs, onLogPress }: any) => {
             {stats ? (
               <>
                 <View className="flex-row justify-between mb-3">
-                  <View className="w-[48%] bg-[#f6f3f2] border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[90px]">
-                    <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">{stats.topL.label}</Text>
-                      <stats.topL.icon size={14} color="#848484" />
-                    </View>
-                    <Text className="text-[18px] font-black text-[#1c1b1b] tracking-tight">{stats.topL.val}</Text>
-                  </View>
-                  <View className="w-[48%] bg-[#f6f3f2] border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[90px]">
-                    <View className="flex-row items-center justify-between mb-1">
-                      <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-wider">{stats.topR.label}</Text>
-                      <stats.topR.icon size={14} color="#848484" />
-                    </View>
-                    <Text className="text-[18px] font-black text-[#1c1b1b] tracking-tight">{stats.topR.val}</Text>
-                  </View>
+                  <StatCard 
+                    label={stats.topL.label} 
+                    value={stats.topL.val} 
+                    icon={stats.topL.icon} 
+                  />
+                  <StatCard 
+                    label={stats.topR.label} 
+                    value={stats.topR.val} 
+                    icon={stats.topR.icon} 
+                  />
                 </View>
-                <View className="w-full bg-[#f6f3f2] border border-[#e5e2e1] rounded-2xl p-5 shadow-sm shadow-black/5">
-                  <Text className="text-[10px] font-bold text-[#848484] uppercase tracking-widest mb-1">{stats.anchor.label}</Text>
-                  <Text className="text-[24px] font-black text-[#1c1b1b] tracking-tight mb-1">{stats.anchor.val}</Text>
-                  <Text className="text-[12px] font-bold text-[#cfc4c5]">{stats.anchor.sub}</Text>
-                </View>
+                <StatCard 
+                  label={stats.anchor.label} 
+                  value={stats.anchor.val} 
+                  subtext={stats.anchor.sub} 
+                  fullWidth 
+                />
               </>
             ) : (
                <View className="w-full bg-[#f6f3f2] border border-[#e5e2e1] rounded-2xl p-5 items-center justify-center h-[120px]">

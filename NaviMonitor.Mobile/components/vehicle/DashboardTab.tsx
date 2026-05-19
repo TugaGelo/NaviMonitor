@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { memo } from 'react';
 import { Plus, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
+import StatCard from './StatCard';
 
 export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any) => {
   const router = useRouter();
@@ -68,46 +69,30 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any)
 
       {/* Performance Grid */}
       <View className="flex-row flex-wrap justify-between gap-y-3 mb-10">
-        <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
-          <View className="flex-row items-center gap-1.5">
-            <Banknote size={14} color="#848484" />
-            <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Total Spent</Text>
-          </View>
-          <View className="flex-row items-baseline">
-            <Text className="text-[14px] font-bold text-[#1c1b1b] mr-0.5">₱</Text>
-            <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.totalSpent.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</Text>
-          </View>
-        </View>
-        <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
-          <View className="flex-row items-center gap-1.5">
-            <Gauge size={14} color="#848484" />
-            <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Avg Efficiency</Text>
-          </View>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.avgEfficiency}</Text>
-            <Text className="font-medium text-[#848484] text-[11px]">km/L</Text>
-          </View>
-        </View>
-        <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
-          <View className="flex-row items-center gap-1.5">
-            <Wallet size={14} color="#848484" />
-            <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Cost Per KM</Text>
-          </View>
-          <View className="flex-row items-baseline">
-            <Text className="text-[14px] font-bold text-[#1c1b1b] mr-0.5">₱</Text>
-            <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{costPerKm}</Text>
-          </View>
-        </View>
-        <View className="w-[48%] bg-white border border-[#e5e2e1] rounded-2xl p-4 flex-col justify-between h-[100px] shadow-sm shadow-black/5">
-          <View className="flex-row items-center gap-1.5">
-            <HistoryIcon size={14} color="#848484" />
-            <Text className="font-bold text-[#848484] uppercase tracking-wider text-[10px]">Current Odo</Text>
-          </View>
-          <View className="flex-row items-baseline gap-1">
-            <Text className="font-black text-[22px] text-[#1c1b1b] tracking-tight">{stats.currentOdo.toLocaleString()}</Text>
-            <Text className="font-medium text-[#848484] text-[11px]">km</Text>
-          </View>
-        </View>
+        <StatCard 
+          label="Total Spent" 
+          value={stats.totalSpent.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} 
+          icon={Banknote} 
+          prefix="₱" 
+        />
+        <StatCard 
+          label="Avg Efficiency" 
+          value={stats.avgEfficiency} 
+          icon={Gauge} 
+          unit="km/L" 
+        />
+        <StatCard 
+          label="Cost Per KM" 
+          value={costPerKm} 
+          icon={Wallet} 
+          prefix="₱" 
+        />
+        <StatCard 
+          label="Current Odo" 
+          value={stats.currentOdo.toLocaleString()} 
+          icon={HistoryIcon} 
+          unit="km" 
+        />
       </View>
 
       {/* Recent Logs (Now using the reusable component!) */}
