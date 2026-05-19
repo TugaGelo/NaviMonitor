@@ -12,7 +12,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any)
   const costPerKm = distanceCovered > 0 ? (stats.totalSpent / distanceCovered).toFixed(2) : "0.00";
 
   return (
-    <ScrollView className="flex-1 px-6 pt-4 bg-[#fcf9f8]" contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>       
+    <ScrollView className="flex-1 px-6 pt-1 bg-[#fcf9f8]" contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>       
       {/* Header */}
       <View className="mb-2">
         <PageHeader 

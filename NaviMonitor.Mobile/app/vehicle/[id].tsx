@@ -69,9 +69,13 @@ export default function MasterVehicleScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#fcf9f8] items-center justify-center">
-        <ActivityIndicator size="large" color="#b7102a" />
-      </View>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        
+        <View className="flex-1 bg-[#fcf9f8] items-center justify-center">
+          <ActivityIndicator size="large" color="#b7102a" />
+        </View>
+      </>
     );
   }
 
@@ -79,8 +83,7 @@ export default function MasterVehicleScreen() {
     <SafeAreaView className="flex-1 bg-[#fcf9f8] relative" edges={['top']}>   
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Global Top Bar */}
-      <View className="bg-[#fcf9f8] flex-row justify-between items-center px-6 h-14 z-50">
+      <View className="bg-[#fcf9f8] flex-row items-center px-6 h-14 z-50">
         <Pressable onPress={() => router.push('/(tabs)')} className="p-2 -ml-2 active:opacity-50">
           <ArrowLeft size={24} color="#1c1b1b" />
         </Pressable>
