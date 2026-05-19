@@ -4,6 +4,7 @@ import { memo } from 'react';
 import { Plus, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
+import PageHeader from './PageHeader';
 
 export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any) => {
   const router = useRouter();
@@ -12,29 +13,27 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any)
 
   return (
     <ScrollView className="flex-1 px-6 pt-4 bg-[#fcf9f8]" contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>       
-      {/* Typography Header */}
-      <View className="flex-row justify-between items-start mb-8">
-        <View className="flex-1 pr-4">
-          <Text className="text-[40px] leading-tight font-black tracking-tight text-[#1c1b1b] uppercase">
-            {vehicle.nickname}
-          </Text>
-          <View className="flex-row items-center flex-wrap gap-1 mt-1">
-            <Text className="font-medium text-[#848484] text-[13px]">{vehicle.year}</Text>
-            <Text className="text-[#cfc4c5] text-xs">•</Text>
-            <Text className="font-medium text-[#848484] text-[13px]">{vehicle.make} {vehicle.model}</Text>
-            <Text className="text-[#cfc4c5] text-xs">•</Text>
-            <View className="flex-row items-center gap-1">
-              <Gauge size={12} color="#848484" />
-              <Text className="font-medium text-[#848484] text-[13px]">{stats.currentOdo.toLocaleString()} km</Text>
+      {/* Header */}
+      <View className="mb-2">
+        <PageHeader 
+          title={vehicle.nickname} 
+          subtitle={
+            <View className="flex-row items-center flex-wrap gap-1.5">
+              <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{vehicle.year}</Text>
+              <Text className="text-[#cfc4c5] text-xs font-bold">•</Text>
+              <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{vehicle.make} {vehicle.model}</Text>
+              <Text className="text-[#cfc4c5] text-xs font-bold">•</Text>
+              <View className="flex-row items-center gap-2">
+                <Gauge size={12} color="#848484" strokeWidth={2.5} />
+                <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{stats.currentOdo.toLocaleString()} KM</Text>
+              </View>
             </View>
-          </View>
-        </View>
-        <View className="mt-2">
-          {vehicle.vehicleType === 'Car' ? <Car size={40} color="#1c1b1b" strokeWidth={1.5} /> : <Bike size={40} color="#1c1b1b" strokeWidth={1.5} />}
-        </View>
+          }
+          rightIcon={vehicle.vehicleType === 'Car' ? Car : Bike}
+        />
       </View>
 
-      {/* Trinity Action Row */}
+      {/* Action Row */}
       <View className="flex-row gap-3 mb-8">
         <Pressable 
           onPress={() => router.push(`/vehicle/log/fuel?vehicleId=${vehicle.id}`)}
@@ -95,7 +94,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs }: any)
         />
       </View>
 
-      {/* Recent Logs (Now using the reusable component!) */}
+      {/* Recent Logs */}
       <View className="flex-col mb-4">
         <View className="flex-row items-center justify-between mb-6">
           <Text className="text-[22px] font-black text-[#1c1b1b] tracking-tight">Recent Logs</Text>

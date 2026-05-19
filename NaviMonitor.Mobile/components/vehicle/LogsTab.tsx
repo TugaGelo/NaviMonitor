@@ -1,9 +1,10 @@
 import { View, Text, Pressable, SectionList, ScrollView } from 'react-native';
 import { useState, useMemo, memo } from 'react';
-import { Inbox } from 'lucide-react-native';
+import { FolderArchive, Inbox } from 'lucide-react-native';
 import { calculateTabStats } from '../../lib/statsEngine';
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
+import PageHeader from './PageHeader';
 
 const FILTER_TABS = ['All', 'Fuel', 'Service', 'Mods'];
 
@@ -33,11 +34,12 @@ export const LogsTab = memo(({ vehicle, rawLogs, onLogPress }: any) => {
   return (
     <View className="flex-1 bg-[#fcf9f8]">
       {/* Header */}
-      <View className="px-6 pt-2 pb-6 bg-[#fcf9f8] z-50">
-        <Text className="text-[40px] leading-none font-black tracking-tight text-[#1c1b1b] uppercase">Archive</Text>
-        <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.2em] mt-2">
-          {vehicle?.nickname || 'VEHICLE'} • {rawLogs.length} RECORDS
-        </Text>
+      <View className="px-6 bg-[#fcf9f8] z-50">
+        <PageHeader 
+          title="Archive" 
+          subtitle={`${vehicle?.nickname || 'VEHICLE'} • ${rawLogs.length} RECORDS`}
+          rightIcon={FolderArchive}
+        />
       </View>
 
       {/* Filter Row */}
