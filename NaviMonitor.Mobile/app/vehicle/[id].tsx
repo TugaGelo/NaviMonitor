@@ -17,6 +17,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 // Vehicle Tabs
 import DashboardTab from '../../components/vehicle/DashboardTab';
 import LogsTab from '../../components/vehicle/LogsTab';
+import MatrixTab from '../../components/vehicle/MatrixTab';
 
 export default function MasterVehicleScreen() {
   const { id } = useLocalSearchParams();
@@ -116,9 +117,12 @@ export default function MasterVehicleScreen() {
           />
         </View>
 
-        <View key="matrix" className="flex-1 items-center justify-center bg-[#fcf9f8]">
-          <Activity size={48} color="#e5e2e1" className="mb-4" />
-          <Text className="text-[#848484] font-bold tracking-widest uppercase">Matrix Coming Soon</Text>
+        <View key="matrix" className="flex-1">
+          <MatrixTab 
+            vehicle={vehicle} 
+            stats={stats} 
+            timeline={timeline} 
+          />
         </View>
       </PagerView>
 
