@@ -1,116 +1,64 @@
-import { View, Text, Pressable, Alert } from 'react-native';
-import { useState } from 'react';
-import { Gauge, CalendarDays, MoreHorizontal, ShieldAlert, Car, Motorbike } from 'lucide-react-native';
+import { View, Text, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Car, Bike } from 'lucide-react-native';
 import { Vehicle } from '../types';
-import { useRouter, Href } from 'expo-router';
-import { VehicleRepository } from '../lib/localRepository';
-import ActionSheet from './ui/ActionSheet';
-import ConfirmDialog from './ui/ConfirmDialog';
 
-interface Props {
-  vehicle: Vehicle;
-  onRefresh: () => void;
+interface VehicleCardProps {
+  vehicle: Vehicle & { currentOdo?: number };
+  onRefresh?: () => void;
 }
 
-export default function VehicleCard({ vehicle, onRefresh }: Props) {
+export default function VehicleCard({ vehicle }: VehicleCardProps) {
   const router = useRouter();
   
-  const [showActionSheet, setShowActionSheet] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const displayOdo = vehicle.currentOdo || vehicle.startingOdometer;
+  const isCar = vehicle.vehicleType === 'Car';
 
-  const isExpiringSoon = vehicle.registrationExpiry && 
-    (new Date(vehicle.registrationExpiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24) < 30;
-
-  const VehicleIcon = vehicle.vehicleType === 'Car' ? Car : Motorbike;
-
-  const handleEdit = () => {
-    setShowActionSheet(false);
-    router.push(`/vehicle/edit/${vehicle.id}` as Href);
-  };
-
-  const triggerDeleteConfirm = () => {
-    setShowActionSheet(false);
-    setTimeout(() => {
-      setShowDeleteDialog(true);
-    }, 50);
-  };
-
-  const executeDelete = async () => {
-    setShowDeleteDialog(false);
-    try {
-      await VehicleRepository.deleteVehicle(vehicle.id);
-      onRefresh(); 
-    } catch (error) {
-      Alert.alert("Error", "Failed to delete the vehicle.");
-    }
-  };
+  // Placeholder percentage until we build the Maintenance Matrix calculation!
+  const healthPercentage = 85; 
 
   return (
-    <>
-      <Pressable 
-        onPress={() => router.push(`/vehicle/${vehicle.id}` as Href)}
-        className="bg-surface-container rounded-2xl p-6 mb-4 relative overflow-hidden active:opacity-80"
-        style={{ shadowColor: '#000', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 0.05, shadowRadius: 0, elevation: 2 }}
-      >
-        <View className="flex-row justify-between items-start mb-6">
-          <View>
-            <View className="flex-row items-center gap-2 mb-1">
-              <View className="bg-primary px-2.5 py-1.5 rounded-full">
-                <VehicleIcon size={14} color="#fff" />
-              </View>
-              <Text className="text-on-surface-variant text-xs font-bold uppercase">
-                {vehicle.year} {vehicle.make}
-              </Text>
-            </View>
-            <Text className="text-primary text-3xl font-black tracking-tighter mt-1">
-              {vehicle.nickname}
-            </Text>
-          </View>
-          
-          <Pressable className="p-2 -mr-2" onPress={() => setShowActionSheet(true)}>
-            <MoreHorizontal size={24} color="#000" />
-          </Pressable>
+    <Pressable 
+      className="flex-col rounded-2xl overflow-hidden border border-[#e5e2e1] bg-white shadow-sm shadow-black/5 mb-5 active:scale-[0.98] transition-transform"
+      onPress={() => router.push(`/vehicle/${vehicle.id}`)}
+    >
+      {/* Top Black Header Section */}
+      <View className="bg-[#1c1b1b] p-6 relative overflow-hidden">
+        {/* Massive Watermark Icon */}
+        <View className="absolute -right-8 -bottom-10 opacity-10">
+          {isCar ? (
+            <Car size={160} color="#ffffff" strokeWidth={1} />
+          ) : (
+            <Bike size={160} color="#ffffff" strokeWidth={1} />
+          )}
         </View>
+        
+        {/* Nickname */}
+        <Text className="text-[32px] font-black text-white uppercase tracking-tight z-10" numberOfLines={1}>
+          {vehicle.nickname}
+        </Text>
+      </View>
 
-        <View className="flex-row gap-4 mt-auto">
-          <View className="flex-1 bg-surface-container-high rounded-xl p-4">
-            <View className="flex-row items-center gap-2 mb-2">
-              <Gauge size={16} color="#4c4546" />
-              <Text className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">Odometer</Text>
-            </View>
-            <Text className="text-primary text-xl font-black">
-              {vehicle.startingOdometer.toLocaleString()} <Text className="text-on-surface-variant text-sm font-normal">km</Text>
-            </Text>
+      {/* Bottom Telemetry Section */}
+      <View className="p-5 flex-col">
+        <Text className="text-[12px] text-[#848484] uppercase tracking-wide font-bold mb-4">
+          {vehicle.year} {vehicle.make} {vehicle.model} • {displayOdo.toLocaleString()} km
+        </Text>
+        
+        {/* Service Health Progress Bar */}
+        <View className="flex-col gap-1.5 mt-1">
+          <View className="flex-row justify-between items-center">
+            <Text className="text-[10px] font-bold uppercase tracking-widest text-[#848484]">Service Health</Text>
+            <Text className="text-[11px] font-black text-[#1c1b1b]">{healthPercentage}%</Text>
           </View>
-
-          <View className={`flex-1 rounded-xl p-4 ${isExpiringSoon ? 'bg-[#ffdad8]' : 'bg-surface-container-high'}`}>
-            <View className="flex-row items-center gap-2 mb-2">
-              {isExpiringSoon ? <ShieldAlert size={16} color="#b7102a" /> : <CalendarDays size={16} color="#4c4546" />}
-              <Text className={`text-xs font-bold uppercase tracking-wider ${isExpiringSoon ? 'text-secondary' : 'text-on-surface-variant'}`}>LTO Reg</Text>
-            </View>
-            <Text className={`text-sm font-bold ${isExpiringSoon ? 'text-secondary' : 'text-primary'}`}>
-              {vehicle.registrationExpiry ? new Date(vehicle.registrationExpiry).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
-            </Text>
+          <View className="h-2 w-full bg-[#f0eded] rounded-full overflow-hidden">
+            <View 
+              className="h-full bg-[#b7102a] rounded-full" 
+              style={{ width: `${healthPercentage}%` }} 
+            />
           </View>
         </View>
-      </Pressable>
-
-      <ActionSheet 
-        visible={showActionSheet}
-        title="VEHICLE OPTIONS"
-        onEdit={handleEdit}
-        onDelete={triggerDeleteConfirm}
-        onCancel={() => setShowActionSheet(false)}
-      />
-
-      <ConfirmDialog 
-        visible={showDeleteDialog}
-        title="Are you absolutely sure?"
-        description="This action cannot be undone. You are about to permanently delete:"
-        highlightedText={vehicle.nickname}
-        onCancel={() => setShowDeleteDialog(false)}
-        onConfirm={executeDelete}
-      />
-    </>
+      </View>
+    </Pressable>
   );
 }
