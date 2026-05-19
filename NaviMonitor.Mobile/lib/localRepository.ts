@@ -14,20 +14,20 @@ export const VehicleRepository = {
     const safeYear = Number(vehicle.year) || new Date().getFullYear();
     const safeEngineSize = Number(vehicle.engineSizeCC) || 0;
     const safeOdometer = Number(vehicle.startingOdometer) || 0;
-    
     const safeExpiry = vehicle.registrationExpiry ? String(vehicle.registrationExpiry) : '';
 
     await db.runAsync(
       `INSERT INTO Vehicles (
         id, userId, vehicleType, nickname, make, model, year, 
         color, engineSizeCC, startingOdometer, licensePlate, 
-        registrationExpiry, hasSyncedManual, is_synced
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        registrationExpiry, hasSyncedManual, maintenanceMatrixJson, is_synced
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         offlineId, DEV_USER_ID, vehicle.vehicleType || 'Car', vehicle.nickname || '',
         vehicle.make || '', vehicle.model || '', safeYear, vehicle.color || '',
         safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry, 
-        vehicle.hasSyncedManual ? 1 : 0
+        vehicle.hasSyncedManual ? 1 : 0,
+        vehicle.maintenanceMatrixJson || null
       ]
     );
 
@@ -69,7 +69,7 @@ export const VehicleRepository = {
       `UPDATE Vehicles SET 
         vehicleType = ?, nickname = ?, make = ?, model = ?, year = ?, 
         color = ?, engineSizeCC = ?, startingOdometer = ?, licensePlate = ?, 
-        registrationExpiry = ?, is_synced = 0
+        registrationExpiry = ?, maintenanceMatrixJson = ?, is_synced = 0
        WHERE id = ?`,
       [
         vehicle.vehicleType || 'Car', 
@@ -82,6 +82,7 @@ export const VehicleRepository = {
         safeOdometer, 
         vehicle.licensePlate || '', 
         safeExpiry, 
+        vehicle.maintenanceMatrixJson || null,
         vehicle.id!
       ]
     );

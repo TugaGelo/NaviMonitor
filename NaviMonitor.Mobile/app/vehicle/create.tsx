@@ -98,6 +98,25 @@ export default function AddVehicleScreen() {
       Alert.alert("Missing Fields", "Please fill in the required fields (*)");
       return;
     }
+    
+    const defaultCarMatrix = [
+      { item: "Engine Oil", interval: 10000, action: "Replace" },
+      { item: "Oil Filter", interval: 10000, action: "Replace" },
+      { item: "Air Filter", interval: 20000, action: "Replace" },
+      { item: "Brake Pads", interval: 30000, action: "Replace" },
+      { item: "Spark Plugs", interval: 40000, action: "Replace" }
+    ];
+    
+    const defaultBikeMatrix = [
+      { item: "Engine Oil", interval: 3000, action: "Replace" },
+      { item: "Oil Filter", interval: 6000, action: "Replace" },
+      { item: "Drive Chain", interval: 1000, action: "Clean/Lube" },
+      { item: "Spark Plugs", interval: 12000, action: "Replace" },
+      { item: "Brake Pads", interval: 15000, action: "Replace" }
+    ];
+    
+    const matrixToUse = form.vehicleType === 'Motorcycle' ? defaultBikeMatrix : defaultCarMatrix;
+
     try {
       await VehicleRepository.addVehicle({
         ...form,
@@ -105,6 +124,7 @@ export default function AddVehicleScreen() {
         engineSizeCC: parseInt(form.engineSizeCC) || 0,
         startingOdometer: parseInt(form.startingOdometer) || 0,
         hasSyncedManual: false,
+        maintenanceMatrixJson: JSON.stringify(matrixToUse)
       });
       closeForm();
     } catch (e) {
