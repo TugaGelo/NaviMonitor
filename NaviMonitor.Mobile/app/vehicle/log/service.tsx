@@ -49,6 +49,7 @@ export default function AddServiceLogScreen() {
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentOdo, setCurrentOdo] = useState(0);
+  const [matrixChips, setMatrixChips] = useState<string[]>([]);
 
   // Zone Tracking Logic
   const activeZone = useRef<'top' | 'bottom'>('top');
@@ -69,16 +70,26 @@ export default function AddServiceLogScreen() {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchVehicleData = async () => {
       if (vehicleId) {
         const stats = await VehicleRepository.getVehicleStats(Number(vehicleId));
         setCurrentOdo(stats.currentOdo);
         if (!editId) {
           setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
         }
+
+        const vehicle = await VehicleRepository.getVehicleById(Number(vehicleId));
+        if (vehicle?.maintenanceMatrixJson) {
+          try {
+            const matrix = JSON.parse(vehicle.maintenanceMatrixJson);
+            setMatrixChips(matrix.map((m: any) => m.item));
+          } catch (e) {
+            console.error("Failed to parse matrix for chips", e);
+          }
+        }
       }
     };
-    fetchStats();
+    fetchVehicleData();
   }, [vehicleId, editId]);
 
   useEffect(() => {
@@ -198,7 +209,7 @@ export default function AddServiceLogScreen() {
     <View className="flex-1 justify-end">
       <Pressable className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={closeForm} />
 
-      <Animated.View style={{ height: SCREEN_HEIGHT * 0.77, transform: [{ translateY: slideAnim }, { translateY: keyboardOffset }] }}>
+      <Animated.View style={{ height: SCREEN_HEIGHT * 0.82, transform: [{ translateY: slideAnim }, { translateY: keyboardOffset }] }}>
         <View className="flex-1 bg-white rounded-t-[24px] overflow-hidden" style={{ elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.15, shadowRadius: 20 }}>
           
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
@@ -253,17 +264,23 @@ export default function AddServiceLogScreen() {
               </View>
             </View>
 
-            <View className="flex-row flex-wrap gap-2 mb-4">
-              {['Oil Change', 'Brakes', 'Tire Swap'].map(t => (
-                <Pressable 
-                  key={t} 
-                  onPress={() => setForm(f => ({ ...f, serviceType: t }))} 
-                  className={`px-3 py-1.5 rounded-lg border ${form.serviceType === t ? 'border-[#111827] bg-[#111827]' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
-                >
-                  <Text className={`text-[10px] font-bold uppercase tracking-wider ${form.serviceType === t ? 'text-white' : 'text-[#6b7280]'}`}>{t}</Text>
-                </Pressable>
-              ))}
-            </View>
+            {/* Dynamic Matrix Quick Select Chips */}
+            {matrixChips.length > 0 && form.logType === 'Maintenance' && (
+              <View className="mb-4">
+                <Text className="text-[11px] font-bold text-[#111827] uppercase tracking-wider mb-2">Matrix Quick Select</Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {matrixChips.map(t => (
+                    <Pressable 
+                      key={t} 
+                      onPress={() => setForm(f => ({ ...f, serviceType: t }))} 
+                      className={`px-3 py-1.5 rounded-lg border ${form.serviceType === t ? 'border-[#111827] bg-[#111827]' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
+                    >
+                      <Text className={`text-[10px] font-bold uppercase tracking-wider ${form.serviceType === t ? 'text-white' : 'text-[#6b7280]'}`}>{t}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
 
             <View className="flex-row gap-4">
               <View className="flex-1">
