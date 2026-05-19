@@ -9,7 +9,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, keyboardType = 'default', required = false, editable = true, prefix, multiline = false, onFocus }: any) => (
   <View className={`flex flex-col mb-4 ${multiline ? 'flex-1' : ''}`}>
-    <Text className="text-[11px] font-bold text-[#111827] uppercase tracking-wider mb-1.5">
+    <Text className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 ${!editable ? 'text-[#b7102a]' : 'text-[#111827]'}`}>
       {label} {required && <Text className="text-[#b7102a]">*</Text>}
     </Text>
     <View className={`relative flex justify-center ${multiline ? 'flex-1' : ''}`}>
@@ -29,8 +29,8 @@ const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, ke
         multiline={multiline}
         onFocus={onFocus}
         style={multiline ? { textAlignVertical: 'top', minHeight: 120 } : {}}
-        className={`w-full bg-[#f9fafb] border border-[#e5e7eb] rounded-lg text-sm text-[#111827] font-medium 
-          ${!editable ? 'opacity-70 bg-gray-100' : ''} 
+        className={`w-full border rounded-lg text-sm font-medium 
+          ${!editable ? 'bg-[#f3f4f6] border-[#e5e7eb] text-[#6b7280] opacity-80' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111827]'} 
           ${prefix ? 'pl-8' : (Icon ? 'pl-9' : 'px-3')} 
           ${unit ? 'pr-10' : ''}
           ${multiline ? 'pt-3 pb-3 h-full' : 'py-3'} 
@@ -43,22 +43,21 @@ const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, ke
 
 export default function AddServiceLogScreen() {
   const router = useRouter();
-  const { vehicleId, editId } = useLocalSearchParams();
+  const { vehicleId, editId, mode, item } = useLocalSearchParams();
   
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentOdo, setCurrentOdo] = useState(0);
-  const [matrixChips, setMatrixChips] = useState<string[]>([]);
 
-  // Zone Tracking Logic
   const activeZone = useRef<'top' | 'bottom'>('top');
   const isKeyboardVisible = useRef(false);
   const kbHeight = useRef(0);
 
   const [form, setForm] = useState({
-    logType: 'Maintenance' as 'Maintenance' | 'Modification',
-    serviceType: '',
+    logType: (mode === 'modification' ? 'Modification' : 'Maintenance') as 'Maintenance' | 'Modification',
+    serviceCategory: mode === 'modification' ? 'Upgrade' : (mode === 'scheduled' ? 'Scheduled' : 'Unscheduled'),
+    serviceType: (mode === 'scheduled' && item) ? (item as string) : '',
     date: new Date().toISOString().split('T')[0],
     odometer: '',
     price: '',
@@ -69,6 +68,22 @@ export default function AddServiceLogScreen() {
     notes: ''
   });
 
+  let headerTitle = 'Service Log';
+  let headerSubtitle = 'Record garage services and checkups';
+  
+  if (editId) {
+    headerTitle = 'Edit Record';
+  } else if (mode === 'scheduled') {
+    headerTitle = 'Scheduled Maintenance';
+    headerSubtitle = 'Factory recommended lifespan reset';
+  } else if (mode === 'modification') {
+    headerTitle = 'Add Modification';
+    headerSubtitle = 'Track your custom upgrades & mods';
+  } else if (mode === 'unscheduled') {
+    headerTitle = 'Custom Service';
+    headerSubtitle = 'Record custom garage services and repairs';
+  }
+
   useEffect(() => {
     const fetchVehicleData = async () => {
       if (vehicleId) {
@@ -76,16 +91,6 @@ export default function AddServiceLogScreen() {
         setCurrentOdo(stats.currentOdo);
         if (!editId) {
           setForm(f => ({ ...f, odometer: (stats.currentOdo + 1).toString() }));
-        }
-
-        const vehicle = await VehicleRepository.getVehicleById(Number(vehicleId));
-        if (vehicle?.maintenanceMatrixJson) {
-          try {
-            const matrix = JSON.parse(vehicle.maintenanceMatrixJson);
-            setMatrixChips(matrix.map((m: any) => m.item));
-          } catch (e) {
-            console.error("Failed to parse matrix for chips", e);
-          }
         }
       }
     };
@@ -99,6 +104,7 @@ export default function AddServiceLogScreen() {
         if (log) {
           setForm({
             logType: log.logType as 'Maintenance' | 'Modification',
+            serviceCategory: log.serviceCategory || 'Unscheduled',
             serviceType: log.serviceType,
             date: log.date,
             odometer: log.odometer.toString(),
@@ -169,35 +175,25 @@ export default function AddServiceLogScreen() {
     }
 
     try {
+      const payload = {
+        vehicleId: Number(vehicleId),
+        logType: form.logType,
+        serviceCategory: form.serviceCategory,
+        serviceType: form.serviceType,
+        date: form.date,
+        odometer: newOdo,
+        price: parseFloat(form.price),
+        isDIY: form.isDIY,
+        shopName: form.shopName,
+        mechanicName: form.mechanicName,
+        contactNumber: form.contactNumber,
+        notes: form.notes
+      };
+
       if (editId) {
-        await VehicleRepository.updateMaintenanceLog({
-          id: Number(editId),
-          vehicleId: Number(vehicleId),
-          logType: form.logType,
-          serviceType: form.serviceType,
-          date: form.date,
-          odometer: newOdo,
-          price: parseFloat(form.price),
-          isDIY: form.isDIY,
-          shopName: form.shopName,
-          mechanicName: form.mechanicName,
-          contactNumber: form.contactNumber,
-          notes: form.notes
-        });
+        await VehicleRepository.updateMaintenanceLog({ id: Number(editId), ...payload });
       } else {
-        await VehicleRepository.addMaintenanceLog({
-          vehicleId: Number(vehicleId),
-          logType: form.logType,
-          serviceType: form.serviceType,
-          date: form.date,
-          odometer: newOdo,
-          price: parseFloat(form.price),
-          isDIY: form.isDIY,
-          shopName: form.shopName,
-          mechanicName: form.mechanicName,
-          contactNumber: form.contactNumber,
-          notes: form.notes
-        });
+        await VehicleRepository.addMaintenanceLog(payload);
       }
       closeForm();
     } catch (e) {
@@ -209,43 +205,43 @@ export default function AddServiceLogScreen() {
     <View className="flex-1 justify-end">
       <Pressable className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={closeForm} />
 
-      <Animated.View style={{ height: SCREEN_HEIGHT * 0.82, transform: [{ translateY: slideAnim }, { translateY: keyboardOffset }] }}>
+      <Animated.View style={{ height: SCREEN_HEIGHT * 0.67, transform: [{ translateY: slideAnim }, { translateY: keyboardOffset }] }}>
         <View className="flex-1 bg-white rounded-t-[24px] overflow-hidden" style={{ elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.15, shadowRadius: 20 }}>
           
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
             <View className="flex-row justify-between items-start">
               <View>
-                <Text className="text-2xl font-bold text-[#111827] tracking-tight">{editId ? 'Edit Service Log' : 'Service Log'}</Text>
-                <Text className="text-sm text-[#6b7280] mt-1">
-                  {form.logType === 'Maintenance' ? 'Record garage services and checkups' : 'Track your custom upgrades'}
-                </Text>
+                <Text className="text-2xl font-bold text-[#111827] tracking-tight">{headerTitle}</Text>
+                <Text className="text-sm text-[#6b7280] mt-1">{headerSubtitle}</Text>
               </View>
               <Pressable onPress={closeForm} className="p-1 -mr-2">
                 <X size={24} color="#9ca3af" />
               </Pressable>
             </View>
 
-            <View className="mt-4 flex-row bg-[#f3f4f6] p-1 rounded-lg w-full">
-              {[
-                { val: 'Maintenance', icon: Wrench, label: 'Maintenance' },
-                { val: 'Modification', icon: Rocket, label: 'Modification' }
-              ].map((opt) => {
-                const isActive = form.logType === opt.val;
-                return (
-                  <Pressable
-                    key={opt.val}
-                    onPress={() => setForm({ ...form, logType: opt.val as 'Maintenance' | 'Modification' })}
-                    className={`flex-1 flex-row items-center justify-center py-2 rounded-md ${isActive ? 'bg-black' : 'bg-transparent'}`}
-                    style={isActive ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41, elevation: 2 } : {}}
-                  >
-                    <opt.icon size={16} color={isActive ? '#fff' : '#6b7280'} />
-                    <Text className={`ml-2 text-xs uppercase tracking-wider font-bold ${isActive ? 'text-white' : 'text-[#6b7280]'}`}>
-                      {opt.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            {!mode && !editId && (
+              <View className="mt-4 flex-row bg-[#f3f4f6] p-1 rounded-lg w-full">
+                {[
+                  { val: 'Maintenance', icon: Wrench, label: 'Maintenance' },
+                  { val: 'Modification', icon: Rocket, label: 'Modification' }
+                ].map((opt) => {
+                  const isActive = form.logType === opt.val;
+                  return (
+                    <Pressable
+                      key={opt.val}
+                      onPress={() => setForm({ ...form, logType: opt.val as 'Maintenance' | 'Modification' })}
+                      className={`flex-1 flex-row items-center justify-center py-2 rounded-md ${isActive ? 'bg-black' : 'bg-transparent'}`}
+                      style={isActive ? { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41, elevation: 2 } : {}}
+                    >
+                      <opt.icon size={16} color={isActive ? '#fff' : '#6b7280'} />
+                      <Text className={`ml-2 text-xs uppercase tracking-wider font-bold ${isActive ? 'text-white' : 'text-[#6b7280]'}`}>
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           <ScrollView 
@@ -257,30 +253,20 @@ export default function AddServiceLogScreen() {
             
             <View className="flex-row gap-4">
               <View className="flex-1">
-                <StitchInput label="Service / Mod Name" required placeholder="e.g. Changed Oil" value={form.serviceType} onChange={(v: string) => setForm({...form, serviceType: v})} onFocus={() => handleZone('top')} />
+                <StitchInput 
+                  label={mode === 'scheduled' ? 'Matrix Item (Locked)' : 'Service / Mod Name'} 
+                  required 
+                  placeholder={mode === 'modification' ? 'e.g. Roof Rack' : 'e.g. Changed Oil'} 
+                  value={form.serviceType} 
+                  onChange={(v: string) => setForm({...form, serviceType: v})} 
+                  editable={mode !== 'scheduled'}
+                  onFocus={() => handleZone('top')} 
+                />
               </View>
               <View className="flex-1">
                 <StitchInput label="Total Price" required placeholder="0.00" prefix="₱" keyboardType="numeric" value={form.price} onChange={(v: string) => setForm({...form, price: v})} onFocus={() => handleZone('top')} />
               </View>
             </View>
-
-            {/* Dynamic Matrix Quick Select Chips */}
-            {matrixChips.length > 0 && form.logType === 'Maintenance' && (
-              <View className="mb-4">
-                <Text className="text-[11px] font-bold text-[#111827] uppercase tracking-wider mb-2">Matrix Quick Select</Text>
-                <View className="flex-row flex-wrap gap-2">
-                  {matrixChips.map(t => (
-                    <Pressable 
-                      key={t} 
-                      onPress={() => setForm(f => ({ ...f, serviceType: t }))} 
-                      className={`px-3 py-1.5 rounded-lg border ${form.serviceType === t ? 'border-[#111827] bg-[#111827]' : 'border-[#e5e7eb] bg-[#f9fafb]'}`}
-                    >
-                      <Text className={`text-[10px] font-bold uppercase tracking-wider ${form.serviceType === t ? 'text-white' : 'text-[#6b7280]'}`}>{t}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
 
             <View className="flex-row gap-4">
               <View className="flex-1">
