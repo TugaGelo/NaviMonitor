@@ -1,6 +1,6 @@
 import { View, Text, TextInput, ScrollView, Pressable, Alert, Platform, Animated, Dimensions, Keyboard } from 'react-native';
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { X, Car, Motorbike, Save, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { VehicleRepository } from '../../lib/localRepository';
@@ -34,10 +34,40 @@ const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, ke
 
 export default function AddVehicleScreen() {
   const router = useRouter();
+  const { editId } = useLocalSearchParams();
   
   const slideAnim = useRef(new Animated.Value(800)).current;
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const [form, setForm] = useState({
+    nickname: '', make: '', model: '', year: new Date().getFullYear().toString(),
+    vehicleType: 'Car', color: '', licensePlate: '', engineSizeCC: '',
+    startingOdometer: '', registrationExpiry: '',
+  });
+
+  useEffect(() => {
+    if (editId) {
+      const fetchVehicle = async () => {
+        const vehicle = await VehicleRepository.getVehicleById(Number(editId));
+        if (vehicle) {
+          setForm({
+            nickname: vehicle.nickname,
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year.toString(),
+            vehicleType: vehicle.vehicleType,
+            color: vehicle.color || '',
+            licensePlate: vehicle.licensePlate,
+            engineSizeCC: vehicle.engineSizeCC?.toString() || '',
+            startingOdometer: vehicle.startingOdometer.toString(),
+            registrationExpiry: vehicle.registrationExpiry || '',
+          });
+        }
+      };
+      fetchVehicle();
+    }
+  }, [editId]);
 
   useEffect(() => {
     Animated.spring(slideAnim, {
@@ -87,12 +117,6 @@ export default function AddVehicleScreen() {
     });
   };
 
-  const [form, setForm] = useState({
-    nickname: '', make: '', model: '', year: new Date().getFullYear().toString(),
-    vehicleType: 'Car', color: '', licensePlate: '', engineSizeCC: '',
-    startingOdometer: '', registrationExpiry: '',
-  });
-
   const handleSave = async () => {
     if (!form.nickname || !form.make || !form.startingOdometer || !form.licensePlate) {
       Alert.alert("Missing Fields", "Please fill in the required fields (*)");
@@ -117,15 +141,26 @@ export default function AddVehicleScreen() {
     
     const matrixToUse = form.vehicleType === 'Motorcycle' ? defaultBikeMatrix : defaultCarMatrix;
 
+    const vehiclePayload = {
+      ...form,
+      year: parseInt(form.year),
+      engineSizeCC: parseInt(form.engineSizeCC) || 0,
+      startingOdometer: parseInt(form.startingOdometer) || 0,
+    };
+
     try {
-      await VehicleRepository.addVehicle({
-        ...form,
-        year: parseInt(form.year),
-        engineSizeCC: parseInt(form.engineSizeCC) || 0,
-        startingOdometer: parseInt(form.startingOdometer) || 0,
-        hasSyncedManual: false,
-        maintenanceMatrixJson: JSON.stringify(matrixToUse)
-      });
+      if (editId) {
+        await VehicleRepository.updateVehicle({
+          id: Number(editId),
+          ...vehiclePayload
+        });
+      } else {
+        await VehicleRepository.addVehicle({
+          ...vehiclePayload,
+          hasSyncedManual: false,
+          maintenanceMatrixJson: JSON.stringify(matrixToUse)
+        });
+      }
       closeForm();
     } catch (e) {
       Alert.alert("Error", "Failed to save vehicle.");
@@ -158,8 +193,12 @@ export default function AddVehicleScreen() {
           <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
             <View className="flex-row justify-between items-start">
               <View>
-                <Text className="text-2xl font-bold text-[#111827] tracking-tight">Add New Vehicle</Text>
-                <Text className="text-sm text-[#6b7280] mt-1">Register a new asset to your Garage</Text>
+                <Text className="text-2xl font-bold text-[#111827] tracking-tight">
+                  {editId ? 'Edit Vehicle' : 'Add New Vehicle'}
+                </Text>
+                <Text className="text-sm text-[#6b7280] mt-1">
+                  {editId ? 'Update your vehicle details' : 'Register a new asset to your Garage'}
+                </Text>
               </View>
               <Pressable onPress={closeForm} className="p-1 -mr-2">
                 <X size={24} color="#9ca3af" />
@@ -174,7 +213,7 @@ export default function AddVehicleScreen() {
                 return (
                   <Pressable
                     key={type}
-                    onPress={() => setForm({ ...form, vehicleType: type })}
+                    onPress={() => !editId && setForm({ ...form, vehicleType: type })}
                     className={`flex-1 flex-row items-center justify-center py-2 rounded-md ${
                       isActive ? 'bg-black' : 'bg-transparent'
                     }`}
@@ -210,7 +249,17 @@ export default function AddVehicleScreen() {
 
             <View className="flex-row gap-4">
                <View className="flex-1"><StitchInput label="Plate" required placeholder="ABC-1234" value={form.licensePlate} onChange={(v: string) => setForm({...form, licensePlate: v})} /></View>
-               <View className="flex-1"><StitchInput label="Start Odo" placeholder="0" unit="km" keyboardType="numeric" value={form.startingOdometer} onChange={(v: string) => setForm({...form, startingOdometer: v})} /></View>
+               <View className="flex-1">
+                 <StitchInput 
+                    label="Start Odo" 
+                    placeholder="0" 
+                    unit="km" 
+                    keyboardType="numeric" 
+                    value={form.startingOdometer} 
+                    onChange={(v: string) => setForm({...form, startingOdometer: v})} 
+                    editable={!editId}
+                 />
+               </View>
             </View>
 
             <View className="flex-row gap-4">
@@ -233,7 +282,7 @@ export default function AddVehicleScreen() {
               style={{ shadowColor: '#ef4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}
             >
               <Save size={24} color="#fff" />
-              <Text className="text-white text-base font-bold ml-1">Save Vehicle</Text>
+              <Text className="text-white text-base font-bold ml-1">{editId ? 'Save Changes' : 'Save Vehicle'}</Text>
             </Pressable>
           </View>
 

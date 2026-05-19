@@ -6,9 +6,10 @@ import { Vehicle } from '../types';
 interface VehicleCardProps {
   vehicle: Vehicle & { currentOdo?: number };
   onRefresh?: () => void;
+  onLongPress?: () => void;
 }
 
-export default function VehicleCard({ vehicle }: VehicleCardProps) {
+export default function VehicleCard({ vehicle, onRefresh, onLongPress }: VehicleCardProps) {
   const router = useRouter();
   
   const displayOdo = vehicle.currentOdo || vehicle.startingOdometer;
@@ -21,6 +22,8 @@ export default function VehicleCard({ vehicle }: VehicleCardProps) {
     <Pressable 
       className="flex-col rounded-2xl overflow-hidden border border-[#e5e2e1] bg-white shadow-sm shadow-black/5 mb-5 active:scale-[0.98] transition-transform"
       onPress={() => router.push(`/vehicle/${vehicle.id}`)}
+      onLongPress={onLongPress}
+      delayLongPress={300}
     >
       {/* Top Black Header Section */}
       <View className="bg-[#1c1b1b] p-6 relative overflow-hidden">

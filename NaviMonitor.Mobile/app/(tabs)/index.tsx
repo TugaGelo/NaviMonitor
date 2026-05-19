@@ -1,4 +1,4 @@
-import { View, FlatList, Pressable, Text } from 'react-native';
+import { View, FlatList, Pressable, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -10,6 +10,8 @@ import VehicleCard from '../../components/VehicleCard';
 
 import PageHeader from '../../components/vehicle/PageHeader';
 import StatCard from '../../components/vehicle/StatCard';
+import ActionSheet from '../../components/ui/ActionSheet';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
@@ -19,6 +21,9 @@ export default function GarageScreen() {
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fleetStats, setFleetStats] = useState({ totalSpend: 0, totalKm: 0 });
+  const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithStats | null>(null);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -47,6 +52,39 @@ export default function GarageScreen() {
       loadData();
     }, [])
   );
+
+  const handleLongPress = (vehicle: VehicleWithStats) => {
+    setSelectedVehicle(vehicle);
+    setIsSheetVisible(true);
+  };
+
+  const handleEdit = () => {
+    setIsSheetVisible(false);
+    if (selectedVehicle) {
+      router.push({ pathname: '/vehicle/create', params: { editId: selectedVehicle.id } });
+    }
+  };
+
+  const handleDeleteTrigger = () => {
+    setIsSheetVisible(false);
+    if (selectedVehicle) {
+      setTimeout(() => {
+        setIsConfirmVisible(true);
+      }, 300);
+    }
+  };
+
+  const executeDelete = async () => {
+    setIsConfirmVisible(false);
+    if (selectedVehicle) {
+      try {
+        await VehicleRepository.deleteVehicle(selectedVehicle.id!);
+        loadData(); 
+      } catch (error) {
+        Alert.alert("Error", "Could not delete the vehicle.");
+      }
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
@@ -79,7 +117,7 @@ export default function GarageScreen() {
         />
       </View>
 
-      <View className="flex-row justify-between px-6 gap-y-3 mb-6">
+      <View className="flex-row justify-between px-6 gap-y-3 mb-4">
          <StatCard 
            label="Fleet Spend" 
            value={fleetStats.totalSpend.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} 
@@ -94,6 +132,14 @@ export default function GarageScreen() {
          />
       </View>
 
+      {vehicles.length > 0 && (
+        <View className="px-6 mb-4">
+          <Text className="text-[10px] font-black text-[#848484] uppercase tracking-widest">
+            Tip: Press and hold a vehicle card to manage it
+          </Text>
+        </View>
+      )}
+
       <FlatList
         data={vehicles}
         keyExtractor={(item) => item.id!.toString()}
@@ -102,6 +148,7 @@ export default function GarageScreen() {
           <VehicleCard 
             vehicle={item} 
             onRefresh={loadData}
+            onLongPress={() => handleLongPress(item)}
           />
         )}
         ListEmptyComponent={
@@ -121,6 +168,24 @@ export default function GarageScreen() {
           ) : null
         }
       />
+
+      <ActionSheet 
+        visible={isSheetVisible}
+        title={selectedVehicle?.nickname ? `Manage ${selectedVehicle.nickname.toUpperCase()}` : "MANAGE VEHICLE"}
+        onEdit={handleEdit}
+        onDelete={handleDeleteTrigger}
+        onCancel={() => setIsSheetVisible(false)}
+      />
+
+      <ConfirmDialog 
+        visible={isConfirmVisible}
+        title="Delete Vehicle"
+        description="Are you sure you want to remove this vehicle? This will delete all associated logs and history."
+        highlightedText={selectedVehicle?.nickname}
+        onCancel={() => setIsConfirmVisible(false)}
+        onConfirm={executeDelete}
+      />
+
     </SafeAreaView>
   );
 }
