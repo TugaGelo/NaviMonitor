@@ -2,14 +2,15 @@ import { View, FlatList, Pressable, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Plus, Banknote, Gauge } from 'lucide-react-native';
+import { Plus, Gauge } from 'lucide-react-native';
 
 import { VehicleRepository } from '../../lib/localRepository';
 import { Vehicle } from '../../types';
 import VehicleCard from '../../components/VehicleCard';
 
 import PageHeader from '../../components/vehicle/PageHeader';
-import StatCard from '../../components/vehicle/StatCard';
+import FleetStatsGrid from '../../components/garage/FleetStatsGrid';     // <-- Imported
+import GarageEmptyState from '../../components/garage/GarageEmptyState'; // <-- Imported
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
@@ -21,6 +22,7 @@ export default function GarageScreen() {
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fleetStats, setFleetStats] = useState({ totalSpend: 0, totalKm: 0 });
+
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithStats | null>(null);
@@ -68,9 +70,7 @@ export default function GarageScreen() {
   const handleDeleteTrigger = () => {
     setIsSheetVisible(false);
     if (selectedVehicle) {
-      setTimeout(() => {
-        setIsConfirmVisible(true);
-      }, 300);
+      setTimeout(() => setIsConfirmVisible(true), 300);
     }
   };
 
@@ -89,6 +89,7 @@ export default function GarageScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
       
+      {/* Header Layout */}
       <View className="px-6 pt-12 pb-4">
         <PageHeader 
           title="GARAGE" 
@@ -109,7 +110,7 @@ export default function GarageScreen() {
           rightIcon={() => (
             <Pressable 
               onPress={() => router.push('/vehicle/create')}
-              className="w-10 h-10 rounded-full border border-[#e5e2e1] items-center justify-center active:bg-[#f0eded] transition-colors"
+              className="w-10 h-10 rounded-full border border-[#e5e2e1] items-center justify-center active:bg-[#f0eded]"
             >
               <Plus size={20} color="#1c1b1b" strokeWidth={2} />
             </Pressable>
@@ -117,20 +118,8 @@ export default function GarageScreen() {
         />
       </View>
 
-      <View className="flex-row justify-between px-6 gap-y-3 mb-4">
-         <StatCard 
-           label="Fleet Spend" 
-           value={fleetStats.totalSpend.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})} 
-           icon={Banknote} 
-           prefix="₱" 
-         />
-         <StatCard 
-           label="Fleet Distance" 
-           value={fleetStats.totalKm.toLocaleString()} 
-           icon={Gauge} 
-           unit="km" 
-         />
-      </View>
+      {/* Abstracted Fleet Metrics Grid */}
+      <FleetStatsGrid totalSpend={fleetStats.totalSpend} totalKm={fleetStats.totalKm} />
 
       {vehicles.length > 0 && (
         <View className="px-6 mb-4">
@@ -140,35 +129,20 @@ export default function GarageScreen() {
         </View>
       )}
 
+      {/* Primary Inventory Feed */}
       <FlatList
         data={vehicles}
         keyExtractor={(item) => item.id!.toString()}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
         renderItem={({ item }) => (
-          <VehicleCard 
-            vehicle={item} 
-            onRefresh={loadData}
-            onLongPress={() => handleLongPress(item)}
-          />
+          <VehicleCard vehicle={item} onRefresh={loadData} onLongPress={() => handleLongPress(item)} />
         )}
         ListEmptyComponent={
-          !isLoading ? (
-            <Pressable 
-              className="mt-6 border-2 border-dashed border-[#e5e2e1] rounded-2xl p-8 items-center justify-center min-h-[200px] active:opacity-50"
-              onPress={() => router.push('/vehicle/create')}
-            >
-              <View className="w-16 h-16 rounded-full bg-[#f0eded] items-center justify-center mb-4">
-                <Plus size={32} color="#1c1b1b" />
-              </View>
-              <Text className="text-[18px] text-[#1c1b1b] font-black uppercase tracking-tight">Add Vehicle</Text>
-              <Text className="text-[#848484] font-medium text-[13px] text-center mt-2">
-                Register your first unit to begin tracking telemetry.
-              </Text>
-            </Pressable>
-          ) : null
+          !isLoading ? <GarageEmptyState onPress={() => router.push('/vehicle/create')} /> : null
         }
       />
 
+      {/* Overlay & Dialog Overlays */}
       <ActionSheet 
         visible={isSheetVisible}
         title={selectedVehicle?.nickname ? `Manage ${selectedVehicle.nickname.toUpperCase()}` : "MANAGE VEHICLE"}
