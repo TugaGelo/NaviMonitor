@@ -84,16 +84,6 @@ export default function MasterVehicleScreen() {
         <Pressable onPress={() => router.push('/(tabs)')} className="p-2 -ml-2 active:opacity-50">
           <ArrowLeft size={24} color="#1c1b1b" />
         </Pressable>
-        {activeTab === 0 && <Text className="text-[#b7102a] font-black text-[14px] tracking-[0.2em] uppercase">Garage</Text>}
-        {activeTab === 0 ? (
-          <Pressable onPress={() => router.push(`/vehicle/edit/${vehicle?.id}`)} className="p-2 -mr-2 active:opacity-50">
-            <Settings size={22} color="#1c1b1b" />
-          </Pressable>
-        ) : (
-          <Pressable className="p-2 -mr-2 active:opacity-50 bg-[#f0eded] rounded-full w-10 h-10 items-center justify-center">
-            <Search size={20} color="#1c1b1b" />
-          </Pressable>
-        )}
       </View>
 
       {/* Swiping Screens */}
