@@ -53,13 +53,13 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           <Text className="text-[#1c1b1b] font-bold text-[13px]">Mod</Text>
         </Pressable>
 
-        {/* Emergency / Repair */}
+        {/* 3. Unscheduled Service */}
         <Pressable 
-          onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}&mode=emergency`)}
+          onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}&mode=unscheduled`)}
           className="flex-1 bg-[#b7102a] rounded-full py-3 flex-row items-center justify-center gap-1 active:scale-95 transition-transform"
         >
           <AlertTriangle size={16} color="#fff" />
-          <Text className="text-white font-bold text-[13px]">Repair</Text>
+          <Text className="text-white font-bold text-[13px]">Service</Text>
         </Pressable>
 
       </View>

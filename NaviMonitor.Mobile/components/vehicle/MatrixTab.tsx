@@ -14,6 +14,17 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
     });
   };
   
+  const handleMatrixItemTap = (itemName: string) => {
+    router.push({
+      pathname: '/vehicle/log/service',
+      params: { 
+        vehicleId: vehicle.id, 
+        mode: 'scheduled', 
+        item: itemName
+      }
+    });
+  };
+
   const matrixData = useMemo(() => {
     if (!vehicle?.maintenanceMatrixJson) return [];
     
@@ -151,6 +162,7 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
             return (
               <Pressable 
                 key={`${item.item}-${idx}`}
+                onPress={() => handleMatrixItemTap(item.item)}
                 className={`rounded-xl p-4 flex-col border active:opacity-60 transition-opacity ${cardBg}`}
               >
                 <View className="flex-row justify-between items-start mb-3">
@@ -177,16 +189,17 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
             );
           })}
 
-          {/* Re-Sync Button for Populated State */}
-          <Pressable 
-            onPress={handleAISync} 
-            className="mt-2 py-4 border-2 border-dashed border-[#cfc4c5] rounded-xl flex-row items-center justify-center gap-2 active:bg-[#f0eded] mb-6"
-          >
-            <Sparkles size={18} color="#848484" />
-            <Text className="font-bold text-[12px] text-[#848484] uppercase tracking-wider">
-              Re-Sync AI Matrix
-            </Text>
-          </Pressable>
+          <View className="mt-4 mb-6">
+            <Pressable 
+              onPress={handleAISync} 
+              className="py-4 border-2 border-dashed border-[#cfc4c5] rounded-xl flex-row items-center justify-center gap-2 active:bg-[#f0eded]"
+            >
+              <Sparkles size={18} color="#848484" />
+              <Text className="font-bold text-[12px] text-[#848484] uppercase tracking-wider">
+                Re-Sync AI Matrix
+              </Text>
+            </Pressable>
+          </View>
 
         </View>
       </View>
