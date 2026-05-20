@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { VehicleRepository } from '../../../lib/localRepository';
 import { Vehicle, MaintenanceMatrixItem } from '../../../types';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
+import  { runSyncEngine } from '../../../hooks/useAutoSync';
 
 const API_BASE_URL = 'http://192.168.68.133:5053/api'; 
 
@@ -59,9 +60,18 @@ export default function AISyncScreen() {
   const commitToVehicle = async () => {
     if (!vehicle) return;
     try {
-      await VehicleRepository.updateVehicle({ ...vehicle, maintenanceMatrixJson: JSON.stringify(matrixData), hasSyncedManual: true });
+      await VehicleRepository.updateVehicle({ 
+        ...vehicle, 
+        maintenanceMatrixJson: JSON.stringify(matrixData), 
+        hasSyncedManual: true 
+      });
+      
+      runSyncEngine();
+      
       router.back();
-    } catch { Alert.alert("Save Failed", "Could not save the matrix."); }
+    } catch { 
+      Alert.alert("Save Failed", "Could not save the matrix."); 
+    }
   };
 
   if (step === 1) return (

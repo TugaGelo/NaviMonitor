@@ -55,6 +55,37 @@ public class VehicleController : ControllerBase
         return CreatedAtAction(nameof(GetVehicle), new { id = newVehicle.Id }, newVehicle);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateVehicle(int id, Vehicle updatedVehicle)
+    {
+        if (id != updatedVehicle.Id)
+        {
+            return BadRequest("The ID in the URL must match the ID in the data.");
+        }
+
+        if (string.IsNullOrEmpty(updatedVehicle.UserId))
+        {
+            updatedVehicle.UserId = "DEV_USER_GELO";
+        }
+
+        _context.Entry(updatedVehicle).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await _context.Vehicles.AnyAsync(v => v.Id == id))
+            {
+                return NotFound("Vehicle not found.");
+            }
+            throw;
+        }
+
+        return NoContent();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
