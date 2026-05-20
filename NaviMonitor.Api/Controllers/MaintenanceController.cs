@@ -44,6 +44,8 @@ public class MaintenanceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddLog(MaintenanceLog newLog)
     {
+        newLog.Id = 0;
+
         if (!await _context.Vehicles.AnyAsync(v => v.Id == newLog.VehicleId)) 
             return BadRequest("Vehicle not found.");
 
@@ -88,6 +90,38 @@ public class MaintenanceController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "Maintenance schedule saved successfully!" });
+    }
+
+    // PUT: /api/maintenance/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateLog(int id, MaintenanceLog updatedLog)
+    {
+        if (id != updatedLog.Id)
+        {
+            return BadRequest("The ID in the URL must match the ID in the data.");
+        }
+
+        if (!await _context.Vehicles.AnyAsync(v => v.Id == updatedLog.VehicleId))
+        {
+            return BadRequest("Assigned vehicle not found.");
+        }
+
+        _context.Entry(updatedLog).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!await _context.MaintenanceLogs.AnyAsync(l => l.Id == id))
+            {
+                return NotFound("Maintenance log no longer exists.");
+            }
+            throw;
+        }
+
+        return NoContent();
     }
 
     // DELETE: /api/maintenance/1

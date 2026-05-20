@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace NaviMonitor.Api.Controllers;
 
-[Authorize]
+[AllowAnonymous]
 [ApiController]
 [Route("api/[controller]")]
 public class VehicleController : ControllerBase
@@ -23,28 +23,31 @@ public class VehicleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllVehicles()
     {
-        // 🔍 Only show vehicles belonging to Gelo
-        var vehicles = await _context.Vehicles
-            .Where(v => v.UserId == CurrentUserId)
-            .ToListAsync();
+        var vehicles = await _context.Vehicles.ToListAsync();
         return Ok(vehicles);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetVehicle(int id)
     {
-        var vehicle = await _context.Vehicles
-            .FirstOrDefaultAsync(v => v.Id == id && v.UserId == CurrentUserId);
-
-        if (vehicle == null) return NotFound("Vehicle not found or you don't own it.");
-
+        var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id);
+        if (vehicle == null) return NotFound("Vehicle not found.");
         return Ok(vehicle);
     }
 
     [HttpPost]
     public async Task<IActionResult> AddVehicle(Vehicle newVehicle)
     {
-        newVehicle.UserId = CurrentUserId;
+        newVehicle.Id = 0;
+
+        if (!string.IsNullOrEmpty(CurrentUserId))
+        {
+            newVehicle.UserId = CurrentUserId;
+        }
+        else if (string.IsNullOrEmpty(newVehicle.UserId))
+        {
+            newVehicle.UserId = "DEV_USER_GELO";
+        }
 
         _context.Vehicles.Add(newVehicle);
         await _context.SaveChangesAsync();
@@ -55,10 +58,8 @@ public class VehicleController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteVehicle(int id)
     {
-        var vehicle = await _context.Vehicles
-            .FirstOrDefaultAsync(v => v.Id == id && v.UserId == CurrentUserId);
-
-        if (vehicle == null) return NotFound("Cannot delete what you don't own.");
+        var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == id);
+        if (vehicle == null) return NotFound("Vehicle not found.");
 
         _context.Vehicles.Remove(vehicle);
         await _context.SaveChangesAsync();

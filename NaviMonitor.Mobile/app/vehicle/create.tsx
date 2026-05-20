@@ -7,6 +7,7 @@ import { VehicleRepository } from '../../lib/localRepository';
 import FormSheetWrapper from '../../components/ui/FormSheetWrapper';
 import SegmentedControl from '../../components/ui/SegmentedControl';
 import StitchInput from '../../components/ui/StitchInput';
+import { runSyncEngine } from '../../hooks/useAutoSync';
 
 export default function AddVehicleScreen() {
   const router = useRouter();
@@ -23,14 +24,47 @@ export default function AddVehicleScreen() {
   }, [editId]);
 
   const handleSave = async () => {
-    if (!form.nickname || !form.make || !form.startingOdometer || !form.licensePlate) return Alert.alert("Missing Fields", "Please complete required fields (*)");
-    const vehiclePayload = { ...form, year: parseInt(form.year), engineSizeCC: parseInt(form.engineSizeCC) || 0, startingOdometer: parseInt(form.startingOdometer) || 0 };
+    const trimmedNickname = form.nickname.trim();
+
+    if (!trimmedNickname || !form.make || !form.model || !form.startingOdometer || !form.licensePlate) {
+      return Alert.alert("Missing Fields", "Please complete all required fields (*)");
+    }
+
+    if (trimmedNickname.length < 2) {
+      return Alert.alert("Validation Error", "Nickname must be at least 2 characters long.");
+    }
+
+    const engineCC = parseInt(form.engineSizeCC) || 0;
+    if (engineCC < 1 || engineCC > 20000) {
+      return Alert.alert("Validation Error", "Engine Capacity must be between 1 and 20,000 CC.");
+    }
+
+    const vehiclePayload = { 
+      ...form, 
+      nickname: trimmedNickname,
+      year: parseInt(form.year) || new Date().getFullYear(), 
+      engineSizeCC: engineCC, 
+      startingOdometer: parseInt(form.startingOdometer) || 0,
+      userId: "DEV_USER_GELO"
+    };
 
     try {
-      if (editId) await VehicleRepository.updateVehicle({ id: Number(editId), ...vehiclePayload });
-      else await VehicleRepository.addVehicle({ ...vehiclePayload, hasSyncedManual: false, maintenanceMatrixJson: JSON.stringify(form.vehicleType === 'Motorcycle' ? BIKE_MATRIX : CAR_MATRIX) });
+      if (editId) {
+        await VehicleRepository.updateVehicle({ id: Number(editId), ...vehiclePayload });
+      } else {
+        await VehicleRepository.addVehicle({ 
+          ...vehiclePayload, 
+          hasSyncedManual: false, 
+          maintenanceMatrixJson: JSON.stringify(form.vehicleType === 'Motorcycle' ? BIKE_MATRIX : CAR_MATRIX) 
+        });
+      }
+      
+      runSyncEngine(); 
+      
       router.back();
-    } catch (e) { Alert.alert("Error", "Failed to save vehicle."); }
+    } catch (e) { 
+      Alert.alert("Error", "Failed to save vehicle."); 
+    }
   };
 
   return (

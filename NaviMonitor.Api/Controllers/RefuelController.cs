@@ -60,6 +60,8 @@ public class RefuelController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddLog(RefuelLog newLog)
     {
+        newLog.Id = 0;
+
         var highestOdometer = await _context.RefuelLogs
             .Where(log => log.VehicleId == newLog.VehicleId)
             .MaxAsync(log => (int?)log.Odometer) ?? 0;
