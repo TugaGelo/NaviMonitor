@@ -9,8 +9,8 @@ import { Vehicle } from '../../types';
 import VehicleCard from '../../components/VehicleCard';
 
 import PageHeader from '../../components/vehicle/PageHeader';
-import FleetStatsGrid from '../../components/garage/FleetStatsGrid';     // <-- Imported
-import GarageEmptyState from '../../components/garage/GarageEmptyState'; // <-- Imported
+import FleetStatsGrid from '../../components/garage/FleetStatsGrid';
+import GarageEmptyState from '../../components/garage/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 

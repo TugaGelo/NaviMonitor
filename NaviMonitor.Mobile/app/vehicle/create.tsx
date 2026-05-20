@@ -1,307 +1,80 @@
-import { View, Text, TextInput, ScrollView, Pressable, Alert, Platform, Animated, Dimensions, Keyboard } from 'react-native';
-import { useState, useRef, useEffect } from 'react';
+import { View, Pressable, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { X, Car, Motorbike, Save, Calendar } from 'lucide-react-native';
+import { Car, Motorbike, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { VehicleRepository } from '../../lib/localRepository';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-
-const StitchInput = ({ label, value, onChange, placeholder, unit, icon: Icon, keyboardType = 'default', required = false, editable = true }: any) => (
-  <View className="flex flex-col mb-5">
-    <Text className="text-[11px] font-bold text-[#111827] uppercase tracking-wider mb-1.5">
-      {label} {required && <Text className="text-[#e63946]">*</Text>}
-    </Text>
-    <View className="relative flex justify-center">
-      <TextInput
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        keyboardType={keyboardType}
-        placeholderTextColor="#9ca3af"
-        editable={editable}
-        className={`w-full bg-[#f9fafb] border border-[#e5e7eb] rounded-lg px-3 py-3 text-sm text-[#111827] font-medium ${!editable ? 'opacity-70 bg-gray-100' : ''}`}
-      />
-      {unit && <Text className="absolute right-3 text-sm text-[#9ca3af] font-medium">{unit}</Text>}
-      {Icon && (
-        <View className="absolute right-3 pointer-events-none">
-          <Icon size={18} color="#9ca3af" />
-        </View>
-      )}
-    </View>
-  </View>
-);
+import FormSheetWrapper from '../../components/ui/FormSheetWrapper';
+import SegmentedControl from '../../components/ui/SegmentedControl';
+import StitchInput from '../../components/ui/StitchInput';
 
 export default function AddVehicleScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams();
-  
-  const slideAnim = useRef(new Animated.Value(800)).current;
-  const keyboardOffset = useRef(new Animated.Value(0)).current;
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  const [form, setForm] = useState({
-    nickname: '', make: '', model: '', year: new Date().getFullYear().toString(),
-    vehicleType: 'Car', color: '', licensePlate: '', engineSizeCC: '',
-    startingOdometer: '', registrationExpiry: '',
-  });
+  const [form, setForm] = useState({ nickname: '', make: '', model: '', year: '2026', vehicleType: 'Car', color: '', licensePlate: '', engineSizeCC: '', startingOdometer: '', registrationExpiry: '' });
 
   useEffect(() => {
     if (editId) {
-      const fetchVehicle = async () => {
-        const vehicle = await VehicleRepository.getVehicleById(Number(editId));
-        if (vehicle) {
-          setForm({
-            nickname: vehicle.nickname,
-            make: vehicle.make,
-            model: vehicle.model,
-            year: vehicle.year.toString(),
-            vehicleType: vehicle.vehicleType,
-            color: vehicle.color || '',
-            licensePlate: vehicle.licensePlate,
-            engineSizeCC: vehicle.engineSizeCC?.toString() || '',
-            startingOdometer: vehicle.startingOdometer.toString(),
-            registrationExpiry: vehicle.registrationExpiry || '',
-          });
-        }
-      };
-      fetchVehicle();
+      VehicleRepository.getVehicleById(Number(editId)).then(v => {
+        if (v) setForm({ nickname: v.nickname, make: v.make, model: v.model, year: v.year.toString(), vehicleType: v.vehicleType, color: v.color || '', licensePlate: v.licensePlate, engineSizeCC: v.engineSizeCC?.toString() || '', startingOdometer: v.startingOdometer.toString(), registrationExpiry: v.registrationExpiry || '' });
+      });
     }
   }, [editId]);
 
-  useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 10,
-    }).start();
-  }, []);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        Animated.timing(keyboardOffset, {
-          toValue: -e.endCoordinates.height, 
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-    
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        Animated.timing(keyboardOffset, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-
-    return () => { 
-      showSub.remove(); 
-      hideSub.remove(); 
-    };
-  }, []);
-
-  const closeForm = () => {
-    Animated.timing(slideAnim, {
-      toValue: 1000,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => {
-      router.back();
-    });
-  };
-
   const handleSave = async () => {
-    if (!form.nickname || !form.make || !form.startingOdometer || !form.licensePlate) {
-      Alert.alert("Missing Fields", "Please fill in the required fields (*)");
-      return;
-    }
-    
-    const defaultCarMatrix = [
-      { item: "Engine Oil", interval: 10000, action: "Replace" },
-      { item: "Oil Filter", interval: 10000, action: "Replace" },
-      { item: "Air Filter", interval: 20000, action: "Replace" },
-      { item: "Brake Pads", interval: 30000, action: "Replace" },
-      { item: "Spark Plugs", interval: 40000, action: "Replace" }
-    ];
-    
-    const defaultBikeMatrix = [
-      { item: "Engine Oil", interval: 3000, action: "Replace" },
-      { item: "Oil Filter", interval: 6000, action: "Replace" },
-      { item: "Drive Chain", interval: 1000, action: "Clean/Lube" },
-      { item: "Spark Plugs", interval: 12000, action: "Replace" },
-      { item: "Brake Pads", interval: 15000, action: "Replace" }
-    ];
-    
-    const matrixToUse = form.vehicleType === 'Motorcycle' ? defaultBikeMatrix : defaultCarMatrix;
-
-    const vehiclePayload = {
-      ...form,
-      year: parseInt(form.year),
-      engineSizeCC: parseInt(form.engineSizeCC) || 0,
-      startingOdometer: parseInt(form.startingOdometer) || 0,
-    };
+    if (!form.nickname || !form.make || !form.startingOdometer || !form.licensePlate) return Alert.alert("Missing Fields", "Please complete required fields (*)");
+    const vehiclePayload = { ...form, year: parseInt(form.year), engineSizeCC: parseInt(form.engineSizeCC) || 0, startingOdometer: parseInt(form.startingOdometer) || 0 };
 
     try {
-      if (editId) {
-        await VehicleRepository.updateVehicle({
-          id: Number(editId),
-          ...vehiclePayload
-        });
-      } else {
-        await VehicleRepository.addVehicle({
-          ...vehiclePayload,
-          hasSyncedManual: false,
-          maintenanceMatrixJson: JSON.stringify(matrixToUse)
-        });
-      }
-      closeForm();
-    } catch (e) {
-      Alert.alert("Error", "Failed to save vehicle.");
-    }
+      if (editId) await VehicleRepository.updateVehicle({ id: Number(editId), ...vehiclePayload });
+      else await VehicleRepository.addVehicle({ ...vehiclePayload, hasSyncedManual: false, maintenanceMatrixJson: JSON.stringify(form.vehicleType === 'Motorcycle' ? BIKE_MATRIX : CAR_MATRIX) });
+      router.back();
+    } catch (e) { Alert.alert("Error", "Failed to save vehicle."); }
   };
 
   return (
-    <View className="flex-1 justify-end">
-      
-      <Pressable 
-        className="absolute inset-0" 
-        style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} 
-        onPress={closeForm} 
-      />
-
-      <Animated.View 
-        style={{ 
-          height: SCREEN_HEIGHT * 0.665, 
-          transform: [
-            { translateY: slideAnim }, 
-            { translateY: keyboardOffset }
-          ] 
-        }}
-      >
-        <View 
-          className="flex-1 bg-white rounded-t-[24px] overflow-hidden"
-          style={{ elevation: 24, shadowColor: '#000', shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.15, shadowRadius: 20 }}
-        >
-          
-          <View className="px-6 pt-5 pb-4 border-b border-[#f3f4f6]">
-            <View className="flex-row justify-between items-start">
-              <View>
-                <Text className="text-2xl font-bold text-[#111827] tracking-tight">
-                  {editId ? 'Edit Vehicle' : 'Add New Vehicle'}
-                </Text>
-                <Text className="text-sm text-[#6b7280] mt-1">
-                  {editId ? 'Update your vehicle details' : 'Register a new asset to your Garage'}
-                </Text>
-              </View>
-              <Pressable onPress={closeForm} className="p-1 -mr-2">
-                <X size={24} color="#9ca3af" />
-              </Pressable>
-            </View>
-
-            <View className="mt-3 flex-row bg-[#f3f4f6] p-1 rounded-lg w-full max-w-[800px]">
-              {['Car', 'Motorcycle'].map((type) => {
-                const isActive = form.vehicleType === type;
-                const IconComponent = type === 'Car' ? Car : Motorbike;
-
-                return (
-                  <Pressable
-                    key={type}
-                    onPress={() => !editId && setForm({ ...form, vehicleType: type })}
-                    className={`flex-1 flex-row items-center justify-center py-2 rounded-md ${
-                      isActive ? 'bg-black' : 'bg-transparent'
-                    }`}
-                    style={isActive ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
-                  >
-                    <IconComponent size={20} color={isActive ? '#fff' : '#6b7280'} />
-                    <Text className={`ml-2 text-sm ${isActive ? 'text-white font-semibold' : 'text-[#6b7280] font-medium'}`}>
-                      {type === 'Motorcycle' ? 'Bike' : type}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          <ScrollView 
-            className="flex-1 px-6 pt-6" 
-            showsVerticalScrollIndicator={false} 
-            keyboardShouldPersistTaps="handled"
-          >
-            
-            <StitchInput label="Nickname" required placeholder="e.g. Red Thunder" value={form.nickname} onChange={(v: string) => setForm({...form, nickname: v})} />
-
-            <View className="flex-row gap-4">
-              <View className="flex-1"><StitchInput label="Make" required placeholder="Honda" value={form.make} onChange={(v: string) => setForm({...form, make: v})} /></View>
-              <View className="flex-1"><StitchInput label="Model" required placeholder="Civic" value={form.model} onChange={(v: string) => setForm({...form, model: v})} /></View>
-            </View>
-
-            <View className="flex-row gap-4">
-              <View className="flex-1"><StitchInput label="Year" placeholder="2026" keyboardType="numeric" value={form.year} onChange={(v: string) => setForm({...form, year: v})} /></View>
-              <View className="flex-1"><StitchInput label="Color" placeholder="Black" value={form.color} onChange={(v: string) => setForm({...form, color: v})} /></View>
-            </View>
-
-            <View className="flex-row gap-4">
-               <View className="flex-1"><StitchInput label="Plate" required placeholder="ABC-1234" value={form.licensePlate} onChange={(v: string) => setForm({...form, licensePlate: v})} /></View>
-               <View className="flex-1">
-                 <StitchInput 
-                    label="Start Odo" 
-                    placeholder="0" 
-                    unit="km" 
-                    keyboardType="numeric" 
-                    value={form.startingOdometer} 
-                    onChange={(v: string) => setForm({...form, startingOdometer: v})} 
-                    editable={!editId}
-                 />
-               </View>
-            </View>
-
-            <View className="flex-row gap-4">
-                <View className="flex-1"><StitchInput label="Engine Capacity" placeholder="1500" unit="CC" keyboardType="numeric" value={form.engineSizeCC} onChange={(v: string) => setForm({...form, engineSizeCC: v})} /></View>
-                <View className="flex-1">
-                  <Pressable onPress={() => setShowDatePicker(true)}>
-                    <View pointerEvents="none">
-                      <StitchInput label="Reg. Expiry" placeholder="YYYY-MM-DD" icon={Calendar} value={form.registrationExpiry} editable={false} />
-                    </View>
-                  </Pressable>
-                </View>
-            </View>
-
-          </ScrollView>
-
-          <View className="p-5 border-t border-[#f3f4f6] bg-[#f9fafb] pb-8">
-            <Pressable 
-              onPress={handleSave}
-              className="w-full bg-[#e63946] py-3.5 rounded-lg flex-row items-center justify-center space-x-2 active:bg-[#d62828] active:scale-[0.98] transition-transform"
-              style={{ shadowColor: '#ef4444', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 }}
-            >
-              <Save size={24} color="#fff" />
-              <Text className="text-white text-base font-bold ml-1">{editId ? 'Save Changes' : 'Save Vehicle'}</Text>
-            </Pressable>
-          </View>
-
-        </View>
-      </Animated.View>
+    <FormSheetWrapper
+      title={editId ? 'Edit Vehicle' : 'Add New Vehicle'}
+      subtitle={editId ? 'Update your vehicle details' : 'Register a new asset to your Garage'}
+      snapHeight={0.65}
+      saveColor="bg-[#e63946]"
+      onClose={() => router.back()}
+      onSave={handleSave}
+      headerHeaderExtra={
+        <SegmentedControl 
+          options={[{ label: 'Car', value: 'Car', icon: Car }, { label: 'Bike', value: 'Motorcycle', icon: Motorbike }]} 
+          selectedValue={form.vehicleType} 
+          onChange={(val) => !editId && setForm({ ...form, vehicleType: val })} 
+        />
+      }
+    >
+      <StitchInput label="Nickname" required placeholder="e.g. Red Thunder" value={form.nickname} onChange={(v) => setForm({...form, nickname: v})} />
+      <View className="flex-row gap-4">
+        <View className="flex-1"><StitchInput label="Make" required placeholder="Honda" value={form.make} onChange={(v) => setForm({...form, make: v})} /></View>
+        <View className="flex-1"><StitchInput label="Model" required placeholder="Civic" value={form.model} onChange={(v) => setForm({...form, model: v})} /></View>
+      </View>
+      <View className="flex-row gap-4">
+        <View className="flex-1"><StitchInput label="Year" placeholder="2026" keyboardType="numeric" value={form.year} onChange={(v) => setForm({...form, year: v})} /></View>
+        <View className="flex-1"><StitchInput label="Color" placeholder="Black" value={form.color} onChange={(v) => setForm({...form, color: v})} /></View>
+      </View>
+      <View className="flex-row gap-4">
+         <View className="flex-1"><StitchInput label="Plate" required placeholder="ABC-1234" value={form.licensePlate} onChange={(v) => setForm({...form, licensePlate: v})} /></View>
+         <View className="flex-1"><StitchInput label="Start Odo" placeholder="0" unit="km" keyboardType="numeric" value={form.startingOdometer} onChange={(v) => setForm({...form, startingOdometer: v})} editable={!editId} /></View>
+      </View>
+      <View className="flex-row gap-4">
+          <View className="flex-1"><StitchInput label="Engine Capacity" placeholder="1500" unit="CC" keyboardType="numeric" value={form.engineSizeCC} onChange={(v) => setForm({...form, engineSizeCC: v})} /></View>
+          <Pressable className="flex-1" onPress={() => setShowDatePicker(true)}>
+            <View pointerEvents="none"><StitchInput label="Reg. Expiry" placeholder="YYYY-MM-DD" icon={Calendar} iconPosition="right" value={form.registrationExpiry} editable={false} /></View>
+          </Pressable>
+      </View>
 
       {showDatePicker && (
-        <DateTimePicker
-          value={form.registrationExpiry ? new Date(form.registrationExpiry) : new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(false);
-            if (selectedDate) {
-              setForm({ ...form, registrationExpiry: selectedDate.toISOString().split('T')[0] });
-            }
-          }}
-        />
+        <DateTimePicker value={form.registrationExpiry ? new Date(form.registrationExpiry) : new Date()} mode="date" display="default" onChange={(_, d) => { setShowDatePicker(false); if (d) setForm({ ...form, registrationExpiry: d.toISOString().split('T')[0] }); }} />
       )}
-    </View>
+    </FormSheetWrapper>
   );
 }
+
+const CAR_MATRIX = [{ item: "Engine Oil", interval: 10000, action: "Replace" }, { item: "Oil Filter", interval: 10000, action: "Replace" }, { item: "Air Filter", interval: 20000, action: "Replace" }, { item: "Brake Pads", interval: 30000, action: "Replace" }, { item: "Spark Plugs", interval: 40000, action: "Replace" }];
+const BIKE_MATRIX = [{ item: "Engine Oil", interval: 3000, action: "Replace" }, { item: "Oil Filter", interval: 6000, action: "Replace" }, { item: "Drive Chain", interval: 1000, action: "Clean/Lube" }, { item: "Spark Plugs", interval: 12000, action: "Replace" }, { item: "Brake Pads", interval: 15000, action: "Replace" }];
