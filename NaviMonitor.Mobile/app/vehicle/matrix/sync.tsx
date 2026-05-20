@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Pressable, Image, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { useState, useEffect } from 'react';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { X, Plus, Sparkles, ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,6 +66,7 @@ export default function AISyncScreen() {
 
   if (step === 1) return (
     <SafeAreaView className="flex-1 bg-[#1c1b1b] items-center justify-center p-6">
+      <Stack.Screen options={{ headerShown: false }} />
       <Sparkles size={48} color="#ffffff" className="mb-6 opacity-80" />
       <ActivityIndicator size="large" color="#ffffff" className="mb-6" />
       <Text className="font-black text-2xl text-white uppercase tracking-wider text-center">Processing Manual</Text>
@@ -75,6 +76,7 @@ export default function AISyncScreen() {
 
   if (step === 2) return (
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="bg-white border-b border-[#e5e2e1] flex-row justify-between items-center px-6 h-16 sticky top-0">
         <Pressable onPress={() => setStep(0)} className="p-2 -ml-2"><ArrowLeft size={24} color="#1c1b1b" /></Pressable>
         <Text className="text-[12px] font-bold text-[#848484] uppercase tracking-widest flex-1 text-center">Task Matrix</Text>
@@ -108,7 +110,6 @@ export default function AISyncScreen() {
 
               <View className="flex-1 mt-2">
                 <Text className="text-[12px] font-bold text-[#848484] uppercase mb-1">Action</Text>
-                {/* Replaced messy inline .map with extracted controller layout */}
                 <SegmentedControl 
                   options={[{ label: 'Replace', value: 'Replace' }, { label: 'Clean', value: 'Clean' }, { label: 'Inspect', value: 'Inspect' }]}
                   selectedValue={item.action}
@@ -135,6 +136,7 @@ export default function AISyncScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="px-8 pt-8 pb-6 flex-col">
         <Pressable onPress={() => router.back()} className="w-10 h-10 items-center justify-center bg-[#f0eded] rounded-full mb-6"><X size={20} color="#1c1b1b" /></Pressable>
         <Text className="text-[48px] font-black text-[#1c1b1b] uppercase tracking-tighter leading-none mb-2">AI SYNC</Text>
