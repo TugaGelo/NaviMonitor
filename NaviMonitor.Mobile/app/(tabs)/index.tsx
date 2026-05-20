@@ -2,7 +2,7 @@ import { View, FlatList, Pressable, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Plus, Gauge } from 'lucide-react-native';
+import { Plus, Gauge, LogOut } from 'lucide-react-native';
 
 import { VehicleRepository } from '../../lib/localRepository';
 import { Vehicle } from '../../types';
@@ -14,10 +14,13 @@ import GarageEmptyState from '../../components/garage/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
+import { useAuth } from '../../lib/AuthContext'; // 🔐 Auth context imported
+
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
 export default function GarageScreen() {
   const router = useRouter();
+  const { logout } = useAuth(); // 🔐 Extracted the logout function
 
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,12 +111,23 @@ export default function GarageScreen() {
             </View>
           }
           rightIcon={() => (
-            <Pressable 
-              onPress={() => router.push('/vehicle/create')}
+            <View className="flex-row items-center gap-3">
+              {/* 🛠️ DEV ESCAPE HATCH: Instantly clears token and redirects to login */}
+              <Pressable 
+                onPress={logout}
+                className="w-10 h-10 rounded-full border border-[#cfc4c5] bg-[#ffffff] items-center justify-center active:bg-[#f0eded]"
+              >
+                <LogOut size={18} color="#b7102a" strokeWidth={2} />
+              </Pressable>
+
+              {/* Standard Add Vehicle Button */}
+              <Pressable 
+                onPress={() => router.push('/vehicle/create')}
               className="w-10 h-10 rounded-full border border-[#e5e2e1] items-center justify-center active:bg-[#f0eded]"
-            >
-              <Plus size={20} color="#1c1b1b" strokeWidth={2} />
-            </Pressable>
+              >
+                <Plus size={20} color="#1c1b1b" strokeWidth={2.5} />
+              </Pressable>
+            </View>
           )} 
         />
       </View>
