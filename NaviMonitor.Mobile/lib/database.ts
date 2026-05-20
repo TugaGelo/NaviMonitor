@@ -18,6 +18,7 @@ export async function initDatabase() {
 
     CREATE TABLE IF NOT EXISTS Vehicles (
       id INTEGER PRIMARY KEY,
+      serverId INTEGER,
       userId TEXT NOT NULL,
       vehicleType TEXT NOT NULL,
       nickname TEXT NOT NULL,
@@ -31,11 +32,13 @@ export async function initDatabase() {
       registrationExpiry TEXT,
       hasSyncedManual INTEGER DEFAULT 0,
       maintenanceMatrixJson TEXT,
-      is_synced INTEGER DEFAULT 0
+      is_synced INTEGER DEFAULT 0,
+      updatedAt TEXT
     );
 
     CREATE TABLE IF NOT EXISTS RefuelLogs (
       id INTEGER PRIMARY KEY,
+      serverId INTEGER,
       vehicleId INTEGER NOT NULL,
       date TEXT NOT NULL,
       odometer INTEGER NOT NULL,
@@ -43,11 +46,13 @@ export async function initDatabase() {
       totalCost REAL NOT NULL,
       fuelType TEXT,
       is_synced INTEGER DEFAULT 0,
+      updatedAt TEXT,
       FOREIGN KEY (vehicleId) REFERENCES Vehicles(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS MaintenanceLogs (
       id INTEGER PRIMARY KEY,
+      serverId INTEGER,
       vehicleId INTEGER NOT NULL,
       logType TEXT NOT NULL,
       serviceCategory TEXT,
@@ -64,6 +69,7 @@ export async function initDatabase() {
       nextServiceDate TEXT,
       tirePosition TEXT,
       is_synced INTEGER DEFAULT 0,
+      updatedAt TEXT,
       FOREIGN KEY (vehicleId) REFERENCES Vehicles(id) ON DELETE CASCADE
     );
   `);
