@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NaviMonitor.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreateWithSync : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,7 +46,8 @@ namespace NaviMonitor.Api.Migrations
                     RegistrationExpiry = table.Column<DateTime>(type: "TEXT", nullable: true),
                     InsuranceExpiry = table.Column<DateTime>(type: "TEXT", nullable: true),
                     HasSyncedManual = table.Column<bool>(type: "INTEGER", nullable: false),
-                    MaintenanceMatrixJson = table.Column<string>(type: "TEXT", nullable: true)
+                    MaintenanceMatrixJson = table.Column<string>(type: "TEXT", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,7 +60,6 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
                     LogType = table.Column<string>(type: "TEXT", nullable: false),
                     ServiceCategory = table.Column<string>(type: "TEXT", nullable: true),
@@ -74,7 +74,8 @@ namespace NaviMonitor.Api.Migrations
                     Notes = table.Column<string>(type: "TEXT", nullable: true),
                     NextServiceOdometer = table.Column<int>(type: "INTEGER", nullable: true),
                     NextServiceDate = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    TirePosition = table.Column<string>(type: "TEXT", nullable: true)
+                    TirePosition = table.Column<string>(type: "TEXT", nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,13 +94,13 @@ namespace NaviMonitor.Api.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    UserId = table.Column<string>(type: "TEXT", nullable: false),
                     VehicleId = table.Column<int>(type: "INTEGER", nullable: false),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Odometer = table.Column<int>(type: "INTEGER", nullable: false),
                     Volume = table.Column<double>(type: "REAL", nullable: false),
                     TotalCost = table.Column<double>(type: "REAL", nullable: false),
-                    FuelType = table.Column<string>(type: "TEXT", nullable: true)
+                    FuelType = table.Column<string>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

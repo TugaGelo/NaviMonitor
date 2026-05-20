@@ -7,6 +7,8 @@ export interface MaintenanceMatrixItem {
 
 export interface Vehicle {
   id: number;
+  serverId?: number;
+  userId: string;
   vehicleType: string;
   nickname: string;
   make: string;
@@ -20,10 +22,12 @@ export interface Vehicle {
   hasSyncedManual?: boolean;
   maintenanceMatrixJson?: string;
   is_synced?: number;
+  updatedAt?: string;
 }
 
 export interface RefuelLog {
   id?: number;
+  serverId?: number;
   vehicleId: number;
   date: string;
   odometer: number;
@@ -31,10 +35,12 @@ export interface RefuelLog {
   totalCost: number;
   fuelType?: string;
   is_synced?: number;
+  updatedAt?: string;
 }
 
 export interface MaintenanceLog {
   id?: number;
+  serverId?: number;
   vehicleId: number;
   logType: 'Maintenance' | 'Modification';
   serviceCategory?: string;
@@ -51,4 +57,5 @@ export interface MaintenanceLog {
   nextServiceDate?: string;
   tirePosition?: string;
   is_synced?: number;
+  updatedAt?: string;
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace NaviMonitor.Api.Models;
 
@@ -7,24 +8,24 @@ public class RefuelLog
     public int Id { get; set; }
 
     [Required]
-    public string UserId { get; set; } = string.Empty;
-
-    [Required]
     public int VehicleId { get; set; }
 
-    [Required(ErrorMessage = "A date is required for this log.")]
+    [Required]
     public DateTime Date { get; set; }
 
-    [Range(0, 1000000, ErrorMessage = "Odometer reading must be a positive number.")]
+    [Required]
     public int Odometer { get; set; }
 
-    [Range(0.1, 500, ErrorMessage = "Volume must be between 0.1 and 500 liters.")]
+    [Required]
     public double Volume { get; set; }
 
-    [Range(0.01, 10000, ErrorMessage = "Total cost must be greater than zero.")]
+    [Required]
     public double TotalCost { get; set; }
 
-    public string? FuelType { get; set; }
+    public string FuelType { get; set; } = "Unleaded";
 
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
     public Vehicle? Vehicle { get; set; }
 }

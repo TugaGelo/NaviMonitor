@@ -10,6 +10,7 @@ export const VehicleRepository = {
   async addVehicle(vehicle: Omit<Vehicle, 'id'>) {
     const db = await getDb(); 
     const offlineId = generateOfflineId();
+    const now = new Date().toISOString();
 
     const safeYear = Number(vehicle.year) || new Date().getFullYear();
     const safeEngineSize = Number(vehicle.engineSizeCC) || 0;
@@ -20,14 +21,15 @@ export const VehicleRepository = {
       `INSERT INTO Vehicles (
         id, userId, vehicleType, nickname, make, model, year, 
         color, engineSizeCC, startingOdometer, licensePlate, 
-        registrationExpiry, hasSyncedManual, maintenanceMatrixJson, is_synced
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        registrationExpiry, hasSyncedManual, maintenanceMatrixJson, is_synced, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
         offlineId, DEV_USER_ID, vehicle.vehicleType || 'Car', vehicle.nickname || '',
         vehicle.make || '', vehicle.model || '', safeYear, vehicle.color || '',
         safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry, 
         vehicle.hasSyncedManual ? 1 : 0,
-        vehicle.maintenanceMatrixJson || null
+        vehicle.maintenanceMatrixJson || null,
+        now
       ]
     );
 
@@ -59,6 +61,7 @@ export const VehicleRepository = {
 
   async updateVehicle(vehicle: Vehicle) {
     const db = await getDb();
+    const now = new Date().toISOString();
     
     const safeYear = Number(vehicle.year) || new Date().getFullYear();
     const safeEngineSize = Number(vehicle.engineSizeCC) || 0;
@@ -69,7 +72,7 @@ export const VehicleRepository = {
       `UPDATE Vehicles SET 
         vehicleType = ?, nickname = ?, make = ?, model = ?, year = ?, 
         color = ?, engineSizeCC = ?, startingOdometer = ?, licensePlate = ?, 
-        registrationExpiry = ?, maintenanceMatrixJson = ?, is_synced = 0
+        registrationExpiry = ?, maintenanceMatrixJson = ?, is_synced = 0, updatedAt = ?
        WHERE id = ?`,
       [
         vehicle.vehicleType || 'Car', 
@@ -83,6 +86,7 @@ export const VehicleRepository = {
         vehicle.licensePlate || '', 
         safeExpiry, 
         vehicle.maintenanceMatrixJson || null,
+        now,
         vehicle.id!
       ]
     );
@@ -157,11 +161,12 @@ export const VehicleRepository = {
   async addRefuelLog(log: Omit<RefuelLog, 'id' | 'is_synced'>) {
     const db = await getDb();
     const offlineId = generateOfflineId();
+    const now = new Date().toISOString();
 
     await db.runAsync(
       `INSERT INTO RefuelLogs (
-        id, vehicleId, date, odometer, volume, totalCost, fuelType, is_synced
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+        id, vehicleId, date, odometer, volume, totalCost, fuelType, is_synced, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
         offlineId, 
         log.vehicleId!,
@@ -169,7 +174,8 @@ export const VehicleRepository = {
         log.odometer, 
         log.volume, 
         log.totalCost, 
-        log.fuelType || 'Unleaded'
+        log.fuelType || 'Unleaded',
+        now
       ]
     );
 
@@ -183,9 +189,11 @@ export const VehicleRepository = {
 
   async updateFuelLog(log: RefuelLog) {
     const db = await getDb();
+    const now = new Date().toISOString();
+
     await db.runAsync(
       `UPDATE RefuelLogs SET 
-        date = ?, odometer = ?, volume = ?, totalCost = ?, fuelType = ?, is_synced = 0 
+        date = ?, odometer = ?, volume = ?, totalCost = ?, fuelType = ?, is_synced = 0, updatedAt = ? 
        WHERE id = ?`,
       [
         log.date, 
@@ -193,7 +201,8 @@ export const VehicleRepository = {
         log.volume, 
         log.totalCost, 
         log.fuelType || 'Unleaded', 
-        log.id! // <-- Added '!'
+        now,
+        log.id!
       ]
     );
   },
@@ -206,14 +215,15 @@ export const VehicleRepository = {
   async addMaintenanceLog(log: Omit<MaintenanceLog, 'id' | 'is_synced'>) {
     const db = await getDb();
     const offlineId = generateOfflineId();
+    const now = new Date().toISOString();
 
     await db.runAsync(
       `INSERT INTO MaintenanceLogs (
         id, vehicleId, logType, serviceCategory, date, odometer, 
         serviceType, price, isDIY, shopName, mechanicName, 
         contactNumber, notes, nextServiceOdometer, nextServiceDate, 
-        tirePosition, is_synced
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        tirePosition, is_synced, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
         offlineId, 
         log.vehicleId!,
@@ -230,7 +240,8 @@ export const VehicleRepository = {
         log.notes || null, 
         log.nextServiceOdometer || null, 
         log.nextServiceDate || null,
-        log.tirePosition || null
+        log.tirePosition || null,
+        now
       ]
     );
 
@@ -244,12 +255,14 @@ export const VehicleRepository = {
 
   async updateMaintenanceLog(log: MaintenanceLog) {
     const db = await getDb();
+    const now = new Date().toISOString();
+
     await db.runAsync(
       `UPDATE MaintenanceLogs SET 
         logType = ?, serviceCategory = ?, date = ?, odometer = ?, 
         serviceType = ?, price = ?, isDIY = ?, shopName = ?, mechanicName = ?, 
         contactNumber = ?, notes = ?, nextServiceOdometer = ?, nextServiceDate = ?, 
-        tirePosition = ?, is_synced = 0 
+        tirePosition = ?, is_synced = 0, updatedAt = ? 
        WHERE id = ?`,
       [
         log.logType, 
@@ -266,7 +279,8 @@ export const VehicleRepository = {
         log.nextServiceOdometer || null, 
         log.nextServiceDate || null, 
         log.tirePosition || null, 
-        log.id! // <-- Added '!'
+        now,
+        log.id!
       ]
     );
   },

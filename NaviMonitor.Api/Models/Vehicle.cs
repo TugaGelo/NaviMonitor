@@ -41,6 +41,8 @@ public class Vehicle
     public bool HasSyncedManual { get; set; } = false;
     public string? MaintenanceMatrixJson { get; set; }
 
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
     [JsonIgnore]
     public List<RefuelLog> RefuelLogs { get; set; } = new();
 

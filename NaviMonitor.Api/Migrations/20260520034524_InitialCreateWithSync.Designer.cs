@@ -11,8 +11,8 @@ using NaviMonitor.Api.Models;
 namespace NaviMonitor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260430033956_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260520034524_InitialCreateWithSync")]
+    partial class InitialCreateWithSync
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,8 +70,7 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<string>("TirePosition")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("VehicleId")
@@ -94,6 +93,7 @@ namespace NaviMonitor.Api.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FuelType")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Odometer")
@@ -102,8 +102,7 @@ namespace NaviMonitor.Api.Migrations
                     b.Property<double>("TotalCost")
                         .HasColumnType("REAL");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("VehicleId")
@@ -193,6 +192,9 @@ namespace NaviMonitor.Api.Migrations
 
                     b.Property<int>("StartingOdometer")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserId")
                         .IsRequired()

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace NaviMonitor.Api.Models;
 
@@ -7,29 +8,27 @@ public class MaintenanceLog
     public int Id { get; set; }
 
     [Required]
-    public string UserId { get; set; } = string.Empty;
-
-    [Required]
     public int VehicleId { get; set; }
 
-    [Required(ErrorMessage = "Please specify if this is a Maintenance or Modification.")]
+    [Required]
     public string LogType { get; set; } = "Maintenance";
 
     public string? ServiceCategory { get; set; }
 
-    [Required(ErrorMessage = "A date is required for this service.")]
+    [Required]
     public DateTime Date { get; set; }
 
-    [Range(0, 1000000, ErrorMessage = "Odometer reading must be a positive number.")]
+    [Required]
     public int Odometer { get; set; }
 
-    [Required(ErrorMessage = "Please specify the service type (e.g., Change Oil).")]
+    [Required]
     public string ServiceType { get; set; } = string.Empty;
 
-    [Range(0, 1000000)]
+    [Required]
     public double Price { get; set; }
 
-    public bool IsDIY { get; set; }
+    public bool IsDIY { get; set; } = false;
+
     public string? ShopName { get; set; }
     public string? MechanicName { get; set; }
     public string? ContactNumber { get; set; }
@@ -39,5 +38,8 @@ public class MaintenanceLog
     public DateTime? NextServiceDate { get; set; }
     public string? TirePosition { get; set; }
 
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
     public Vehicle? Vehicle { get; set; }
 }
