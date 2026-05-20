@@ -6,6 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { VehicleRepository } from '../../../lib/localRepository';
 import FormSheetWrapper from '../../../components/ui/FormSheetWrapper';
 import StitchInput from '../../../components/ui/StitchInput';
+import { runSyncEngine } from '../../../hooks/useAutoSync';
 
 export default function QuickRefuelLogScreen() {
   const router = useRouter();
@@ -34,15 +35,26 @@ export default function QuickRefuelLogScreen() {
 
   const handleSave = async () => {
     if (!form.odometer || !form.volume || !form.totalCost) return Alert.alert("Missing Fields", "Please fill in all fields.");
-    const newOdo = parseInt(form.odometer);
-    if (!editId && newOdo < currentOdo) return Alert.alert("Invalid Odometer", `Cannot enter lower than ${currentOdo} km.`);
+    
+    const newOdo = parseInt(form.odometer) || 0;
+    const volume = parseFloat(form.volume) || 0;
+    const cost = parseFloat(form.totalCost) || 0;
 
-    const payload = { vehicleId: Number(vehicleId), date: form.date, odometer: newOdo, volume: parseFloat(form.volume), totalCost: parseFloat(form.totalCost), fuelType: form.fuelType };
+    if (!editId && newOdo <= currentOdo) return Alert.alert("Invalid Odometer", `Must be strictly higher than ${currentOdo} km.`);
+    if (volume <= 0) return Alert.alert("Invalid Volume", "Fuel volume must be greater than zero.");
+
+    const payload = { vehicleId: Number(vehicleId), date: form.date, odometer: newOdo, volume: volume, totalCost: cost, fuelType: form.fuelType };
+    
     try {
       if (editId) await VehicleRepository.updateFuelLog({ id: Number(editId), ...payload });
       else await VehicleRepository.addRefuelLog(payload);
+      
+      runSyncEngine();
+      
       router.back();
-    } catch (e) { Alert.alert("Error", "Failed to save refuel log."); }
+    } catch (e) { 
+      Alert.alert("Error", "Failed to save refuel log."); 
+    }
   };
 
   return (

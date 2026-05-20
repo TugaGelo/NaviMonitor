@@ -7,6 +7,7 @@ import { VehicleRepository } from '../../../lib/localRepository';
 import FormSheetWrapper from '../../../components/ui/FormSheetWrapper';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
 import StitchInput from '../../../components/ui/StitchInput';
+import { runSyncEngine } from '../../../hooks/useAutoSync';
 
 export default function AddServiceLogScreen() {
   const router = useRouter();
@@ -40,15 +41,24 @@ export default function AddServiceLogScreen() {
 
   const handleSave = async () => {
     if (!form.serviceType || !form.odometer || !form.price) return Alert.alert("Missing Fields", "Please complete all required fields.");
-    const newOdo = parseInt(form.odometer);
-    if (!editId && newOdo < currentOdo) return Alert.alert("Invalid Odometer", `Cannot enter lower than ${currentOdo} km.`);
+    
+    const newOdo = parseInt(form.odometer) || 0;
+    const price = parseFloat(form.price) || 0;
 
-    const payload = { vehicleId: Number(vehicleId), logType: form.logType, serviceCategory: form.serviceCategory, serviceType: form.serviceType, date: form.date, odometer: newOdo, price: parseFloat(form.price), isDIY: form.isDIY, shopName: form.shopName, mechanicName: form.mechanicName, contactNumber: form.contactNumber, notes: form.notes };
+    if (!editId && newOdo <= currentOdo) return Alert.alert("Invalid Odometer", `Must be strictly higher than ${currentOdo} km.`);
+
+    const payload = { vehicleId: Number(vehicleId), logType: form.logType, serviceCategory: form.serviceCategory, serviceType: form.serviceType, date: form.date, odometer: newOdo, price: price, isDIY: form.isDIY, shopName: form.shopName, mechanicName: form.mechanicName, contactNumber: form.contactNumber, notes: form.notes };
+    
     try {
       if (editId) await VehicleRepository.updateMaintenanceLog({ id: Number(editId), ...payload });
       else await VehicleRepository.addMaintenanceLog(payload);
+      
+      runSyncEngine();
+      
       router.back();
-    } catch (e) { Alert.alert("Error", "Failed to save record."); }
+    } catch (e) { 
+      Alert.alert("Error", "Failed to save record."); 
+    }
   };
 
   const getHeaderDetails = () => {
