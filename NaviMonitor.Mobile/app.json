@@ -17,12 +17,13 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.gelo.navimonitor"
     },
-    "android": {
+  "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.gelo.navimonitor",
+      "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -35,7 +36,8 @@
       "expo-router",
       "expo-secure-store",
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

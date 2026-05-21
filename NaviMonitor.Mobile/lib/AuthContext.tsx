@@ -1,40 +1,43 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
-
-const TOKEN_KEY = 'firebase_jwt_token';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { auth } from './firebase';
 
 interface AuthContextType {
+  user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (newToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    SecureStore.getItemAsync(TOKEN_KEY).then(savedToken => {
-      if (savedToken) setToken(savedToken);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const jwt = await firebaseUser.getIdToken();
+        setUser(firebaseUser);
+        setToken(jwt);
+      } else {
+        setUser(null);
+        setToken(null);
+      }
       setIsLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = async (newToken: string) => {
-    await SecureStore.setItemAsync(TOKEN_KEY, newToken);
-    setToken(newToken);
-  };
-
   const logout = async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    setToken(null);
+    await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, logout }}>
       {children}
     </AuthContext.Provider>
   );
