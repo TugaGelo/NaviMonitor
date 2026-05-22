@@ -15,9 +15,9 @@ import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 // Vehicle Tabs
-import DashboardTab from '../../components/vehicle/DashboardTab';
-import LogsTab from '../../components/vehicle/LogsTab';
-import MatrixTab from '../../components/vehicle/MatrixTab';
+import DashboardTab from '../../components/features/vehicle/DashboardTab';
+import LogsTab from '../../components/features/vehicle/LogsTab';
+import MatrixTab from '../../components/features/vehicle/MatrixTab';
 
 export default function MasterVehicleScreen() {
   const { id } = useLocalSearchParams();

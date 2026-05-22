@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Banknote, Gauge } from 'lucide-react-native';
-import StatCard from '../vehicle/StatCard';
-import { SettingsRepository } from '../../lib/database/localRepository';
+import StatCard from '../../ui/StatCard';
+import { SettingsRepository } from '../../../lib/database/localRepository';
 
 interface FleetStatsGridProps {
   totalSpend: number;

@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import { memo, useState, useEffect } from 'react';
 import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
-import StatCard from './StatCard';
-import PageHeader from './PageHeader';
-import { SettingsRepository } from '../../lib/database/localRepository';
+import StatCard from '../../ui/StatCard';
+import PageHeader from '../../ui/PageHeader';
+import { SettingsRepository } from '../../../lib/database/localRepository';
 
 export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoToMatrix }: any) => {
   const router = useRouter();

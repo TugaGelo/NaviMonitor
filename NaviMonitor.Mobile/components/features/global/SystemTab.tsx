@@ -1,7 +1,7 @@
 import { View, Text, Pressable, TextInput, ScrollView, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Trash2, ChevronDown, ChevronUp } from 'lucide-react-native';
-import { SettingsRepository } from '../../lib/database/localRepository';
+import { SettingsRepository } from '../../../lib/database/localRepository';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);

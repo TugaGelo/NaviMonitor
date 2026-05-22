@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
 import { useState, useEffect } from 'react';
 import { Fuel, Wrench, Rocket, Hammer, CalendarCheck } from 'lucide-react-native';
-import { SettingsRepository } from '../../lib/database/localRepository';
+import { SettingsRepository } from '../../../lib/database/localRepository';
 
 interface TimelineItemProps {
   item: any;

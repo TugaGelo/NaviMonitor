@@ -8,12 +8,12 @@ import { Plus } from 'lucide-react-native';
 // Components
 import TrinityNav from '../../components/ui/TrinityNav';
 import VehicleCard from '../../components/shared/VehicleCard';
-import GarageEmptyState from '../../components/global/GarageEmptyState';
+import GarageEmptyState from '../../components/features/global/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import PageHeader from '../../components/vehicle/PageHeader';
-import StatsTab from '../../components/global/StatsTab';
-import SystemTab from '../../components/global/SystemTab';
+import PageHeader from '../../components/ui/PageHeader';
+import StatsTab from '../../components/features/global/StatsTab';
+import SystemTab from '../../components/features/global/SystemTab';
 
 // Data
 import { VehicleRepository } from '../../lib/database/localRepository';

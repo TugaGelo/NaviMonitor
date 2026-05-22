@@ -2,8 +2,8 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useState, useEffect, useMemo, memo } from 'react';
 import { Shield, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import PageHeader from './PageHeader';
-import { SettingsRepository } from '../../lib/database/localRepository';
+import PageHeader from '../../ui/PageHeader';
+import { SettingsRepository } from '../../../lib/database/localRepository';
 
 export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
   const router = useRouter();
