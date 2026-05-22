@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { memo, useState, useEffect, useMemo } from 'react';
-import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
+import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Motorbike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
 import StatCard from '../../ui/StatCard';
 import PageHeader from '../../ui/PageHeader';
@@ -85,7 +85,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
               </View>
             </View>
           }
-          rightIcon={vehicle.vehicleType === 'Car' ? Car : Bike}
+          rightIcon={vehicle.vehicleType === 'Car' ? Car : Motorbike}
         />
       </View>
 

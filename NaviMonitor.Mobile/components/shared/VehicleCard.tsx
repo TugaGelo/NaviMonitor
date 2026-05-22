@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Car, ArrowRight } from 'lucide-react-native';
+import { Car, Motorbike , ArrowRight } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
 import { Vehicle } from '../../types';
 import { SettingsRepository } from '../../lib/database/localRepository';
@@ -23,6 +23,8 @@ export default function VehicleCard({ vehicle, onRefresh, onLongPress }: Vehicle
     });
   }, []);
 
+  const VehicleIcon = vehicle.vehicleType === 'Motorcycle' || vehicle.vehicleType === 'Bike' ? Motorbike  : Car;
+
   return (
     <Pressable
       onPress={() => router.push(`/vehicle/${vehicle.id}`)}
@@ -36,15 +38,19 @@ export default function VehicleCard({ vehicle, onRefresh, onLongPress }: Vehicle
         elevation: 3,
       }}
     >
+      {/* Absolute Positioned Status Pill */}
       <View className="absolute top-4 right-4 flex-row items-center bg-[#f0eded] px-3 py-1 rounded-full border border-[#e5e2e1] z-10">
         <View className="w-1.5 h-1.5 rounded-full bg-[#000000] mr-1.5" />
-        <Text className="font-bold text-[9px] text-[#000000] uppercase tracking-widest">Nominal</Text>
+        <Text className="font-bold text-[9px] text-[#000000] uppercase tracking-widest">
+          Nominal
+        </Text>
       </View>
 
       <View className="flex-col">
         <View className="flex-row items-center mb-4 pr-24"> 
+          {/* 👇 Icon Container dynamically uses our VehicleIcon variable now */}
           <View className="w-12 h-12 bg-[#f0eded] rounded-lg items-center justify-center mr-3">
-            <Car size={24} color="#000000" strokeWidth={1.5} />
+            <VehicleIcon size={24} color="#000000" strokeWidth={1.5} />
           </View>
           
           <View className="flex-1 justify-center">
