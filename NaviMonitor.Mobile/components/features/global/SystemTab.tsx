@@ -76,7 +76,11 @@ export default function SystemTab({ onLogout }: SystemTabProps) {
   ];
 
   return (
-    <ScrollView className="flex-1 px-6 pt-2 pb-32" showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      className="flex-1 px-6 pt-2" 
+      contentContainerStyle={{ paddingBottom: 80 }} 
+      showsVerticalScrollIndicator={false}
+    >
       
       <View className="mb-6">
         <Text className="font-bold text-[10px] text-[#848484] uppercase tracking-widest mb-2">Global Metrics</Text>

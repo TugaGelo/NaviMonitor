@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useCallback, useRef } from 'react';
 import { useFocusEffect, useRouter, Tabs } from 'expo-router';
 import PagerView from 'react-native-pager-view';
-import { Plus } from 'lucide-react-native';
+import { Plus, Warehouse, BarChart2, Settings } from 'lucide-react-native';
 
 // Components
 import TrinityNav from '../../components/ui/TrinityNav';
@@ -130,6 +130,7 @@ export default function GlobalMasterScreen() {
             <PageHeader 
               title="GARAGE" 
               subtitle={`${vehicles.length} ASSETS REGISTERED`} 
+              rightIcon={Warehouse}
             />
           </View>
 
@@ -160,6 +161,7 @@ export default function GlobalMasterScreen() {
             <PageHeader 
               title="STATS" 
               subtitle="REAL-TIME TELEMETRY" 
+              rightIcon={BarChart2}
             />
           </View>
           
@@ -173,6 +175,7 @@ export default function GlobalMasterScreen() {
             <PageHeader 
               title="SYSTEM" 
               subtitle="OPERATIONS & SUPPORT" 
+              rightIcon={Settings}
             />
           </View>
           

@@ -71,13 +71,13 @@ export default function StatsTab({ vehicles, timeline }: StatsTabProps) {
         <StatCard label="Efficiency" value={avgEfficiency} unit={effUnit} icon={Gauge} />
       </View>
 
-      <View className="bg-[#ffffff] border border-[#e5e2e1] rounded-2xl p-5 shadow-sm h-40 mb-4 justify-between">
+      <View className="bg-[#ffffff] border border-[#e5e2e1] rounded-2xl p-5 shadow-sm h-50 mb-4 justify-between">
         <View className="flex-row items-center gap-2">
           <PieChart size={16} color="#848484" />
           <Text className="font-bold text-[10px] text-[#1c1b1b] uppercase tracking-widest">Spend Ratio (Fuel vs Service)</Text>
         </View>
 
-        <View className="flex-row items-center justify-between px-2">
+        <View className="flex-row items-center justify-between px-2 pb-4 pt-8">
           <View className="relative items-center justify-center w-[80px] h-[80px]">
             <Svg width="100" height="100" viewBox="0 0 100 100" className="-rotate-90">
               <Circle cx="50" cy="50" r={radius} stroke="#1c1b1b" strokeWidth={strokeWidth} fill="transparent" />
