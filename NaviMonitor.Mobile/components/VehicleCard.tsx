@@ -1,65 +1,82 @@
 import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Car, Bike } from 'lucide-react-native';
+import { Car, ArrowRight } from 'lucide-react-native';
 import { Vehicle } from '../types';
 
+type VehicleWithStats = Vehicle & { currentOdo: number };
+
 interface VehicleCardProps {
-  vehicle: Vehicle & { currentOdo?: number };
-  onRefresh?: () => void;
-  onLongPress?: () => void;
+  vehicle: VehicleWithStats;
+  onRefresh: () => void;
+  onLongPress: () => void;
 }
 
 export default function VehicleCard({ vehicle, onRefresh, onLongPress }: VehicleCardProps) {
   const router = useRouter();
-  
-  const displayOdo = vehicle.currentOdo || vehicle.startingOdometer;
-  const isCar = vehicle.vehicleType === 'Car';
-
-  // Placeholder percentage until we build the Maintenance Matrix calculation!
-  const healthPercentage = 85; 
 
   return (
-    <Pressable 
-      className="flex-col rounded-2xl overflow-hidden border border-[#e5e2e1] bg-white shadow-sm shadow-black/5 mb-5 active:scale-[0.98] transition-transform"
+    <Pressable
       onPress={() => router.push(`/vehicle/${vehicle.id}`)}
       onLongPress={onLongPress}
-      delayLongPress={300}
+      className="bg-[#ffffff] border border-[#e5e2e1] rounded-xl p-4 mb-4 active:bg-[#fcf9f8] relative"
+      style={{
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 3,
+      }}
     >
-      {/* Top Black Header Section */}
-      <View className="bg-[#1c1b1b] p-6 relative overflow-hidden">
-        {/* Massive Watermark Icon */}
-        <View className="absolute -right-8 -bottom-10 opacity-10">
-          {isCar ? (
-            <Car size={160} color="#ffffff" strokeWidth={1} />
-          ) : (
-            <Bike size={160} color="#ffffff" strokeWidth={1} />
-          )}
-        </View>
-        
-        {/* Nickname */}
-        <Text className="text-[32px] font-black text-white uppercase tracking-tight z-10" numberOfLines={1}>
-          {vehicle.nickname}
+      {/* Absolute Positioned Status Pill */}
+      <View className="absolute top-4 right-4 flex-row items-center bg-[#f0eded] px-3 py-1 rounded-full border border-[#e5e2e1] z-10">
+        <View className="w-1.5 h-1.5 rounded-full bg-[#000000] mr-1.5" />
+        <Text className="font-bold text-[9px] text-[#000000] uppercase tracking-widest">
+          Nominal
         </Text>
       </View>
 
-      {/* Bottom Telemetry Section */}
-      <View className="p-5 flex-col">
-        <Text className="text-[12px] text-[#848484] uppercase tracking-wide font-bold mb-4">
-          {vehicle.year} {vehicle.make} {vehicle.model} • {displayOdo.toLocaleString()} km
-        </Text>
-        
-        {/* Service Health Progress Bar */}
-        <View className="flex-col gap-1.5 mt-1">
-          <View className="flex-row justify-between items-center">
-            <Text className="text-[10px] font-bold uppercase tracking-widest text-[#848484]">Service Health</Text>
-            <Text className="text-[11px] font-black text-[#1c1b1b]">{healthPercentage}%</Text>
+      <View className="flex-col">
+        <View className="flex-row items-center mb-4 pr-24"> 
+          <View className="w-12 h-12 bg-[#f0eded] rounded-lg items-center justify-center mr-3">
+            <Car size={24} color="#000000" strokeWidth={1.5} />
           </View>
-          <View className="h-2 w-full bg-[#f0eded] rounded-full overflow-hidden">
-            <View 
-              className="h-full bg-[#b7102a] rounded-full" 
-              style={{ width: `${healthPercentage}%` }} 
-            />
+          
+          <View className="flex-1 justify-center">
+            <Text className="font-extrabold text-xl text-[#000000] uppercase tracking-tighter" numberOfLines={1}>
+              {vehicle.nickname || vehicle.make}
+            </Text>
+            <Text className="font-bold text-[10px] text-[#848484] uppercase tracking-widest mt-0.5" numberOfLines={1}>
+              {vehicle.year ? `${vehicle.year} ` : ''}{vehicle.make} {vehicle.model}
+            </Text>
           </View>
+        </View>
+
+        <View className="flex-row border-t border-[#e5e2e1] pt-3 mb-3">
+          <View className="flex-1 border-r border-[#e5e2e1] pr-2">
+            <Text className="font-bold text-[9px] text-[#848484] uppercase tracking-widest mb-1">Plate Reg</Text>
+            <Text className="font-mono text-sm text-[#000000] font-bold tracking-widest" numberOfLines={1}>
+              {vehicle.licensePlate || 'N/A'}
+            </Text>
+          </View>
+          <View className="flex-1 pl-4">
+            <Text className="font-bold text-[9px] text-[#848484] uppercase tracking-widest mb-1">Reg Expiry</Text>
+            <Text className="font-mono text-sm text-[#000000] font-bold tracking-widest" numberOfLines={1}>
+              {vehicle.registrationExpiry || 'NOT SET'}
+            </Text>
+          </View>
+        </View>
+
+        <View className="border-t border-[#e5e2e1] pt-3 flex-row justify-between items-end">
+          <View>
+            <Text className="font-bold text-[9px] text-[#848484] uppercase tracking-widest mb-1">Current Odometer</Text>
+            <View className="flex-row items-baseline">
+              <Text className="font-extrabold text-2xl text-[#000000] tracking-tighter">
+                {vehicle.currentOdo.toLocaleString()}
+              </Text>
+              <Text className="font-bold text-xs text-[#848484] ml-1">KM</Text>
+            </View>
+          </View>
+          <ArrowRight size={18} color="#848484" />
         </View>
       </View>
     </Pressable>

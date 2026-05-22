@@ -1,31 +1,38 @@
-import { View, FlatList, Pressable, Text, Alert } from 'react-native';
+import { View, Text, Pressable, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useCallback } from 'react';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { Plus, Gauge, LogOut } from 'lucide-react-native';
+import { useState, useCallback, useRef } from 'react';
+import { useFocusEffect, useRouter, Tabs } from 'expo-router';
+import PagerView from 'react-native-pager-view';
+import { Plus } from 'lucide-react-native';
 
-import { VehicleRepository } from '../../lib/localRepository';
-import { Vehicle } from '../../types';
+// Components
+import TrinityNav from '../../components/ui/TrinityNav';
 import VehicleCard from '../../components/VehicleCard';
-
-import PageHeader from '../../components/vehicle/PageHeader';
-import FleetStatsGrid from '../../components/garage/FleetStatsGrid';
 import GarageEmptyState from '../../components/garage/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import PageHeader from '../../components/vehicle/PageHeader';
 
-import { useAuth } from '../../lib/AuthContext'; // 🔐 Auth context imported
+// Data
+import { VehicleRepository } from '../../lib/localRepository';
+import { Vehicle } from '../../types';
+import { useAuth } from '../../lib/AuthContext';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
-export default function GarageScreen() {
+export default function GlobalMasterScreen() {
   const router = useRouter();
-  const { logout } = useAuth(); // 🔐 Extracted the logout function
+  const { logout } = useAuth();
 
+  // Navigation State
+  const pagerRef = useRef<PagerView>(null);
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Data State
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [fleetStats, setFleetStats] = useState({ totalSpend: 0, totalKm: 0 });
-
+  
+  // Modal State
   const [isSheetVisible, setIsSheetVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleWithStats | null>(null);
@@ -34,21 +41,13 @@ export default function GarageScreen() {
     setIsLoading(true);
     const data = await VehicleRepository.getVehicles();
     
-    let combinedSpend = 0;
-    let combinedKm = 0;
-    
     const enrichedVehicles = await Promise.all(data.map(async (v) => {
       const stats = await VehicleRepository.getVehicleStats(v.id!);
       const currentOdo = stats?.currentOdo || v.startingOdometer;
-      
-      combinedSpend += stats?.totalSpent || 0;
-      combinedKm += currentOdo;
-      
       return { ...v, currentOdo };
     }));
 
     setVehicles(enrichedVehicles);
-    setFleetStats({ totalSpend: combinedSpend, totalKm: combinedKm });
     setIsLoading(false);
   };
 
@@ -89,74 +88,99 @@ export default function GarageScreen() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-[#fcf9f8] items-center justify-center">
+        <ActivityIndicator size="large" color="#000000" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
-      
-      {/* Header Layout */}
-      <View className="px-6 pt-12 pb-4">
-        <PageHeader 
-          title="GARAGE" 
-          subtitle={
-            <View className="flex-row items-center flex-wrap gap-1.5 mt-0.5">
-              <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">
-                {vehicles.length} ACTIVE {vehicles.length === 1 ? 'UNIT' : 'UNITS'}
-              </Text>
-              <Text className="text-[#cfc4c5] text-xs font-bold">•</Text>
-              <View className="flex-row items-center gap-2">
-                <Gauge size={12} color="#848484" strokeWidth={2.5} />
-                <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">
-                  {fleetStats.totalKm.toLocaleString()} TOTAL KM
-                </Text>
-              </View>
-            </View>
-          }
-          rightIcon={() => (
-            <View className="flex-row items-center gap-3">
-              {/* 🛠️ DEV ESCAPE HATCH: Instantly clears token and redirects to login */}
-              <Pressable 
-                onPress={logout}
-                className="w-10 h-10 rounded-full border border-[#cfc4c5] bg-[#ffffff] items-center justify-center active:bg-[#f0eded]"
-              >
-                <LogOut size={18} color="#b7102a" strokeWidth={2} />
-              </Pressable>
+      <Tabs.Screen options={{ tabBarStyle: { display: 'none' }, headerShown: false }} />
 
-              {/* Standard Add Vehicle Button */}
-              <Pressable 
-                onPress={() => router.push('/vehicle/create')}
-              className="w-10 h-10 rounded-full border border-[#e5e2e1] items-center justify-center active:bg-[#f0eded]"
-              >
-                <Plus size={20} color="#1c1b1b" strokeWidth={2.5} />
-              </Pressable>
-            </View>
-          )} 
-        />
-      </View>
+      {/* Panel Swipe Container */}
+      <PagerView 
+        ref={pagerRef}
+        style={{ flex: 1 }} 
+        initialPage={0}
+        onPageSelected={(e) => setActiveTab(e.nativeEvent.position)}
+      >
+        
+        {/* THE GARAGE */}
+        <View key="garage" className="flex-1 relative bg-[#fcf9f8]">
+          
+          <View className="px-6 pt-12 bg-[#fcf9f8] z-50">
+            <PageHeader 
+              title="GARAGE" 
+              subtitle={`${vehicles.length} ASSETS REGISTERED`} 
+            />
+          </View>
 
-      {/* Abstracted Fleet Metrics Grid */}
-      <FleetStatsGrid totalSpend={fleetStats.totalSpend} totalKm={fleetStats.totalKm} />
+          <FlatList
+            data={vehicles}
+            keyExtractor={(item) => item.id!.toString()}
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, paddingBottom: 140 }}
+            renderItem={({ item }) => (
+              <VehicleCard vehicle={item} onRefresh={loadData} onLongPress={() => handleLongPress(item)} />
+            )}
+            ListEmptyComponent={
+              !isLoading ? <GarageEmptyState onPress={() => router.push('/vehicle/create')} /> : null
+            }
+          />
 
-      {vehicles.length > 0 && (
-        <View className="px-6 mb-4">
-          <Text className="text-[10px] font-black text-[#848484] uppercase tracking-widest">
-            Tip: Press and hold a vehicle card to manage it
-          </Text>
+          <Pressable 
+            onPress={() => router.push('/vehicle/create')}
+            className="absolute bottom-28 right-6 bg-[#000000] w-14 h-14 rounded-full items-center justify-center border-2 border-[#ffffff] active:scale-95 z-40"
+            style={{ elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 5 }}
+          >
+            <Plus size={30} color="#ffffff" />
+          </Pressable>
         </View>
-      )}
 
-      {/* Primary Inventory Feed */}
-      <FlatList
-        data={vehicles}
-        keyExtractor={(item) => item.id!.toString()}
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <VehicleCard vehicle={item} onRefresh={loadData} onLongPress={() => handleLongPress(item)} />
-        )}
-        ListEmptyComponent={
-          !isLoading ? <GarageEmptyState onPress={() => router.push('/vehicle/create')} /> : null
-        }
+        {/* PERFORMANCE STATS */}
+        <View key="stats" className="flex-1 relative bg-[#fcf9f8]">
+          <View className="px-6 pt-12 bg-[#fcf9f8] z-50">
+            <PageHeader 
+              title="STATS" 
+              subtitle="REAL-TIME TELEMETRY" 
+            />
+          </View>
+          <View className="flex-1 items-center justify-center px-6">
+            <Text className="text-[#848484] text-center">Stats Dashboard rendering here.</Text>
+          </View>
+        </View>
+
+        {/* SYSTEM & SETTINGS */}
+        <View key="system" className="flex-1 relative bg-[#fcf9f8]">
+          <View className="px-6 pt-12 bg-[#fcf9f8] z-50">
+            <PageHeader 
+              title="SYSTEM" 
+              subtitle="OPERATIONS & SUPPORT" 
+            />
+          </View>
+          <View className="flex-1 items-center justify-center px-6">
+            <Pressable 
+              onPress={logout}
+              className="bg-[#ef4444] px-8 py-4 rounded-full active:opacity-80"
+            >
+              <Text className="text-white font-bold tracking-widest uppercase">Logout</Text>
+            </Pressable>
+          </View>
+        </View>
+
+      </PagerView>
+
+      <TrinityNav 
+        variant="global"
+        activeTab={activeTab} 
+        onTabPress={(index) => {
+          setActiveTab(index);
+          pagerRef.current?.setPage(index);
+        }} 
       />
 
-      {/* Overlay & Dialog Overlays */}
       <ActionSheet 
         visible={isSheetVisible}
         title={selectedVehicle?.nickname ? `Manage ${selectedVehicle.nickname.toUpperCase()}` : "MANAGE VEHICLE"}
