@@ -12,6 +12,7 @@ import GarageEmptyState from '../../components/garage/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PageHeader from '../../components/vehicle/PageHeader';
+import StatsTab from '../../components/garage/StatsTab';
 
 // Data
 import { VehicleRepository } from '../../lib/localRepository';
@@ -30,6 +31,7 @@ export default function GlobalMasterScreen() {
 
   // Data State
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
+  const [globalTimeline, setGlobalTimeline] = useState<any[]>([]); // 📊 Holds combined logs
   const [isLoading, setIsLoading] = useState(true);
   
   // Modal State
@@ -39,16 +41,29 @@ export default function GlobalMasterScreen() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const data = await VehicleRepository.getVehicles();
-    
-    const enrichedVehicles = await Promise.all(data.map(async (v) => {
-      const stats = await VehicleRepository.getVehicleStats(v.id!);
-      const currentOdo = stats?.currentOdo || v.startingOdometer;
-      return { ...v, currentOdo };
-    }));
+    try {
+      const data = await VehicleRepository.getVehicles();
+      let compiledTimeline: any[] = [];
+      
+      const enrichedVehicles = await Promise.all(data.map(async (v) => {
+        const stats = await VehicleRepository.getVehicleStats(v.id!);
+        const timeline = await VehicleRepository.getVehicleTimeline(v.id!);
+        const currentOdo = stats?.currentOdo || v.startingOdometer;
+        
+        if (timeline && Array.isArray(timeline)) {
+          compiledTimeline = [...compiledTimeline, ...timeline];
+        }
+        
+        return { ...v, currentOdo };
+      }));
 
-    setVehicles(enrichedVehicles);
-    setIsLoading(false);
+      setVehicles(enrichedVehicles);
+      setGlobalTimeline(compiledTimeline);
+    } catch (err) {
+      console.error("Failed to load global workspace data:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useFocusEffect(
@@ -110,7 +125,6 @@ export default function GlobalMasterScreen() {
         
         {/* THE GARAGE */}
         <View key="garage" className="flex-1 relative bg-[#fcf9f8]">
-          
           <View className="px-6 pt-12 bg-[#fcf9f8] z-50">
             <PageHeader 
               title="GARAGE" 
@@ -147,9 +161,9 @@ export default function GlobalMasterScreen() {
               subtitle="REAL-TIME TELEMETRY" 
             />
           </View>
-          <View className="flex-1 items-center justify-center px-6">
-            <Text className="text-[#848484] text-center">Stats Dashboard rendering here.</Text>
-          </View>
+          
+          <StatsTab vehicles={vehicles} timeline={globalTimeline} />
+          
         </View>
 
         {/* SYSTEM & SETTINGS */}
