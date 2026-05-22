@@ -1,8 +1,17 @@
 import { Vehicle } from '../types';
 import { Activity, Calendar, TrendingUp, Clock, Rocket } from 'lucide-react-native';
 
-export const calculateTabStats = (filter: string, logs: any[], vehicle: Vehicle | null) => {
+export const calculateTabStats = (
+  filter: string, 
+  logs: any[], 
+  vehicle: Vehicle | null, 
+  distanceUnit: string = 'KM', 
+  volumeUnit: string = 'L'
+) => {
   if (!logs.length || !vehicle) return null;
+
+  const distUnitLower = distanceUnit.toLowerCase();
+  const effUnit = `${distanceUnit}/${volumeUnit}`;
 
   const now = new Date().getTime();
   const firstLogDate = new Date(logs[logs.length - 1].date).getTime();
@@ -18,7 +27,7 @@ export const calculateTabStats = (filter: string, logs: any[], vehicle: Vehicle 
     const distance = Math.max(1, maxOdo - vehicle.startingOdometer);
     
     return {
-      topL: { label: 'Cost Per KM', val: `₱${(totalSpent / distance).toFixed(2)}`, icon: Activity },
+      topL: { label: `Cost Per ${distanceUnit}`, val: `₱${(totalSpent / distance).toFixed(2)}`, icon: Activity },
       topR: { label: 'Monthly Avg', val: `₱${(totalSpent / totalMonths).toLocaleString(undefined, {maximumFractionDigits: 0})}`, icon: Calendar },
       anchor: { label: 'Total Ownership Cost', val: `₱${totalSpent.toLocaleString(undefined, {minimumFractionDigits: 2})}`, sub: `${logs.length} Total Records` }
     };
@@ -35,13 +44,13 @@ export const calculateTabStats = (filter: string, logs: any[], vehicle: Vehicle 
       const lastDist = logs[0].odometer - logs[1].odometer;
       const lastEff = lastDist / (logs[0].volume || 1);
       const diff = (lastEff - avgEff).toFixed(1);
-      lastEffStr = `${lastEff.toFixed(1)} km/L (${Number(diff) >= 0 ? '+' : ''}${diff} vs Avg)`;
+      lastEffStr = `${lastEff.toFixed(1)} ${effUnit} (${Number(diff) >= 0 ? '+' : ''}${diff} vs Avg)`;
     }
 
     return {
-      topL: { label: 'Avg Efficiency', val: `${avgEff.toFixed(1)} km/L`, icon: TrendingUp },
+      topL: { label: 'Avg Efficiency', val: `${avgEff.toFixed(1)} ${effUnit}`, icon: TrendingUp },
       topR: { label: 'Fuel/Month', val: `₱${(totalSpent / totalMonths).toLocaleString(undefined, {maximumFractionDigits: 0})}`, icon: Calendar },
-      anchor: { label: 'Last Fill-up Efficiency', val: lastEffStr, sub: `₱${logs[0].totalCost.toLocaleString()} • ${logs[0].volume}L` }
+      anchor: { label: 'Last Fill-up Efficiency', val: lastEffStr, sub: `₱${logs[0].totalCost.toLocaleString()} • ${logs[0].volume}${volumeUnit}` }
     };
   }
 
@@ -52,9 +61,9 @@ export const calculateTabStats = (filter: string, logs: any[], vehicle: Vehicle 
     const daysSince = Math.floor((now - new Date(logs[0].date).getTime()) / msInDay);
 
     return {
-      topL: { label: 'Avg Interval', val: `${avgInterval.toLocaleString(undefined, {maximumFractionDigits: 0})} km`, icon: Activity },
+      topL: { label: 'Avg Interval', val: `${avgInterval.toLocaleString(undefined, {maximumFractionDigits: 0})} ${distUnitLower}`, icon: Activity },
       topR: { label: 'Days Since Last', val: `${daysSince} Days`, icon: Clock },
-      anchor: { label: 'Last Service Reference', val: logs[0].serviceType, sub: `${new Date(logs[0].date).toLocaleDateString()} • ${logs[0].odometer.toLocaleString()} km` }
+      anchor: { label: 'Last Service Reference', val: logs[0].serviceType, sub: `${new Date(logs[0].date).toLocaleDateString()} • ${logs[0].odometer.toLocaleString()} ${distUnitLower}` }
     };
   }
 

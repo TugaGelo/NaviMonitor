@@ -1,7 +1,8 @@
 import { View, Text, Pressable, SectionList, ScrollView } from 'react-native';
-import { useState, useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { FolderArchive, Inbox } from 'lucide-react-native';
 import { calculateTabStats } from '../../lib/statsEngine';
+import { SettingsRepository } from '../../lib/localRepository';
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
 import PageHeader from './PageHeader';
@@ -10,6 +11,15 @@ const FILTER_TABS = ['All', 'Fuel', 'Service', 'Mods'];
 
 export const LogsTab = memo(({ vehicle, rawLogs, onLogPress }: any) => {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [distanceUnit, setDistanceUnit] = useState('KM');
+  const [volumeUnit, setVolumeUnit] = useState('L');
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(s => {
+      setDistanceUnit(s.distanceUnit);
+      setVolumeUnit(s.volumeUnit);
+    });
+  }, []);
 
   const { sections, stats } = useMemo(() => {
     let filtered = rawLogs;
@@ -26,10 +36,11 @@ export const LogsTab = memo(({ vehicle, rawLogs, onLogPress }: any) => {
     }, {});
 
     const sectioned = Object.keys(groups).map(key => ({ title: key, data: groups[key] }));
-    const calculatedStats = calculateTabStats(activeFilter, filtered, vehicle);
+    
+    const calculatedStats = calculateTabStats(activeFilter, filtered, vehicle, distanceUnit, volumeUnit);
     
     return { sections: sectioned, stats: calculatedStats };
-  }, [rawLogs, activeFilter, vehicle]);
+  }, [rawLogs, activeFilter, vehicle, distanceUnit, volumeUnit]);
 
   return (
     <View className="flex-1 bg-[#fcf9f8]">
