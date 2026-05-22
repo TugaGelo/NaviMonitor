@@ -111,7 +111,22 @@ export default function AISyncScreen() {
 
             <View className="flex-col gap-4">
               <View className="flex-1">
-                <Text className="text-[12px] font-bold text-[#848484] uppercase mb-1">Interval</Text>
+                <Text className="text-[12px] font-bold text-[#848484] uppercase mb-1">Initial Break-in (Optional)</Text>
+                <View className="flex-row items-center border border-[#e5e2e1] rounded-md bg-[#fcf9f8]">
+                  <TextInput 
+                    value={item.initialMilestone ? item.initialMilestone.toString() : ''} 
+                    placeholder="e.g. 1000"
+                    placeholderTextColor="#cfc4c5"
+                    onChangeText={(v) => updateMatrixItem(idx, 'initialMilestone', v ? parseInt(v) : undefined)} 
+                    keyboardType="numeric" 
+                    className="flex-1 font-bold text-[18px] text-[#1c1b1b] p-2 text-right" 
+                  />
+                  <View className="bg-[#f0eded] px-3 py-3 border-l border-[#e5e2e1]"><Text className="text-[12px] font-bold text-[#1c1b1b]">km</Text></View>
+                </View>
+              </View>
+
+              <View className="flex-1">
+                <Text className="text-[12px] font-bold text-[#848484] uppercase mb-1">Regular Interval</Text>
                 <View className="flex-row items-center border border-[#e5e2e1] rounded-md bg-[#fcf9f8]">
                   <TextInput value={item.interval.toString()} onChangeText={(v) => updateMatrixItem(idx, 'interval', parseInt(v) || 0)} keyboardType="numeric" className="flex-1 font-bold text-[18px] text-[#1c1b1b] p-2 text-right" />
                   <View className="bg-[#f0eded] px-3 py-3 border-l border-[#e5e2e1]"><Text className="text-[12px] font-bold text-[#1c1b1b]">km</Text></View>

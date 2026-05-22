@@ -14,21 +14,11 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
   }, []);
 
   const handleAISync = () => {
-    router.push({
-      pathname: '/vehicle/matrix/sync',
-      params: { vehicleId: vehicle.id }
-    });
+    router.push({ pathname: '/vehicle/matrix/sync', params: { vehicleId: vehicle.id } });
   };
   
   const handleMatrixItemTap = (itemName: string) => {
-    router.push({
-      pathname: '/vehicle/log/service',
-      params: { 
-        vehicleId: vehicle.id, 
-        mode: 'scheduled', 
-        item: itemName
-      }
-    });
+    router.push({ pathname: '/vehicle/log/service', params: { vehicleId: vehicle.id, mode: 'scheduled', item: itemName } });
   };
 
   const matrixData = useMemo(() => {
@@ -41,36 +31,40 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
         const serviceLogs = timeline.filter((l: any) => 
           l.feedType === 'Maintenance' && l.serviceType === matrixItem.item
         );
-        const latestLog = serviceLogs.length > 0 ? serviceLogs[0] : null;
         
-        let lastServiceOdo = 0;
-        let distanceTraveled = 0;
-        let remainingKm = 0;
+        const completedCount = serviceLogs.length;
+        let prevTarget = 0;
+        let nextTarget = 0;
 
-        // 🛠️ DETECT WORK HISTORY MODE
-        if (latestLog) {
-          // Relative Mode: Track distance forward from your previous logged checkup
-          lastServiceOdo = latestLog.odometer;
-          distanceTraveled = Math.max(0, stats.currentOdo - lastServiceOdo);
-          remainingKm = matrixItem.interval - distanceTraveled;
+        const initialTarget = Number(matrixItem.initialMilestone || matrixItem.initial || 0);
+        const intervalTarget = Number(matrixItem.interval || 0);
+
+        if (initialTarget > 0) {
+          if (completedCount === 0) {
+            prevTarget = 0;
+            nextTarget = initialTarget;
+          } else {
+            prevTarget = initialTarget + (intervalTarget * (completedCount - 1));
+            nextTarget = initialTarget + (intervalTarget * completedCount);
+          }
         } else {
-          // Absolute Mode: Brand new tracking profile or older vehicle with zero logs.
-          // Measures current absolute mileage against birth milestone (0)
-          lastServiceOdo = 0;
-          distanceTraveled = stats.currentOdo;
-          remainingKm = matrixItem.interval - distanceTraveled;
+          prevTarget = intervalTarget * completedCount;
+          nextTarget = intervalTarget * (completedCount + 1);
         }
         
-        const progressPct = Math.min(100, Math.max(0, (distanceTraveled / matrixItem.interval) * 100));
+        const remainingKm = nextTarget - stats.currentOdo;
+        const cycleLength = Math.max(1, nextTarget - prevTarget);
+        const currentProgressInCycle = Math.max(0, stats.currentOdo - prevTarget);
+        const progressPct = Math.min(100, Math.max(0, (currentProgressInCycle / cycleLength) * 100));
 
         let status = 'OK';
         if (remainingKm < 0) status = 'OVERDUE';
-        else if (remainingKm <= matrixItem.interval * 0.15) status = 'WARNING';
+        else if (remainingKm <= intervalTarget * 0.15) status = 'WARNING';
 
         return {
           ...matrixItem,
-          lastServiceOdo,
-          distanceTraveled,
+          lastServiceOdo: completedCount > 0 ? serviceLogs[0].odometer : 0,
+          distanceTraveled: currentProgressInCycle,
           remainingKm,
           progressPct,
           status
@@ -102,18 +96,10 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
         <PageHeader title="MATRIX" subtitle={`${vehicle?.nickname} • NO TRACKING DATA`} rightIcon={Shield} />
         <View className="flex-1 items-center justify-center pb-20">
           <AlertTriangle size={48} color="#dcd9d9" className="mb-4" />
-          <Text className="text-[#848484] font-bold text-xs uppercase tracking-widest text-center">
-            No Maintenance Matrix Configured
-          </Text>
-          
-          <Pressable 
-            onPress={handleAISync}
-            className="mt-8 bg-[#1c1b1b] flex-row items-center justify-center px-6 py-4 rounded-xl active:scale-95 transition-transform shadow-md shadow-black/20"
-          >
+          <Text className="text-[#848484] font-bold text-xs uppercase tracking-widest text-center">No Maintenance Matrix Configured</Text>
+          <Pressable onPress={handleAISync} className="mt-8 bg-[#1c1b1b] flex-row items-center justify-center px-6 py-4 rounded-xl active:scale-95 transition-transform shadow-md shadow-black/20">
             <Sparkles size={20} color="#ffffff" className="mr-3" />
-            <Text className="text-white font-black text-[14px] uppercase tracking-widest">
-              AI Sync Manual
-            </Text>
+            <Text className="text-white font-black text-[14px] uppercase tracking-widest">AI Sync Manual</Text>
           </Pressable>
         </View>
       </View>
@@ -122,37 +108,27 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
 
   return (
     <ScrollView className="flex-1 px-6 pt-4 bg-[#fcf9f8]" contentContainerStyle={{ paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
-      
-      {/* Unified Typography Header */}
       <View className="mb-4 z-50">
         <PageHeader 
           title="MATRIX" 
           subtitle={
             <View className="flex-row items-center flex-wrap gap-1.5 mt-0.5">
               {attentionCount > 0 && <AlertTriangle size={12} color="#848484" strokeWidth={2.5} />}
-              <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">
-                {vehicle?.nickname} • {attentionCount === 0 ? 'SYSTEMS NOMINAL' : `${attentionCount} ITEMS REQUIRE ATTENTION`}
-              </Text>
+              <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{vehicle?.nickname} • {attentionCount === 0 ? 'SYSTEMS NOMINAL' : `${attentionCount} ITEMS REQUIRE ATTENTION`}</Text>
             </View>
           }
           rightIcon={attentionCount > 0 ? ShieldAlert : Shield}
         />
       </View>
 
-      {/* Global Diagnostics Card */}
       <View className="bg-white border border-[#e5e2e1] rounded-2xl p-5 mb-8 shadow-sm shadow-black/5">
         <View className="flex-row justify-between items-end mb-3">
           <Text className="font-bold text-[14px] text-[#848484] uppercase tracking-wider">General Health</Text>
           <Text className="font-black text-[32px] text-[#1c1b1b] leading-none">{generalHealth}%</Text>
         </View>
-        
         <View className="h-1.5 w-full bg-[#f0eded] rounded-full overflow-hidden mb-4">
-          <View 
-            className={`h-full rounded-full ${generalHealth < 40 ? 'bg-[#b7102a]' : 'bg-[#1c1b1b]'}`} 
-            style={{ width: `${generalHealth}%` }} 
-          />
+          <View className={`h-full rounded-full ${generalHealth < 40 ? 'bg-[#b7102a]' : 'bg-[#1c1b1b]'}`} style={{ width: `${generalHealth}%` }} />
         </View>
-        
         <View className="border-t border-[#f0eded] pt-3">
           <Text className="font-bold text-[11px] text-[#848484] uppercase tracking-wider">
             Next critical milestone: {criticalItem?.item} in {Math.max(0, criticalItem?.remainingKm).toLocaleString()} {distanceUnit.toLowerCase()}
@@ -160,15 +136,12 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
         </View>
       </View>
 
-      {/* Component Matrix List */}
       <View className="flex-col">
         <Text className="text-[11px] font-black text-[#848484] uppercase tracking-widest mb-4 pl-1">Component Matrix</Text>
-        
         <View className="flex-col gap-3">
           {matrixData.map((item: any, idx: number) => {
             const isOverdue = item.status === 'OVERDUE';
             const isWarning = item.status === 'WARNING';
-            
             const cardBg = isOverdue ? 'bg-[#b7102a]/10 border-[#b7102a]/30' : 'bg-white border-[#e5e2e1] shadow-sm shadow-black/5';
             const textMain = isOverdue ? 'text-[#b7102a]' : 'text-[#1c1b1b]';
             const textSub = isOverdue ? 'text-[#b7102a]/70' : 'text-[#848484]';
@@ -176,27 +149,16 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
             const barFill = isOverdue ? 'bg-[#b7102a]' : (isWarning ? 'bg-[#1c1b1b]' : 'bg-[#1c1b1b]/70');
 
             return (
-              <Pressable 
-                key={`${item.item}-${idx}`}
-                onPress={() => handleMatrixItemTap(item.item)}
-                className={`rounded-xl p-4 flex-col border active:opacity-60 transition-opacity ${cardBg}`}
-              >
+              <Pressable key={`${item.item}-${idx}`} onPress={() => handleMatrixItemTap(item.item)} className={`rounded-xl p-4 flex-col border active:opacity-60 transition-opacity ${cardBg}`}>
                 <View className="flex-row justify-between items-start mb-3">
                   <View className="flex-col">
-                    <Text className={`font-black text-[14px] uppercase tracking-wide ${textMain}`}>
-                      {item.item}
-                    </Text>
-                    <Text className={`font-bold text-[11px] uppercase tracking-wider mt-1 ${textSub}`}>
-                      Every {item.interval.toLocaleString()} {distanceUnit.toLowerCase()}
-                    </Text>
+                    <Text className={`font-black text-[14px] uppercase tracking-wide ${textMain}`}>{item.item}</Text>
+                    <Text className={`font-bold text-[11px] uppercase tracking-wider mt-1 ${textSub}`}>Every {item.interval.toLocaleString()} {distanceUnit.toLowerCase()}</Text>
                   </View>
                   <Text className={`font-black text-[12px] uppercase tracking-widest ${textMain}`}>
-                    {isOverdue 
-                      ? `${Math.abs(item.remainingKm).toLocaleString()} ${distanceUnit} OVERDUE` 
-                      : `${item.remainingKm.toLocaleString()} ${distanceUnit} LEFT`}
+                    {isOverdue ? `${Math.abs(item.remainingKm).toLocaleString()} ${distanceUnit} OVERDUE` : `${item.remainingKm.toLocaleString()} ${distanceUnit} LEFT`}
                   </Text>
                 </View>
-                
                 <View className={`h-[3px] w-full rounded-full overflow-hidden ${barBg}`}>
                   <View className={`h-full rounded-full ${barFill}`} style={{ width: `${item.progressPct}%` }} />
                 </View>
@@ -205,17 +167,11 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
           })}
 
           <View className="mt-4 mb-6">
-            <Pressable 
-              onPress={handleAISync} 
-              className="py-4 border-2 border-dashed border-[#cfc4c5] rounded-xl flex-row items-center justify-center gap-2 active:bg-[#f0eded]"
-            >
+            <Pressable onPress={handleAISync} className="py-4 border-2 border-dashed border-[#cfc4c5] rounded-xl flex-row items-center justify-center gap-2 active:bg-[#f0eded]">
               <Sparkles size={18} color="#848484" />
-              <Text className="font-bold text-[12px] text-[#848484] uppercase tracking-wider">
-                Re-Sync AI Matrix
-              </Text>
+              <Text className="font-bold text-[12px] text-[#848484] uppercase tracking-wider">Re-Sync AI Matrix</Text>
             </Pressable>
           </View>
-
         </View>
       </View>
     </ScrollView>

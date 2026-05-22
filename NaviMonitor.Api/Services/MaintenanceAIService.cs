@@ -33,7 +33,7 @@ public class MaintenanceAIService
                 1. Differentiate between 'Initial' (break-in/first-time) service and 'Regular' (recurring) intervals.
                 2. Use 'km' for all distance values. Ignore miles or months.
                 3. The 'interval' field must represent the recurring pattern (e.g., every 4,000km).
-                4. The 'initial' field is for the first-ever check (e.g., the 1,000km break-in). If no specific initial check exists, omit the field or set to null.
+                4. The 'initialMilestone' field is for the first-ever check (e.g., the 1,000km break-in). If no specific initial check exists, omit the field or set to null.                
                 5. Extract items for: 'R' (Replace), 'C' (Clean), and 'I' (Inspect).
                 6. Handle vehicle variants as separate line items.
 
@@ -42,7 +42,7 @@ public class MaintenanceAIService
                   ""matrix"": [
                     { 
                       ""item"": ""string"", 
-                      ""initial"": number or null, 
+                      ""initialMilestone"": number or null, 
                       ""interval"": number, 
                       ""action"": ""string (Replace, Clean, or Inspect)"" 
                     }
