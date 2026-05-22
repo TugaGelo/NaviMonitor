@@ -1,8 +1,8 @@
 import { View, Text, Pressable, SectionList, ScrollView } from 'react-native';
 import { useState, useEffect, useMemo, memo } from 'react';
 import { FolderArchive, Inbox } from 'lucide-react-native';
-import { calculateTabStats } from '../../lib/statsEngine';
-import { SettingsRepository } from '../../lib/localRepository';
+import { calculateTabStats } from '../../lib/utils/statsEngine';
+import { SettingsRepository } from '../../lib//database/localRepository';
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
 import PageHeader from './PageHeader';

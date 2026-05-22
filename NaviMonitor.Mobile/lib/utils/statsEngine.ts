@@ -1,4 +1,4 @@
-import { Vehicle } from '../types';
+import { Vehicle } from '../../types';
 import { Activity, Calendar, TrendingUp, Clock, Rocket } from 'lucide-react-native';
 
 export const calculateTabStats = (

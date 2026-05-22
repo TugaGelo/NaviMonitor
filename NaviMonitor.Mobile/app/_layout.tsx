@@ -2,12 +2,12 @@ import '../global.css';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
-import { initDatabase } from '../lib/database';
+import { initDatabase } from '../lib/database/database';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider, onlineManager } from '@tanstack/react-query';
 import NetInfo from '@react-native-community/netinfo';
 import { useAutoSync } from '../hooks/useAutoSync';
-import { AuthProvider, useAuth } from '../lib/AuthContext';
+import { AuthProvider, useAuth } from '../lib/auth/AuthContext';
 
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {

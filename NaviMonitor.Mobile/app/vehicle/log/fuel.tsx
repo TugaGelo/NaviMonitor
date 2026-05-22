@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { VehicleRepository, SettingsRepository } from '../../../lib/localRepository';
+import { VehicleRepository, SettingsRepository } from '../../../lib/database/localRepository';
 import FormSheetWrapper from '../../../components/ui/FormSheetWrapper';
 import StitchInput from '../../../components/ui/StitchInput';
 import { runSyncEngine } from '../../../hooks/useAutoSync';

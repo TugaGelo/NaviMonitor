@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { X, Plus, Sparkles, ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { VehicleRepository } from '../../../lib/localRepository';
+import { VehicleRepository } from '../../../lib/database/localRepository';
 import { Vehicle, MaintenanceMatrixItem } from '../../../types';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
 import  { runSyncEngine } from '../../../hooks/useAutoSync';

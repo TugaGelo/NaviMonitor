@@ -2,8 +2,8 @@ import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Car, ArrowRight } from 'lucide-react-native';
 import { useState, useEffect } from 'react';
-import { Vehicle } from '../types';
-import { SettingsRepository } from '../lib/localRepository';
+import { Vehicle } from '../../types';
+import { SettingsRepository } from '../../lib/database/localRepository';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 

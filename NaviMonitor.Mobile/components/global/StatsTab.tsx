@@ -4,7 +4,7 @@ import { PieChart, BarChart3, Wallet, Gauge } from 'lucide-react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Vehicle } from '../../types';
 import StatCard from '../vehicle/StatCard';
-import { SettingsRepository } from '../../lib/localRepository';
+import { SettingsRepository } from '../../lib/database/localRepository';
 
 interface StatsTabProps {
   vehicles: Vehicle[];

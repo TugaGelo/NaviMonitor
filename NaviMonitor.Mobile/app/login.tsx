@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth } from '../lib/auth/firebase';
 
 export default function LoginScreen() {
   

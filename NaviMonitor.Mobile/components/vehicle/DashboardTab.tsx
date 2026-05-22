@@ -5,7 +5,7 @@ import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as His
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
 import PageHeader from './PageHeader';
-import { SettingsRepository } from '../../lib/localRepository';
+import { SettingsRepository } from '../../lib/database/localRepository';
 
 export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoToMatrix }: any) => {
   const router = useRouter();

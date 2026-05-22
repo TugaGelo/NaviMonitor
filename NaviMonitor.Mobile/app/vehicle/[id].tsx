@@ -6,7 +6,7 @@ import { ArrowLeft, Settings, Search, Activity } from 'lucide-react-native';
 import PagerView from 'react-native-pager-view';
 
 // Data & Types
-import { VehicleRepository } from '../../lib/localRepository';
+import { VehicleRepository } from '../../lib/database/localRepository';
 import { Vehicle } from '../../types';
 
 // UI Components

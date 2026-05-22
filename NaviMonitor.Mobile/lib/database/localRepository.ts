@@ -1,5 +1,5 @@
-import { getDb } from './database';
-import type { Vehicle, RefuelLog, MaintenanceLog } from '../types';
+import { getDb } from '../database/database';
+import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const DEV_USER_ID = "DEV_USER_GELO";
@@ -9,7 +9,7 @@ const generateOfflineId = () => -Math.floor(Math.random() * 999999) - 1;
 export const VehicleRepository = {
 
   async addVehicle(vehicle: Omit<Vehicle, 'id'>) {
-    const db = await getDb(); 
+    const db = await getDb();
     const offlineId = generateOfflineId();
     const now = new Date().toISOString();
 
@@ -27,7 +27,7 @@ export const VehicleRepository = {
       [
         offlineId, DEV_USER_ID, vehicle.vehicleType || 'Car', vehicle.nickname || '',
         vehicle.make || '', vehicle.model || '', safeYear, vehicle.color || '',
-        safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry, 
+        safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry,
         vehicle.hasSyncedManual ? 1 : 0,
         vehicle.maintenanceMatrixJson || null,
         now
@@ -38,7 +38,7 @@ export const VehicleRepository = {
   },
 
   async getVehicles() {
-    const db = await getDb(); 
+    const db = await getDb();
     const result = await db.getAllAsync<Vehicle>(
       `SELECT * FROM Vehicles WHERE userId = ? ORDER BY id DESC`,
       [DEV_USER_ID]
@@ -54,7 +54,7 @@ export const VehicleRepository = {
   async getVehicleById(id: number) {
     const db = await getDb();
     const result = await db.getFirstAsync<Vehicle>(
-      `SELECT * FROM Vehicles WHERE id = ?`, 
+      `SELECT * FROM Vehicles WHERE id = ?`,
       [id]
     );
     return result;
@@ -63,7 +63,7 @@ export const VehicleRepository = {
   async updateVehicle(vehicle: Vehicle) {
     const db = await getDb();
     const now = new Date().toISOString();
-    
+
     const safeYear = Number(vehicle.year) || new Date().getFullYear();
     const safeEngineSize = Number(vehicle.engineSizeCC) || 0;
     const safeOdometer = Number(vehicle.startingOdometer) || 0;
@@ -76,16 +76,16 @@ export const VehicleRepository = {
         registrationExpiry = ?, maintenanceMatrixJson = ?, is_synced = 0, updatedAt = ?
        WHERE id = ?`,
       [
-        vehicle.vehicleType || 'Car', 
+        vehicle.vehicleType || 'Car',
         vehicle.nickname || '',
-        vehicle.make || '', 
-        vehicle.model || '', 
-        safeYear, 
+        vehicle.make || '',
+        vehicle.model || '',
+        safeYear,
         vehicle.color || '',
-        safeEngineSize, 
-        safeOdometer, 
-        vehicle.licensePlate || '', 
-        safeExpiry, 
+        safeEngineSize,
+        safeOdometer,
+        vehicle.licensePlate || '',
+        safeExpiry,
         vehicle.maintenanceMatrixJson || null,
         now,
         vehicle.id!
@@ -96,26 +96,26 @@ export const VehicleRepository = {
   async getVehicleStats(vehicleId: number) {
     const db = await getDb();
 
-    const vehicle = await db.getFirstAsync<{startingOdometer: number}>(
+    const vehicle = await db.getFirstAsync<{ startingOdometer: number }>(
       `SELECT startingOdometer FROM Vehicles WHERE id = ?`, [vehicleId]
     );
     const startingOdo = vehicle?.startingOdometer || 0;
 
-    const fuelStats = await db.getFirstAsync<{totalFuelCost: number, maxOdo: number, minOdo: number, totalVol: number}>(
+    const fuelStats = await db.getFirstAsync<{ totalFuelCost: number, maxOdo: number, minOdo: number, totalVol: number }>(
       `SELECT 
         SUM(totalCost) as totalFuelCost, 
         MAX(odometer) as maxOdo, 
         MIN(odometer) as minOdo, 
         SUM(volume) as totalVol 
-       FROM RefuelLogs WHERE vehicleId = ?`, 
+       FROM RefuelLogs WHERE vehicleId = ?`,
       [vehicleId]
     );
 
-    const maintStats = await db.getFirstAsync<{totalMaintCost: number, maxOdo: number}>(
+    const maintStats = await db.getFirstAsync<{ totalMaintCost: number, maxOdo: number }>(
       `SELECT 
         SUM(price) as totalMaintCost, 
         MAX(odometer) as maxOdo 
-       FROM MaintenanceLogs WHERE vehicleId = ?`, 
+       FROM MaintenanceLogs WHERE vehicleId = ?`,
       [vehicleId]
     );
 
@@ -143,16 +143,16 @@ export const VehicleRepository = {
     const db = await getDb();
 
     const refuels = await db.getAllAsync<any>(
-      `SELECT *, 'Refuel' as feedType FROM RefuelLogs WHERE vehicleId = ?`, 
+      `SELECT *, 'Refuel' as feedType FROM RefuelLogs WHERE vehicleId = ?`,
       [vehicleId]
     );
 
     const maints = await db.getAllAsync<any>(
-      `SELECT *, logType as feedType FROM MaintenanceLogs WHERE vehicleId = ?`, 
+      `SELECT *, logType as feedType FROM MaintenanceLogs WHERE vehicleId = ?`,
       [vehicleId]
     );
 
-    const timeline = [...refuels, ...maints].sort((a, b) => 
+    const timeline = [...refuels, ...maints].sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
@@ -169,12 +169,12 @@ export const VehicleRepository = {
         id, vehicleId, date, odometer, volume, totalCost, fuelType, is_synced, updatedAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
-        offlineId, 
+        offlineId,
         log.vehicleId!,
-        log.date, 
-        log.odometer, 
-        log.volume, 
-        log.totalCost, 
+        log.date,
+        log.odometer,
+        log.volume,
+        log.totalCost,
         log.fuelType || 'Unleaded',
         now
       ]
@@ -197,11 +197,11 @@ export const VehicleRepository = {
         date = ?, odometer = ?, volume = ?, totalCost = ?, fuelType = ?, is_synced = 0, updatedAt = ? 
        WHERE id = ?`,
       [
-        log.date, 
-        log.odometer, 
-        log.volume, 
-        log.totalCost, 
-        log.fuelType || 'Unleaded', 
+        log.date,
+        log.odometer,
+        log.volume,
+        log.totalCost,
+        log.fuelType || 'Unleaded',
         now,
         log.id!
       ]
@@ -226,20 +226,20 @@ export const VehicleRepository = {
         tirePosition, is_synced, updatedAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
-        offlineId, 
+        offlineId,
         log.vehicleId!,
-        log.logType, 
-        log.serviceCategory || null, 
-        log.date, 
+        log.logType,
+        log.serviceCategory || null,
+        log.date,
         log.odometer,
-        log.serviceType, 
-        log.price, 
-        log.isDIY ? 1 : 0, 
-        log.shopName || null, 
+        log.serviceType,
+        log.price,
+        log.isDIY ? 1 : 0,
+        log.shopName || null,
         log.mechanicName || null,
-        log.contactNumber || null, 
-        log.notes || null, 
-        log.nextServiceOdometer || null, 
+        log.contactNumber || null,
+        log.notes || null,
+        log.nextServiceOdometer || null,
         log.nextServiceDate || null,
         log.tirePosition || null,
         now
@@ -266,20 +266,20 @@ export const VehicleRepository = {
         tirePosition = ?, is_synced = 0, updatedAt = ? 
        WHERE id = ?`,
       [
-        log.logType, 
-        log.serviceCategory || null, 
-        log.date, 
-        log.odometer, 
-        log.serviceType, 
-        log.price, 
-        log.isDIY ? 1 : 0, 
-        log.shopName || null, 
-        log.mechanicName || null, 
-        log.contactNumber || null, 
-        log.notes || null, 
-        log.nextServiceOdometer || null, 
-        log.nextServiceDate || null, 
-        log.tirePosition || null, 
+        log.logType,
+        log.serviceCategory || null,
+        log.date,
+        log.odometer,
+        log.serviceType,
+        log.price,
+        log.isDIY ? 1 : 0,
+        log.shopName || null,
+        log.mechanicName || null,
+        log.contactNumber || null,
+        log.notes || null,
+        log.nextServiceOdometer || null,
+        log.nextServiceDate || null,
+        log.tirePosition || null,
         now,
         log.id!
       ]

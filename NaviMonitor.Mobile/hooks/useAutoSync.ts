@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import NetInfo from '@react-native-community/netinfo';
-import { getDb } from '../lib/database';
-import { RemoteRepository } from '../lib/remoteRepository';
+import { getDb } from '../lib/database/database';
+import { RemoteRepository } from '../lib/network/remoteRepository';
 
 let isSyncingInProgress = false;
 
@@ -14,13 +14,13 @@ export async function runSyncEngine() {
   try {
     isSyncingInProgress = true;
     const db = await getDb();
-    
+
     const unsyncedVehicles = await db.getAllAsync<any>(`SELECT * FROM Vehicles WHERE is_synced = 0`);
     const unsyncedFuels = await db.getAllAsync<any>(`SELECT * FROM RefuelLogs WHERE is_synced = 0`);
     const unsyncedMaints = await db.getAllAsync<any>(`SELECT * FROM MaintenanceLogs WHERE is_synced = 0`);
 
     if (unsyncedVehicles.length === 0 && unsyncedFuels.length === 0 && unsyncedMaints.length === 0) {
-      return; 
+      return;
     }
 
     console.log(`[Sync Engine] Found ${unsyncedVehicles.length} vehicles, ${unsyncedFuels.length} fuels, ${unsyncedMaints.length} maints to upload.`);
@@ -40,7 +40,7 @@ export async function runSyncEngine() {
 
     for (const f of unsyncedFuels) {
       try {
-        const parent = await db.getFirstAsync<{serverId: number}>(`SELECT serverId FROM Vehicles WHERE id = ?`, [f.vehicleId]);
+        const parent = await db.getFirstAsync<{ serverId: number }>(`SELECT serverId FROM Vehicles WHERE id = ?`, [f.vehicleId]);
         if (parent?.serverId) {
           const fuelPayload = { ...f, vehicleId: parent.serverId };
           const serverData = await RemoteRepository.syncFuelLog(fuelPayload);
@@ -53,7 +53,7 @@ export async function runSyncEngine() {
 
     for (const m of unsyncedMaints) {
       try {
-        const parent = await db.getFirstAsync<{serverId: number}>(`SELECT serverId FROM Vehicles WHERE id = ?`, [m.vehicleId]);
+        const parent = await db.getFirstAsync<{ serverId: number }>(`SELECT serverId FROM Vehicles WHERE id = ?`, [m.vehicleId]);
         if (parent?.serverId) {
           const maintPayload = {
             ...m,

@@ -1,5 +1,5 @@
-import { apiClient } from './apiClient';
-import type { Vehicle, RefuelLog, MaintenanceLog } from '../types';
+import { apiClient } from '../network/apiClient';
+import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types';
 
 export const RemoteRepository = {
   async syncVehicle(vehicle: Vehicle) {

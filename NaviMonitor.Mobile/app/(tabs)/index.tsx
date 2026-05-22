@@ -7,18 +7,18 @@ import { Plus } from 'lucide-react-native';
 
 // Components
 import TrinityNav from '../../components/ui/TrinityNav';
-import VehicleCard from '../../components/VehicleCard';
-import GarageEmptyState from '../../components/garage/GarageEmptyState';
+import VehicleCard from '../../components/shared/VehicleCard';
+import GarageEmptyState from '../../components/global/GarageEmptyState';
 import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PageHeader from '../../components/vehicle/PageHeader';
-import StatsTab from '../../components/garage/StatsTab';
-import SystemTab from '../../components/garage/SystemTab';
+import StatsTab from '../../components/global/StatsTab';
+import SystemTab from '../../components/global/SystemTab';
 
 // Data
-import { VehicleRepository } from '../../lib/localRepository';
+import { VehicleRepository } from '../../lib/database/localRepository';
 import { Vehicle } from '../../types';
-import { useAuth } from '../../lib/AuthContext';
+import { useAuth } from '../../lib/auth/AuthContext';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
@@ -32,7 +32,7 @@ export default function GlobalMasterScreen() {
 
   // Data State
   const [vehicles, setVehicles] = useState<VehicleWithStats[]>([]);
-  const [globalTimeline, setGlobalTimeline] = useState<any[]>([]); // 📊 Holds combined logs
+  const [globalTimeline, setGlobalTimeline] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Modal State
