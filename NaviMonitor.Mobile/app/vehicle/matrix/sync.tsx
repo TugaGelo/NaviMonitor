@@ -9,7 +9,7 @@ import { Vehicle, MaintenanceMatrixItem } from '../../../types';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
 import  { runSyncEngine } from '../../../hooks/useAutoSync';
 
-const API_BASE_URL = 'http://192.168.68.133:5053/api'; 
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function AISyncScreen() {
   const router = useRouter();

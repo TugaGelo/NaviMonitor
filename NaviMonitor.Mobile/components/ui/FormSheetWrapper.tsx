@@ -36,7 +36,6 @@ export default function FormSheetWrapper({
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
-        // Adjust structural shifting down if container footprint is small
         const adjustmentFactor = snapHeight < 0.5 ? 0.4 : 0.85;
         Animated.timing(keyboardOffset, {
           toValue: -e.endCoordinates.height * adjustmentFactor,

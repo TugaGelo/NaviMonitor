@@ -35,7 +35,6 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
         let prevTarget = 0;
         let nextTarget = 0;
 
-        // 🛠️ Synced the bulletproof logic here as well
         const initialTarget = Number(matrixItem.initialMilestone || matrixItem.initial || 0);
         const intervalTarget = Number(matrixItem.interval || 0);
 
