@@ -1,11 +1,17 @@
 import { View, Text, ScrollView, Pressable } from 'react-native';
-import { useMemo, memo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { Shield, ShieldAlert, AlertTriangle, Sparkles } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import PageHeader from './PageHeader';
+import { SettingsRepository } from '../../lib/localRepository';
 
 export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
   const router = useRouter();
+  const [distanceUnit, setDistanceUnit] = useState('KM');
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(s => setDistanceUnit(s.distanceUnit));
+  }, []);
 
   const handleAISync = () => {
     router.push({
@@ -70,9 +76,7 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
     const avgProgress = totalProgress / matrixData.length;
     
     const health = Math.max(0, Math.round(100 - avgProgress));
-    
     const critical = matrixData[0];
-    
     const attention = matrixData.filter((m: any) => m.status === 'OVERDUE' || m.status === 'WARNING').length;
     
     return { generalHealth: health, criticalItem: critical, attentionCount: attention };
@@ -129,7 +133,6 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
           <Text className="font-black text-[32px] text-[#1c1b1b] leading-none">{generalHealth}%</Text>
         </View>
         
-        {/* Sleek Progress Bar */}
         <View className="h-1.5 w-full bg-[#f0eded] rounded-full overflow-hidden mb-4">
           <View 
             className={`h-full rounded-full ${generalHealth < 40 ? 'bg-[#b7102a]' : 'bg-[#1c1b1b]'}`} 
@@ -139,7 +142,7 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
         
         <View className="border-t border-[#f0eded] pt-3">
           <Text className="font-bold text-[11px] text-[#848484] uppercase tracking-wider">
-            Next critical milestone: {criticalItem?.item} in {Math.max(0, criticalItem?.remainingKm).toLocaleString()} km
+            Next critical milestone: {criticalItem?.item} in {Math.max(0, criticalItem?.remainingKm).toLocaleString()} {distanceUnit.toLowerCase()}
           </Text>
         </View>
       </View>
@@ -171,17 +174,16 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
                       {item.item}
                     </Text>
                     <Text className={`font-bold text-[11px] uppercase tracking-wider mt-1 ${textSub}`}>
-                      Every {item.interval.toLocaleString()} km
+                      Every {item.interval.toLocaleString()} {distanceUnit.toLowerCase()}
                     </Text>
                   </View>
                   <Text className={`font-black text-[12px] uppercase tracking-widest ${textMain}`}>
                     {isOverdue 
-                      ? `${item.remainingKm.toLocaleString()} KM OVERDUE` 
-                      : `${item.remainingKm.toLocaleString()} KM LEFT`}
+                      ? `${item.remainingKm.toLocaleString()} ${distanceUnit} OVERDUE` 
+                      : `${item.remainingKm.toLocaleString()} ${distanceUnit} LEFT`}
                   </Text>
                 </View>
                 
-                {/* Micro Lifespan Indicator */}
                 <View className={`h-[3px] w-full rounded-full overflow-hidden ${barBg}`}>
                   <View className={`h-full rounded-full ${barFill}`} style={{ width: `${item.progressPct}%` }} />
                 </View>

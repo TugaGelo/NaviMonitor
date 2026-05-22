@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Car, Motorbike, Calendar } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { VehicleRepository } from '../../lib/localRepository';
+import { VehicleRepository, SettingsRepository } from '../../lib/localRepository';
 import FormSheetWrapper from '../../components/ui/FormSheetWrapper';
 import SegmentedControl from '../../components/ui/SegmentedControl';
 import StitchInput from '../../components/ui/StitchInput';
@@ -13,7 +13,12 @@ export default function AddVehicleScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams();
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [distanceUnit, setDistanceUnit] = useState('KM');
   const [form, setForm] = useState({ nickname: '', make: '', model: '', year: '2026', vehicleType: 'Car', color: '', licensePlate: '', engineSizeCC: '', startingOdometer: '', registrationExpiry: '' });
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(s => setDistanceUnit(s.distanceUnit));
+  }, []);
 
   useEffect(() => {
     if (editId) {
@@ -60,7 +65,6 @@ export default function AddVehicleScreen() {
       }
       
       runSyncEngine(); 
-      
       router.back();
     } catch (e) { 
       Alert.alert("Error", "Failed to save vehicle."); 
@@ -94,7 +98,7 @@ export default function AddVehicleScreen() {
       </View>
       <View className="flex-row gap-4">
          <View className="flex-1"><StitchInput label="Plate" required placeholder="ABC-1234" value={form.licensePlate} onChange={(v) => setForm({...form, licensePlate: v})} /></View>
-         <View className="flex-1"><StitchInput label="Start Odo" placeholder="0" unit="km" keyboardType="numeric" value={form.startingOdometer} onChange={(v) => setForm({...form, startingOdometer: v})} editable={!editId} /></View>
+         <View className="flex-1"><StitchInput label="Start Odo" placeholder="0" unit={distanceUnit.toLowerCase()} keyboardType="numeric" value={form.startingOdometer} onChange={(v) => setForm({...form, startingOdometer: v})} editable={!editId} /></View>
       </View>
       <View className="flex-row gap-4">
           <View className="flex-1"><StitchInput label="Engine Capacity" placeholder="1500" unit="CC" keyboardType="numeric" value={form.engineSizeCC} onChange={(v) => setForm({...form, engineSizeCC: v})} /></View>

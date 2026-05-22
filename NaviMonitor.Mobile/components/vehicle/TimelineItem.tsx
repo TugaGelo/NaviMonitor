@@ -1,5 +1,7 @@
 import { View, Text, Pressable } from 'react-native';
+import { useState, useEffect } from 'react';
 import { Fuel, Wrench, Rocket, Hammer, CalendarCheck } from 'lucide-react-native';
+import { SettingsRepository } from '../../lib/localRepository';
 
 interface TimelineItemProps {
   item: any;
@@ -9,6 +11,16 @@ interface TimelineItemProps {
 }
 
 export default function TimelineItem({ item, isLast, onPress, className = "px-6" }: TimelineItemProps) {
+  const [distanceUnit, setDistanceUnit] = useState('KM');
+  const [volumeUnit, setVolumeUnit] = useState('L');
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(s => {
+      setDistanceUnit(s.distanceUnit);
+      setVolumeUnit(s.volumeUnit);
+    });
+  }, []);
+
   const isFuel = item.feedType === 'Refuel';
   
   const category = item.serviceCategory || 'Unscheduled'; 
@@ -79,7 +91,7 @@ export default function TimelineItem({ item, isLast, onPress, className = "px-6"
           </View>
 
           <Text className="text-xs text-[#848484] mt-0.5 font-medium">
-            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {isFuel ? `${item.volume}L` : (item.isDIY ? 'DIY Service' : (item.shopName || 'Garage'))}
+            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} • {isFuel ? `${item.volume}${volumeUnit}` : (item.isDIY ? 'DIY Service' : (item.shopName || 'Garage'))}
           </Text>
         </View>
 
@@ -89,7 +101,7 @@ export default function TimelineItem({ item, isLast, onPress, className = "px-6"
             - ₱{(cost || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
           </Text>
           <Text className="text-[11px] text-[#cfc4c5] mt-1 font-bold">
-            {item.odometer?.toLocaleString()} km
+            {item.odometer?.toLocaleString()} {distanceUnit.toLowerCase()}
           </Text>
         </View>
         

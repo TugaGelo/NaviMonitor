@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Calendar, Wrench, Rocket, Store, Hammer, Phone } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { VehicleRepository } from '../../../lib/localRepository';
+import { VehicleRepository, SettingsRepository } from '../../../lib/localRepository';
 import FormSheetWrapper from '../../../components/ui/FormSheetWrapper';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
 import StitchInput from '../../../components/ui/StitchInput';
@@ -14,6 +14,7 @@ export default function AddServiceLogScreen() {
   const { vehicleId, editId, mode, item } = useLocalSearchParams();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentOdo, setCurrentOdo] = useState(0);
+  const [distanceUnit, setDistanceUnit] = useState('KM');
 
   const [form, setForm] = useState({
     logType: (mode === 'modification' ? 'Modification' : 'Maintenance') as 'Maintenance' | 'Modification',
@@ -21,6 +22,10 @@ export default function AddServiceLogScreen() {
     serviceType: (mode === 'scheduled' && item) ? (item as string) : '', date: new Date().toISOString().split('T')[0],
     odometer: '', price: '', isDIY: false, shopName: '', mechanicName: '', contactNumber: '', notes: ''
   });
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(s => setDistanceUnit(s.distanceUnit));
+  }, []);
 
   useEffect(() => {
     if (vehicleId) {
@@ -45,7 +50,7 @@ export default function AddServiceLogScreen() {
     const newOdo = parseInt(form.odometer) || 0;
     const price = parseFloat(form.price) || 0;
 
-    if (!editId && newOdo <= currentOdo) return Alert.alert("Invalid Odometer", `Must be strictly higher than ${currentOdo} km.`);
+    if (!editId && newOdo <= currentOdo) return Alert.alert("Invalid Odometer", `Must be strictly higher than ${currentOdo} ${distanceUnit}.`);
 
     const payload = { vehicleId: Number(vehicleId), logType: form.logType, serviceCategory: form.serviceCategory, serviceType: form.serviceType, date: form.date, odometer: newOdo, price: price, isDIY: form.isDIY, shopName: form.shopName, mechanicName: form.mechanicName, contactNumber: form.contactNumber, notes: form.notes };
     
@@ -54,7 +59,6 @@ export default function AddServiceLogScreen() {
       else await VehicleRepository.addMaintenanceLog(payload);
       
       runSyncEngine();
-      
       router.back();
     } catch (e) { 
       Alert.alert("Error", "Failed to save record."); 
@@ -85,7 +89,7 @@ export default function AddServiceLogScreen() {
         <Pressable className="flex-1" onPress={() => setShowDatePicker(true)}>
           <View pointerEvents="none"><StitchInput label="Date" required value={form.date} icon={Calendar} editable={false} /></View>
         </Pressable>
-        <View className="flex-1"><StitchInput label="Odometer" required placeholder={currentOdo.toString()} unit="km" keyboardType="numeric" value={form.odometer} onChange={(v) => setForm({...form, odometer: v})} /></View>
+        <View className="flex-1"><StitchInput label="Odometer" required placeholder={currentOdo.toString()} unit={distanceUnit.toLowerCase()} keyboardType="numeric" value={form.odometer} onChange={(v) => setForm({...form, odometer: v})} /></View>
       </View>
 
       <View className="mb-4">
