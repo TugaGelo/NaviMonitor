@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
 import StatCard from '../../ui/StatCard';
@@ -21,6 +21,48 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
       setEffUnit(`${settings.distanceUnit}/${settings.volumeUnit}`);
     });
   }, []);
+
+  const { generalHealth, criticalItem } = useMemo(() => {
+    if (!vehicle?.maintenanceMatrixJson) return { generalHealth: 100, criticalItem: null };
+    
+    try {
+      const parsedMatrix = JSON.parse(vehicle.maintenanceMatrixJson);
+      
+      const evaluatedMatrix = parsedMatrix.map((matrixItem: any) => {
+        const serviceLogs = timeline.filter((l: any) => 
+          l.feedType === 'Maintenance' && l.serviceType === matrixItem.item
+        );
+        const latestLog = serviceLogs.length > 0 ? serviceLogs[0] : null;
+        
+        let lastServiceOdo = 0;
+        let distanceTraveled = 0;
+        let remainingKm = 0;
+
+        if (latestLog) {
+          lastServiceOdo = latestLog.odometer;
+          distanceTraveled = Math.max(0, stats.currentOdo - lastServiceOdo);
+          remainingKm = matrixItem.interval - distanceTraveled;
+        } else {
+          lastServiceOdo = 0;
+          distanceTraveled = stats.currentOdo;
+          remainingKm = matrixItem.interval - distanceTraveled;
+        }
+        
+        const progressPct = Math.min(100, Math.max(0, (distanceTraveled / matrixItem.interval) * 100));
+        return { ...matrixItem, remainingKm, progressPct };
+      }).sort((a: any, b: any) => a.remainingKm - b.remainingKm);
+
+      if (evaluatedMatrix.length === 0) return { generalHealth: 100, criticalItem: null };
+
+      const totalProgress = evaluatedMatrix.reduce((acc: number, curr: any) => acc + curr.progressPct, 0);
+      const avgProgress = totalProgress / evaluatedMatrix.length;
+      
+      const health = Math.max(0, Math.round(100 - avgProgress));
+      return { generalHealth: health, criticalItem: evaluatedMatrix[0] };
+    } catch (e) {
+      return { generalHealth: 100, criticalItem: null };
+    }
+  }, [vehicle, timeline, stats]);
 
   const distanceCovered = stats.currentOdo - vehicle.startingOdometer;
   const costPerKm = distanceCovered > 0 ? (stats.totalSpent / distanceCovered).toFixed(2) : "0.00";
@@ -88,10 +130,17 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           <ChevronRight size={16} color="#848484" />
         </View>
         <View className="w-full bg-[#f0eded] rounded-full h-2 mb-3 overflow-hidden">
-          <View className="bg-[#10b981] h-2 rounded-full" style={{ width: '75%' }}></View>
+          <View 
+            className={`h-2 rounded-full ${generalHealth < 40 ? 'bg-[#b7102a]' : 'bg-[#1c1b1b]'}`} 
+            style={{ width: `${generalHealth}%` }} 
+          />
         </View>
         <Text className="font-medium text-[#848484] text-[13px]">
-          Next Service: <Text className="font-bold text-[#1c1b1b]">Oil Change in 1,200 {distanceUnit.toLowerCase()}</Text>
+          {criticalItem ? (
+            <>Next Service: <Text className="font-bold text-[#1c1b1b]">{criticalItem.item} in {Math.max(0, criticalItem.remainingKm).toLocaleString()} {distanceUnit.toLowerCase()}</Text></>
+          ) : (
+            <>Status: <Text className="font-bold text-[#1c1b1b]">No Matrix Configured</Text></>
+          )}
         </Text>
       </Pressable>
 

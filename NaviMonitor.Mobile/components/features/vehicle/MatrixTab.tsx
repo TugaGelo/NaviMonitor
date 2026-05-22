@@ -43,9 +43,23 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
         );
         const latestLog = serviceLogs.length > 0 ? serviceLogs[0] : null;
         
-        const lastServiceOdo = latestLog ? latestLog.odometer : vehicle.startingOdometer;
-        const distanceTraveled = Math.max(0, stats.currentOdo - lastServiceOdo);
-        const remainingKm = matrixItem.interval - distanceTraveled;
+        let lastServiceOdo = 0;
+        let distanceTraveled = 0;
+        let remainingKm = 0;
+
+        // 🛠️ DETECT WORK HISTORY MODE
+        if (latestLog) {
+          // Relative Mode: Track distance forward from your previous logged checkup
+          lastServiceOdo = latestLog.odometer;
+          distanceTraveled = Math.max(0, stats.currentOdo - lastServiceOdo);
+          remainingKm = matrixItem.interval - distanceTraveled;
+        } else {
+          // Absolute Mode: Brand new tracking profile or older vehicle with zero logs.
+          // Measures current absolute mileage against birth milestone (0)
+          lastServiceOdo = 0;
+          distanceTraveled = stats.currentOdo;
+          remainingKm = matrixItem.interval - distanceTraveled;
+        }
         
         const progressPct = Math.min(100, Math.max(0, (distanceTraveled / matrixItem.interval) * 100));
 
@@ -101,7 +115,6 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
               AI Sync Manual
             </Text>
           </Pressable>
-
         </View>
       </View>
     );
@@ -179,7 +192,7 @@ export const MatrixTab = memo(({ vehicle, stats, timeline }: any) => {
                   </View>
                   <Text className={`font-black text-[12px] uppercase tracking-widest ${textMain}`}>
                     {isOverdue 
-                      ? `${item.remainingKm.toLocaleString()} ${distanceUnit} OVERDUE` 
+                      ? `${Math.abs(item.remainingKm).toLocaleString()} ${distanceUnit} OVERDUE` 
                       : `${item.remainingKm.toLocaleString()} ${distanceUnit} LEFT`}
                   </Text>
                 </View>
