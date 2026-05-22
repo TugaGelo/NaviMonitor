@@ -13,6 +13,7 @@ import ActionSheet from '../../components/ui/ActionSheet';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PageHeader from '../../components/vehicle/PageHeader';
 import StatsTab from '../../components/garage/StatsTab';
+import SystemTab from '../../components/garage/SystemTab';
 
 // Data
 import { VehicleRepository } from '../../lib/localRepository';
@@ -174,14 +175,9 @@ export default function GlobalMasterScreen() {
               subtitle="OPERATIONS & SUPPORT" 
             />
           </View>
-          <View className="flex-1 items-center justify-center px-6">
-            <Pressable 
-              onPress={logout}
-              className="bg-[#ef4444] px-8 py-4 rounded-full active:opacity-80"
-            >
-              <Text className="text-white font-bold tracking-widest uppercase">Logout</Text>
-            </Pressable>
-          </View>
+          
+          <SystemTab onLogout={logout} />
+          
         </View>
 
       </PagerView>

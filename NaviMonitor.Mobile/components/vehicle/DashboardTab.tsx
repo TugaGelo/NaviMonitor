@@ -1,13 +1,27 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { Droplet, Wrench, AlertTriangle, Gauge, Banknote, Wallet, History as HistoryIcon, ChevronRight, Car, Bike } from 'lucide-react-native';
 import TimelineItem from './TimelineItem';
 import StatCard from './StatCard';
 import PageHeader from './PageHeader';
+import { SettingsRepository } from '../../lib/localRepository';
 
 export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoToMatrix }: any) => {
   const router = useRouter();
+
+  // Dynamic Settings States
+  const [distanceUnit, setDistanceUnit] = useState('KM');
+  const [effUnit, setEffUnit] = useState('KM/L');
+
+  // Load Settings on Mount
+  useEffect(() => {
+    SettingsRepository.getSettings().then(settings => {
+      setDistanceUnit(settings.distanceUnit);
+      setEffUnit(`${settings.distanceUnit}/${settings.volumeUnit}`);
+    });
+  }, []);
+
   const distanceCovered = stats.currentOdo - vehicle.startingOdometer;
   const costPerKm = distanceCovered > 0 ? (stats.totalSpent / distanceCovered).toFixed(2) : "0.00";
 
@@ -25,7 +39,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
               <Text className="text-[#cfc4c5] text-xs font-bold">•</Text>
               <View className="flex-row items-center gap-2">
                 <Gauge size={12} color="#848484" strokeWidth={2.5} />
-                <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{stats.currentOdo.toLocaleString()} KM</Text>
+                <Text className="text-[11px] font-black text-[#848484] uppercase tracking-[0.15em]">{stats.currentOdo.toLocaleString()} {distanceUnit}</Text>
               </View>
             </View>
           }
@@ -53,7 +67,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           <Text className="text-[#1c1b1b] font-bold text-[13px]">Mod</Text>
         </Pressable>
 
-        {/* 3. Unscheduled Service */}
+        {/* Unscheduled Service */}
         <Pressable 
           onPress={() => router.push(`/vehicle/log/service?vehicleId=${vehicle.id}&mode=unscheduled`)}
           className="flex-1 bg-[#b7102a] rounded-full py-3 flex-row items-center justify-center gap-1 active:scale-95 transition-transform"
@@ -77,7 +91,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           <View className="bg-[#10b981] h-2 rounded-full" style={{ width: '75%' }}></View>
         </View>
         <Text className="font-medium text-[#848484] text-[13px]">
-          Next Service: <Text className="font-bold text-[#1c1b1b]">Oil Change in 1,200 km</Text>
+          Next Service: <Text className="font-bold text-[#1c1b1b]">Oil Change in 1,200 {distanceUnit.toLowerCase()}</Text>
         </Text>
       </Pressable>
 
@@ -93,10 +107,10 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           label="Avg Efficiency" 
           value={stats.avgEfficiency} 
           icon={Gauge} 
-          unit="km/L" 
+          unit={effUnit} 
         />
         <StatCard 
-          label="Cost Per KM" 
+          label={`Cost Per ${distanceUnit}`} 
           value={costPerKm} 
           icon={Wallet} 
           prefix="₱" 
@@ -105,7 +119,7 @@ export const DashboardTab = memo(({ vehicle, stats, timeline, onGoToLogs, onGoTo
           label="Current Odo" 
           value={stats.currentOdo.toLocaleString()} 
           icon={HistoryIcon} 
-          unit="km" 
+          unit={distanceUnit.toLowerCase()} 
         />
       </View>
 

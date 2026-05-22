@@ -1,5 +1,6 @@
 import { getDb } from './database';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const DEV_USER_ID = "DEV_USER_GELO";
 
@@ -290,4 +291,41 @@ export const VehicleRepository = {
     await db.runAsync(`DELETE FROM MaintenanceLogs WHERE id = ?`, [id]);
   }
 
+};
+
+const SETTINGS_KEYS = {
+  DISTANCE: '@NaviMonitor:distanceUnit',
+  VOLUME: '@NaviMonitor:volumeUnit',
+  FUEL_TYPES: '@NaviMonitor:fuelTypes'
+};
+
+export const SettingsRepository = {
+  async getSettings() {
+    try {
+      const distance = await AsyncStorage.getItem(SETTINGS_KEYS.DISTANCE);
+      const volume = await AsyncStorage.getItem(SETTINGS_KEYS.VOLUME);
+      const fuelData = await AsyncStorage.getItem(SETTINGS_KEYS.FUEL_TYPES);
+
+      return {
+        distanceUnit: (distance as 'KM' | 'MI') || 'KM',
+        volumeUnit: (volume as 'L' | 'GAL') || 'L',
+        fuelTypes: fuelData ? JSON.parse(fuelData) : ['UNLEADED', 'PREMIUM', 'DIESEL']
+      };
+    } catch (e) {
+      console.error("Failed to load settings", e);
+      return { distanceUnit: 'KM', volumeUnit: 'L', fuelTypes: ['UNLEADED', 'PREMIUM', 'DIESEL'] };
+    }
+  },
+
+  async saveDistanceUnit(unit: 'KM' | 'MI') {
+    await AsyncStorage.setItem(SETTINGS_KEYS.DISTANCE, unit);
+  },
+
+  async saveVolumeUnit(unit: 'L' | 'GAL') {
+    await AsyncStorage.setItem(SETTINGS_KEYS.VOLUME, unit);
+  },
+
+  async saveFuelTypes(types: string[]) {
+    await AsyncStorage.setItem(SETTINGS_KEYS.FUEL_TYPES, JSON.stringify(types));
+  }
 };

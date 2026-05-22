@@ -1,7 +1,9 @@
 import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Car, ArrowRight } from 'lucide-react-native';
+import { useState, useEffect } from 'react';
 import { Vehicle } from '../types';
+import { SettingsRepository } from '../lib/localRepository';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
@@ -13,6 +15,13 @@ interface VehicleCardProps {
 
 export default function VehicleCard({ vehicle, onRefresh, onLongPress }: VehicleCardProps) {
   const router = useRouter();
+  const [distanceUnit, setDistanceUnit] = useState('KM');
+
+  useEffect(() => {
+    SettingsRepository.getSettings().then(settings => {
+      setDistanceUnit(settings.distanceUnit);
+    });
+  }, []);
 
   return (
     <Pressable
@@ -27,12 +36,9 @@ export default function VehicleCard({ vehicle, onRefresh, onLongPress }: Vehicle
         elevation: 3,
       }}
     >
-      {/* Absolute Positioned Status Pill */}
       <View className="absolute top-4 right-4 flex-row items-center bg-[#f0eded] px-3 py-1 rounded-full border border-[#e5e2e1] z-10">
         <View className="w-1.5 h-1.5 rounded-full bg-[#000000] mr-1.5" />
-        <Text className="font-bold text-[9px] text-[#000000] uppercase tracking-widest">
-          Nominal
-        </Text>
+        <Text className="font-bold text-[9px] text-[#000000] uppercase tracking-widest">Nominal</Text>
       </View>
 
       <View className="flex-col">
@@ -73,7 +79,7 @@ export default function VehicleCard({ vehicle, onRefresh, onLongPress }: Vehicle
               <Text className="font-extrabold text-2xl text-[#000000] tracking-tighter">
                 {vehicle.currentOdo.toLocaleString()}
               </Text>
-              <Text className="font-bold text-xs text-[#848484] ml-1">KM</Text>
+              <Text className="font-bold text-xs text-[#848484] ml-1">{distanceUnit}</Text>
             </View>
           </View>
           <ArrowRight size={18} color="#848484" />
