@@ -76,3 +76,19 @@ export async function initDatabase() {
 
   return db;
 }
+
+export async function purgeLocalDatabase() {
+  try {
+    const db = await getDb();
+    
+    await db.execAsync(`
+      DELETE FROM RefuelLogs;
+      DELETE FROM MaintenanceLogs;
+      DELETE FROM Vehicles;
+    `);
+    
+    console.log('🧹 Local database successfully purged on logout.');
+  } catch (error) {
+    console.error('🚨 Failed to purge local database:', error);
+  }
+}
