@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "711609951499",
+    "project_id": "navi-monitor",
+    "storage_bucket": "navi-monitor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711609951499:android:432e931e8264c7c3bb6e0e",
+        "android_client_info": {
+          "package_name": "com.gelo.navimonitor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "711609951499-7b0tgitkfk5nsrmej7vantcgm36k6gus.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gelo.navimonitor",
+            "certificate_hash": "028ea6bb1c13b5ad6e4ecca8546e7ffdf92fa839"
+          }
+        },
+        {
+          "client_id": "711609951499-jr6cv4mk00441no9qtb0u0u9smbd8i2j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gelo.navimonitor",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "711609951499-bj6alvcva0jovtpq57080ddl60eedqgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiYcQ4_kCwilVHEiyH5g4goAd_0zIceR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "711609951499-bj6alvcva0jovtpq57080ddl60eedqgi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
