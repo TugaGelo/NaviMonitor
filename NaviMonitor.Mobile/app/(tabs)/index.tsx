@@ -15,16 +15,18 @@ import PageHeader from '../../components/ui/PageHeader';
 import StatsTab from '../../components/features/global/StatsTab';
 import SystemTab from '../../components/features/global/SystemTab';
 
-// Data
+// Data & Networking
 import { VehicleRepository } from '../../lib/database/localRepository';
 import { Vehicle } from '../../types';
 import { useAuth } from '../../lib/auth/AuthContext';
+import { apiClient } from '../../lib/network/apiClient';
+import { getDb } from '../../lib/database/database';
 
 type VehicleWithStats = Vehicle & { currentOdo: number };
 
 export default function GlobalMasterScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   // Navigation State
   const pagerRef = useRef<PagerView>(null);
@@ -43,7 +45,55 @@ export default function GlobalMasterScreen() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await VehicleRepository.getVehicles();
+      if (!user?.uid) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get('/api/Vehicle');
+        const cloudVehicles = response.data;
+        const db = await getDb();
+
+        for (const cloudV of cloudVehicles) {
+          const localExists = await db.getFirstAsync<{ id: number }>(
+            `SELECT id FROM Vehicles WHERE serverId = ?`,
+            [cloudV.id]
+          );
+
+          if (!localExists) {
+            await db.runAsync(
+              `INSERT INTO Vehicles (
+                id, serverId, userId, vehicleType, nickname, make, model, year, 
+                color, engineSizeCC, startingOdometer, licensePlate, 
+                registrationExpiry, hasSyncedManual, maintenanceMatrixJson, is_synced, updatedAt
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+              [
+                cloudV.id, 
+                cloudV.id,
+                user.uid,
+                cloudV.vehicleType || 'Car',
+                cloudV.nickname || '',
+                cloudV.make || '',
+                cloudV.model || '',
+                cloudV.year || new Date().getFullYear(),
+                cloudV.color || '',
+                cloudV.engineSizeCC || 0,
+                cloudV.startingOdometer || 0,
+                cloudV.licensePlate || '',
+                cloudV.registrationExpiry || '',
+                cloudV.hasSyncedManual ? 1 : 0,
+                cloudV.maintenanceMatrixJson || null,
+                cloudV.updatedAt || new Date().toISOString()
+              ]
+            );
+          }
+        }
+      } catch (networkError) {
+        console.log("[Sync Down] Device offline or server cold-start. Displaying cached data.");
+      }
+
+      const data = await VehicleRepository.getVehicles(user.uid);
       let compiledTimeline: any[] = [];
       
       const enrichedVehicles = await Promise.all(data.map(async (v) => {
@@ -70,7 +120,7 @@ export default function GlobalMasterScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [user?.uid])
   );
 
   const handleLongPress = (vehicle: VehicleWithStats) => {
@@ -116,7 +166,6 @@ export default function GlobalMasterScreen() {
     <SafeAreaView className="flex-1 bg-[#fcf9f8]" edges={['top']}>
       <Tabs.Screen options={{ tabBarStyle: { display: 'none' }, headerShown: false }} />
 
-      {/* Panel Swipe Container */}
       <PagerView 
         ref={pagerRef}
         style={{ flex: 1 }} 

@@ -2,8 +2,6 @@ import { getDb } from '../database/database';
 import type { Vehicle, RefuelLog, MaintenanceLog } from '../../types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const DEV_USER_ID = "DEV_USER_GELO";
-
 const generateOfflineId = () => -Math.floor(Math.random() * 999999) - 1;
 
 export const VehicleRepository = {
@@ -25,7 +23,9 @@ export const VehicleRepository = {
         registrationExpiry, hasSyncedManual, maintenanceMatrixJson, is_synced, updatedAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
       [
-        offlineId, DEV_USER_ID, vehicle.vehicleType || 'Car', vehicle.nickname || '',
+        offlineId, 
+        vehicle.userId,
+        vehicle.vehicleType || 'Car', vehicle.nickname || '',
         vehicle.make || '', vehicle.model || '', safeYear, vehicle.color || '',
         safeEngineSize, safeOdometer, vehicle.licensePlate || '', safeExpiry,
         vehicle.hasSyncedManual ? 1 : 0,
@@ -37,11 +37,11 @@ export const VehicleRepository = {
     return offlineId;
   },
 
-  async getVehicles() {
+  async getVehicles(userId: string) {
     const db = await getDb();
     const result = await db.getAllAsync<Vehicle>(
       `SELECT * FROM Vehicles WHERE userId = ? ORDER BY id DESC`,
-      [DEV_USER_ID]
+      [userId]
     );
     return result;
   },

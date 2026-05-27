@@ -23,6 +23,14 @@ public class VehicleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllVehicles()
     {
+        if (!string.IsNullOrEmpty(CurrentUserId))
+        {
+            var userVehicles = await _context.Vehicles
+                .Where(v => v.UserId == CurrentUserId)
+                .ToListAsync();
+            return Ok(userVehicles);
+        }
+
         var vehicles = await _context.Vehicles.ToListAsync();
         return Ok(vehicles);
     }
@@ -44,10 +52,6 @@ public class VehicleController : ControllerBase
         {
             newVehicle.UserId = CurrentUserId;
         }
-        else if (string.IsNullOrEmpty(newVehicle.UserId))
-        {
-            newVehicle.UserId = "DEV_USER_GELO";
-        }
 
         _context.Vehicles.Add(newVehicle);
         await _context.SaveChangesAsync();
@@ -63,9 +67,9 @@ public class VehicleController : ControllerBase
             return BadRequest("The ID in the URL must match the ID in the data.");
         }
 
-        if (string.IsNullOrEmpty(updatedVehicle.UserId))
+        if (!string.IsNullOrEmpty(CurrentUserId))
         {
-            updatedVehicle.UserId = "DEV_USER_GELO";
+            updatedVehicle.UserId = CurrentUserId;
         }
 
         _context.Entry(updatedVehicle).State = EntityState.Modified;

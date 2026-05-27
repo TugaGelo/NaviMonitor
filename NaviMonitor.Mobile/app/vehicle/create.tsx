@@ -8,6 +8,7 @@ import FormSheetWrapper from '../../components/ui/FormSheetWrapper';
 import SegmentedControl from '../../components/ui/SegmentedControl';
 import StitchInput from '../../components/ui/StitchInput';
 import { runSyncEngine } from '../../hooks/useAutoSync';
+import { auth } from '../../lib/auth/firebase';
 
 export default function AddVehicleScreen() {
   const router = useRouter();
@@ -44,13 +45,15 @@ export default function AddVehicleScreen() {
       return Alert.alert("Validation Error", "Engine Capacity must be between 1 and 20,000 CC.");
     }
 
+    const currentUser = auth.currentUser;
+
     const vehiclePayload = { 
       ...form, 
       nickname: trimmedNickname,
       year: parseInt(form.year) || new Date().getFullYear(), 
       engineSizeCC: engineCC, 
       startingOdometer: parseInt(form.startingOdometer) || 0,
-      userId: "DEV_USER_GELO"
+      userId: currentUser?.uid || ""
     };
 
     try {
