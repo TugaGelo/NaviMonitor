@@ -7,7 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { VehicleRepository } from '../../../lib/database/localRepository';
 import { Vehicle, MaintenanceMatrixItem } from '../../../types';
 import SegmentedControl from '../../../components/ui/SegmentedControl';
-import  { runSyncEngine } from '../../../hooks/useAutoSync';
+import { runSyncEngine } from '../../../hooks/useAutoSync';
+import { auth } from '../../../lib/auth/firebase';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -39,14 +40,38 @@ export default function AISyncScreen() {
         formData.append('files', { uri, name: uri.split('/').pop() || `img_${idx}.jpg`, type: 'image/jpeg' });
       });
 
-      const response = await fetch(`${API_BASE_URL}/maintenance/analyze`, { method: 'POST', headers: { 'Content-Type': 'multipart/form-data' }, body: formData });
-      if (!response.ok) throw new Error();
+      const baseEndpoint = API_BASE_URL?.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
+      const cleanUrl = `${baseEndpoint}Maintenance/analyze`;
+
+      const currentUser = auth.currentUser;
+      const token = currentUser ? await currentUser.getIdToken(false) : '';
+
+      console.log(`📡 Uploading images to: ${cleanUrl}`);
+
+      const response = await fetch(cleanUrl, { 
+        method: 'POST', 
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData 
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`🚨 Backend Rejected (${response.status}):`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
       const responseData = await response.json();
       
-      if (responseData?.matrix) { setMatrixData(responseData.matrix); setStep(2); } 
-      else throw new Error();
-    } catch {
-      Alert.alert("Analysis Failed", "Could not process images. Check server connection.");
+      if (responseData?.matrix) { 
+        setMatrixData(responseData.matrix); 
+        setStep(2); 
+      } else {
+        console.error("🚨 Unexpected AI Response:", responseData);
+        throw new Error("Missing matrix data from AI.");
+      }
+    } catch (error: any) {
+      console.error("[AI Sync Error]:", error.message || error);
+      Alert.alert("Analysis Failed", `Server says: ${error.message || 'Unknown error'}`);
       setStep(0);
     }
   };
@@ -67,7 +92,6 @@ export default function AISyncScreen() {
       });
       
       runSyncEngine();
-      
       router.back();
     } catch { 
       Alert.alert("Save Failed", "Could not save the matrix."); 
