@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "NaviMonitor.Mobile",
-    "slug": "NaviMonitor.Mobile",
+    "slug": "NaviMonitor-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,7 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.gelo.navimonitor"
     },
-  "android": {
+    "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -41,6 +41,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d4abe9c2-2930-405b-adeb-a0f54c24170c"
+      }
     }
   }
 }

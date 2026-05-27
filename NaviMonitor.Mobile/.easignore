@@ -1,0 +1,11 @@
+# Block regular node modules and system files from uploading to the cloud builder
+node_modules/
+.expo/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 🚀 FORCE EAS to upload your services config file even if it's in your .gitignore
+!google-services.json
+!android/app/google-services.json
