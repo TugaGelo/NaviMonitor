@@ -17,6 +17,7 @@ import SystemTab from '../../components/features/global/SystemTab';
 
 // Data & Networking
 import { VehicleRepository } from '../../lib/database/localRepository';
+import { RemoteRepository } from '../../lib/network/remoteRepository';
 import { Vehicle } from '../../types';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { apiClient } from '../../lib/network/apiClient';
@@ -51,7 +52,7 @@ export default function GlobalMasterScreen() {
       }
 
       try {
-        const response = await apiClient.get('/api/Vehicle');
+        const response = await apiClient.get('Vehicle');
         const cloudVehicles = response.data;
         const db = await getDb();
 
@@ -146,9 +147,13 @@ export default function GlobalMasterScreen() {
     setIsConfirmVisible(false);
     if (selectedVehicle) {
       try {
+        if (selectedVehicle.serverId && selectedVehicle.serverId > 0) {
+          await RemoteRepository.deleteVehicle(selectedVehicle.serverId);
+        }
         await VehicleRepository.deleteVehicle(selectedVehicle.id!);
         loadData(); 
       } catch (error) {
+        console.error(error);
         Alert.alert("Error", "Could not delete the vehicle.");
       }
     }
