@@ -1,7 +1,11 @@
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
 import '../global.css';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
 import { initDatabase } from '../lib/database/database';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider, onlineManager } from '@tanstack/react-query';

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "711609951499-5dnu6976ke3sha0f9ous9f979n9all9v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gelo.navimonitor",
+            "certificate_hash": "f60348e5566ccc70857cbfbf6613f5c284f9b7cd"
+          }
+        },
+        {
           "client_id": "711609951499-7b0tgitkfk5nsrmej7vantcgm36k6gus.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
