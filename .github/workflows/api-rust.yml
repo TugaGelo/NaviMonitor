@@ -1,0 +1,40 @@
+name: api-rust
+
+on:
+  push:
+    branches: [main]
+    paths: ["NaviMonitor.Api.Rust/**", ".github/workflows/api-rust.yml"]
+  pull_request:
+    paths: ["NaviMonitor.Api.Rust/**", ".github/workflows/api-rust.yml"]
+
+defaults:
+  run:
+    working-directory: NaviMonitor.Api.Rust
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: navi
+          POSTGRES_PASSWORD: navi
+          POSTGRES_DB: navimonitor
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U navi"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://navi:navi@localhost:5432/navimonitor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: NaviMonitor.Api.Rust
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
