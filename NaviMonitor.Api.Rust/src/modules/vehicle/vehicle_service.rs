@@ -6,7 +6,7 @@ use super::{
     vehicle::{Vehicle, VehicleInput},
     vehicle_repo,
 };
-use crate::shared_kernel::current_user::CurrentUser;
+use crate::{modules::refuel::refuel_repo, shared_kernel::current_user::CurrentUser};
 
 #[derive(Debug, thiserror::Error)]
 pub enum VehicleError {
@@ -58,10 +58,14 @@ pub async fn update(
 }
 
 pub async fn delete(pool: &PgPool, user: &CurrentUser, id: i32) -> Result<(), VehicleError> {
-    // TODO(step 4/5): soft-delete the vehicle's refuel and maintenance logs in the same transaction.
-    if vehicle_repo::soft_delete(pool, &user.uid, id).await? {
-        Ok(())
-    } else {
-        Err(VehicleError::NotFound)
+    // One transaction: the vehicle and its logs disappear together or not at all.
+    // Returning early drops `tx`, which rolls it back.
+    let mut tx = pool.begin().await?;
+    if !vehicle_repo::soft_delete(&mut *tx, &user.uid, id).await? {
+        return Err(VehicleError::NotFound);
     }
+    refuel_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
+    // TODO(step 5): maintenance logs too.
+    tx.commit().await?;
+    Ok(())
 }

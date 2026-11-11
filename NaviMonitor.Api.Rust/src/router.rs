@@ -9,7 +9,7 @@ use tower::util::MapRequestLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    api::{health_api, settings_api, vehicle_api},
+    api::{health_api, refuel_api, settings_api, vehicle_api},
     app_state::AppState,
 };
 
@@ -32,6 +32,18 @@ pub fn build_router(state: AppState) -> Router {
             get(vehicle_api::get)
                 .put(vehicle_api::update)
                 .delete(vehicle_api::delete),
+        )
+        .route(
+            "/api/refuel",
+            get(refuel_api::list).post(refuel_api::create),
+        )
+        .route(
+            "/api/refuel/{id}",
+            axum::routing::put(refuel_api::update).delete(refuel_api::delete),
+        )
+        .route(
+            "/api/refuel/vehicle/{vehicle_id}",
+            get(refuel_api::list_for_vehicle),
         )
         .layer(TraceLayer::new_for_http())
         .layer(cors)

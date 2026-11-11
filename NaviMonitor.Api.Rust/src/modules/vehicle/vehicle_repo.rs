@@ -4,7 +4,7 @@
 // shortcut: runtime-checked queries (sqlx::query_as), because there's no DB at
 // build time yet; switch to query_as! + `cargo sqlx prepare` once one is handy.
 
-use sqlx::PgPool;
+use sqlx::{PgExecutor, PgPool};
 
 use super::vehicle::{Vehicle, VehicleFields};
 
@@ -86,14 +86,14 @@ pub async fn update(
 }
 
 /// Returns false when the vehicle doesn't exist for this user.
-pub async fn soft_delete(pool: &PgPool, user_id: &str, id: i32) -> sqlx::Result<bool> {
+pub async fn soft_delete(conn: impl PgExecutor<'_>, user_id: &str, id: i32) -> sqlx::Result<bool> {
     let result = sqlx::query(
         "UPDATE vehicles SET deleted_at = now(), updated_at = now()
          WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL",
     )
     .bind(id)
     .bind(user_id)
-    .execute(pool)
+    .execute(conn)
     .await?;
     Ok(result.rows_affected() == 1)
 }

@@ -3,5 +3,6 @@
 pub mod error;
 pub mod health_api;
 pub mod json;
+pub mod refuel_api;
 pub mod settings_api;
 pub mod vehicle_api;
