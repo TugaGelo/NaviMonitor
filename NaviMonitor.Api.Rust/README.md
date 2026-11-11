@@ -43,3 +43,7 @@ Follows the Whisker Works layer contract, by file suffix:
 ```bash
 cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
 ```
+
+Database tests (`db_tests` modules, using `#[sqlx::test]`) need Postgres running
+(`docker compose up -d`) and `DATABASE_URL` set; each test gets a fresh database.
+To run only the tests that don't need a database: `cargo test -- --skip db_tests`.

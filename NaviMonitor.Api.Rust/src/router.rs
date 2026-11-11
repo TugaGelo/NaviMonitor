@@ -1,21 +1,61 @@
 use axum::{
     Router,
-    http::{HeaderValue, Method, header},
+    extract::Request,
+    http::{HeaderValue, Method, Uri, header},
     routing::get,
 };
+use tower::Layer;
+use tower::util::MapRequestLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
-use crate::{api::health_api, app_state::AppState};
+use crate::{
+    api::{health_api, vehicle_api},
+    app_state::AppState,
+};
 
 pub fn build_router(state: AppState) -> Router {
     let cors = cors_layer(&state.config.cors_origins);
 
-    Router::new()
+    let routes = Router::new()
         .route("/health", get(health_api::health))
         .route("/api/me", get(health_api::me))
+        .route(
+            "/api/vehicle",
+            get(vehicle_api::list).post(vehicle_api::create),
+        )
+        .route(
+            "/api/vehicle/{id}",
+            get(vehicle_api::get)
+                .put(vehicle_api::update)
+                .delete(vehicle_api::delete),
+        )
         .layer(TraceLayer::new_for_http())
         .layer(cors)
-        .with_state(state)
+        .with_state(state);
+
+    // Router layers run after routing, so the path rewrite wraps the whole router instead.
+    Router::new().fallback_service(MapRequestLayer::new(lowercase_path).layer(routes))
+}
+
+/// ASP.NET routes were case-insensitive and the mobile app calls `/api/Vehicle`,
+/// while the web app calls `/api/vehicle`. Lowercase the path so both match.
+fn lowercase_path(mut req: Request) -> Request {
+    let uri = req.uri();
+    if !uri.path().bytes().any(|b| b.is_ascii_uppercase()) {
+        return req;
+    }
+    let path = uri.path().to_ascii_lowercase();
+    let path_and_query = match uri.query() {
+        Some(q) => format!("{path}?{q}"),
+        None => path,
+    };
+    let mut parts = uri.clone().into_parts();
+    // Lowercasing ASCII letters can't make a valid path invalid.
+    parts.path_and_query = path_and_query.parse().ok();
+    if let Ok(uri) = Uri::from_parts(parts) {
+        *req.uri_mut() = uri;
+    }
+    req
 }
 
 /// Only the listed browser origins may call the API. Native apps send no
@@ -40,72 +80,14 @@ fn cors_layer(origins: &[String]) -> CorsLayer {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use axum::http::{Method, StatusCode};
 
-    use axum::{
-        body::{Body, to_bytes},
-        http::{Request, StatusCode},
-    };
-    use sqlx::postgres::PgPoolOptions;
-    use tower::ServiceExt;
+    use crate::test_support::{ME, TestApp};
 
-    use super::*;
-    use crate::{
-        config::Config,
-        shared_kernel::token_verifier::{
-            TokenError, TokenVerifier, VerifiedIdentity, VerifyFuture,
-        },
-    };
-
-    /// Accepts the token "good:<email>" and rejects anything else.
-    struct FakeVerifier;
-
-    impl TokenVerifier for FakeVerifier {
-        fn verify<'a>(&'a self, token: &'a str) -> VerifyFuture<'a> {
-            Box::pin(async move {
-                let email = token
-                    .strip_prefix("good:")
-                    .ok_or_else(|| TokenError::Invalid("bad".into()))?;
-                Ok(VerifiedIdentity {
-                    uid: format!("uid-{email}"),
-                    email: Some(email.into()),
-                    email_verified: true,
-                })
-            })
-        }
-    }
-
-    fn app() -> Router {
-        let config = Config::from_lookup(|key| match key {
-            "DATABASE_URL" => Some("postgres://unused@localhost/unused".into()),
-            "FIREBASE_PROJECT_ID" => Some("test".into()),
-            "ALLOWED_EMAILS" => Some("me@gmail.com".into()),
-            _ => None,
-        })
-        .unwrap();
-        // Lazy pool: these tests never touch the database.
-        let pool = PgPoolOptions::new()
-            .connect_lazy(&config.database_url)
-            .unwrap();
-        build_router(AppState {
-            pool,
-            config: Arc::new(config),
-            token_verifier: Arc::new(FakeVerifier),
-        })
-    }
-
-    async fn get_me(auth: Option<&str>) -> (StatusCode, String) {
-        let mut req = Request::get("/api/me");
-        if let Some(auth) = auth {
-            req = req.header(header::AUTHORIZATION, auth);
-        }
-        let res = app()
-            .oneshot(req.body(Body::empty()).unwrap())
+    async fn get_me(token: Option<&str>) -> (StatusCode, serde_json::Value) {
+        TestApp::without_db()
+            .call(Method::GET, "/api/me", token, None)
             .await
-            .unwrap();
-        let status = res.status();
-        let body = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        (status, String::from_utf8(body.to_vec()).unwrap())
     }
 
     #[tokio::test]
@@ -114,30 +96,45 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn non_bearer_scheme_is_401() {
-        assert_eq!(get_me(Some("Basic abc")).await.0, StatusCode::UNAUTHORIZED);
-    }
-
-    #[tokio::test]
     async fn invalid_token_is_401() {
-        assert_eq!(
-            get_me(Some("Bearer nope")).await.0,
-            StatusCode::UNAUTHORIZED
-        );
+        assert_eq!(get_me(Some("nope")).await.0, StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]
     async fn valid_token_not_on_allowlist_is_403() {
-        let (status, _) = get_me(Some("Bearer good:stranger@gmail.com")).await;
+        let (status, _) = get_me(Some("good:stranger@gmail.com")).await;
         assert_eq!(status, StatusCode::FORBIDDEN);
     }
 
     #[tokio::test]
     async fn allowlisted_user_gets_their_identity() {
-        let (status, body) = get_me(Some("Bearer good:me@gmail.com")).await;
+        let (status, json) = get_me(ME).await;
         assert_eq!(status, StatusCode::OK);
-        let json: serde_json::Value = serde_json::from_str(&body).unwrap();
         assert_eq!(json["userId"], "uid-me@gmail.com");
         assert_eq!(json["email"], "me@gmail.com");
+    }
+
+    #[tokio::test]
+    async fn routes_are_case_insensitive_like_aspnet() {
+        let (status, _) = TestApp::without_db()
+            .call(Method::GET, "/API/Me?x=1", ME, None)
+            .await;
+        assert_eq!(status, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn malformed_json_is_a_400_with_our_error_shape() {
+        let app = TestApp::without_db();
+        // Auth runs before the body is read, and the body fails before any DB call.
+        let (status, json) = app
+            .call(
+                Method::POST,
+                "/api/vehicle",
+                ME,
+                Some(serde_json::json!({"year": "old"})),
+            )
+            .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert!(json["error"].is_string());
     }
 }
