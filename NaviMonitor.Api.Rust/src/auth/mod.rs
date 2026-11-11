@@ -37,7 +37,9 @@ impl FromRequestParts<AppState> for CurrentUser {
             }),
             AllowlistDecision::Denied => {
                 tracing::info!(uid = %identity.uid, email = ?identity.email, "not on allowlist");
-                Err(ApiError::Forbidden)
+                Err(ApiError::Forbidden(
+                    "You are not allowed to use this app.".into(),
+                ))
             }
         }
     }

@@ -9,7 +9,7 @@ use tower::util::MapRequestLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    api::{health_api, vehicle_api},
+    api::{health_api, settings_api, vehicle_api},
     app_state::AppState,
 };
 
@@ -19,6 +19,10 @@ pub fn build_router(state: AppState) -> Router {
     let routes = Router::new()
         .route("/health", get(health_api::health))
         .route("/api/me", get(health_api::me))
+        .route(
+            "/api/settings",
+            get(settings_api::get).put(settings_api::update),
+        )
         .route(
             "/api/vehicle",
             get(vehicle_api::list).post(vehicle_api::create),
