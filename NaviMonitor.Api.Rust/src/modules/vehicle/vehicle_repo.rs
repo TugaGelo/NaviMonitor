@@ -97,3 +97,24 @@ pub async fn soft_delete(conn: impl PgExecutor<'_>, user_id: &str, id: i32) -> s
     .await?;
     Ok(result.rows_affected() == 1)
 }
+
+/// Stores the maintenance schedule built from the owner's manual.
+/// Returns false when the vehicle doesn't exist for this user.
+pub async fn save_matrix(
+    pool: &PgPool,
+    user_id: &str,
+    id: i32,
+    matrix_json: &str,
+) -> sqlx::Result<bool> {
+    let result = sqlx::query(
+        "UPDATE vehicles SET maintenance_matrix_json = $3, has_synced_manual = TRUE,
+             updated_at = now()
+         WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL",
+    )
+    .bind(id)
+    .bind(user_id)
+    .bind(matrix_json)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected() == 1)
+}

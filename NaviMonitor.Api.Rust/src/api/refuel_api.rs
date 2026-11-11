@@ -149,7 +149,7 @@ mod db_tests {
             .call(Method::POST, "/api/refuel", ME, Some(fill_up(vid, 500)))
             .await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
-        assert!(err["error"].as_str().unwrap().contains("(500)"));
+        assert!(err["message"].as_str().unwrap().contains("(500)"));
     }
 
     #[sqlx::test]

@@ -49,6 +49,6 @@ impl IntoResponse for ApiError {
         }
         let status = self.status();
         // Internal details stay in the log; the client gets the generic message.
-        (status, Json(json!({ "error": self.to_string() }))).into_response()
+        (status, Json(json!({ "message": self.to_string() }))).into_response()
     }
 }

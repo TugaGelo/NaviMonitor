@@ -9,7 +9,7 @@ use tower::util::MapRequestLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 use crate::{
-    api::{health_api, refuel_api, settings_api, vehicle_api},
+    api::{health_api, maintenance_api, refuel_api, settings_api, vehicle_api},
     app_state::AppState,
 };
 
@@ -44,6 +44,24 @@ pub fn build_router(state: AppState) -> Router {
         .route(
             "/api/refuel/vehicle/{vehicle_id}",
             get(refuel_api::list_for_vehicle),
+        )
+        .route(
+            "/api/maintenance",
+            get(maintenance_api::list).post(maintenance_api::create),
+        )
+        .route(
+            "/api/maintenance/{id}",
+            get(maintenance_api::get)
+                .put(maintenance_api::update)
+                .delete(maintenance_api::delete),
+        )
+        .route(
+            "/api/maintenance/vehicle/{vehicle_id}",
+            get(maintenance_api::list_for_vehicle),
+        )
+        .route(
+            "/api/maintenance/vehicle/{vehicle_id}/matrix",
+            axum::routing::post(maintenance_api::save_matrix),
         )
         .layer(TraceLayer::new_for_http())
         .layer(cors)
@@ -151,6 +169,6 @@ mod tests {
             )
             .await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
-        assert!(json["error"].is_string());
+        assert!(json["message"].is_string());
     }
 }

@@ -6,7 +6,10 @@ use super::{
     vehicle::{Vehicle, VehicleInput},
     vehicle_repo,
 };
-use crate::{modules::refuel::refuel_repo, shared_kernel::current_user::CurrentUser};
+use crate::{
+    modules::{maintenance::maintenance_repo, refuel::refuel_repo},
+    shared_kernel::current_user::CurrentUser,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum VehicleError {
@@ -65,7 +68,25 @@ pub async fn delete(pool: &PgPool, user: &CurrentUser, id: i32) -> Result<(), Ve
         return Err(VehicleError::NotFound);
     }
     refuel_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
-    // TODO(step 5): maintenance logs too.
+    maintenance_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
     tx.commit().await?;
     Ok(())
+}
+
+/// Saves the schedule as JSON text. `matrix` is whatever the client sent as
+/// `matrixData` (the web app sends `{ "matrix": [...] }`); the clients own its shape.
+pub async fn save_matrix(
+    pool: &PgPool,
+    user: &CurrentUser,
+    id: i32,
+    matrix: Option<serde_json::Value>,
+) -> Result<(), VehicleError> {
+    let matrix = matrix
+        .filter(|m| !m.is_null())
+        .ok_or_else(|| VehicleError::Invalid("Maintenance matrix data is empty.".into()))?;
+    if vehicle_repo::save_matrix(pool, &user.uid, id, &matrix.to_string()).await? {
+        Ok(())
+    } else {
+        Err(VehicleError::NotFound)
+    }
 }

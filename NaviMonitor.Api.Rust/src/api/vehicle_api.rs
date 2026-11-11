@@ -16,7 +16,7 @@ use crate::{
     shared_kernel::current_user::CurrentUser,
 };
 
-fn map_service_error(e: VehicleError) -> ApiError {
+pub(crate) fn map_service_error(e: VehicleError) -> ApiError {
     match e {
         VehicleError::NotFound => ApiError::NotFound,
         VehicleError::Invalid(msg) => ApiError::BadRequest(msg),
@@ -208,7 +208,7 @@ mod db_tests {
             .await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
         assert!(
-            err["error"]
+            err["message"]
                 .as_str()
                 .unwrap()
                 .contains("Nickname is required")
