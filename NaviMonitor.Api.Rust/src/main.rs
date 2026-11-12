@@ -5,8 +5,11 @@ use sqlx::postgres::PgPoolOptions;
 use tracing_subscriber::EnvFilter;
 
 use navimonitor_api::{
-    app_state::AppState, config::Config, infrastructure::firebase_auth::FirebaseTokenVerifier,
+    app_state::AppState,
+    config::Config,
+    infrastructure::{firebase_auth::FirebaseTokenVerifier, gemini::GeminiAnalyzer},
     router::build_router,
+    shared_kernel::manual_analyzer::ManualAnalyzer,
 };
 
 #[tokio::main]
@@ -46,11 +49,26 @@ async fn main() -> anyhow::Result<()> {
         .build()?;
     let verifier = FirebaseTokenVerifier::new(&config.firebase_project_id, http);
 
+    let manual_analyzer = match &config.gemini_api_key {
+        Some(key) => {
+            // Several manual pages can take Gemini well over the default 30 s.
+            let http = reqwest::Client::builder()
+                .timeout(Duration::from_secs(120))
+                .build()?;
+            Some(Arc::new(GeminiAnalyzer::new(http, key.clone())) as Arc<dyn ManualAnalyzer>)
+        }
+        None => {
+            tracing::warn!("GEMINI_API_KEY is not set: /api/maintenance/analyze will answer 503");
+            None
+        }
+    };
+
     let addr = std::net::SocketAddr::from(([0, 0, 0, 0], config.port));
     let state = AppState {
         pool,
         config: Arc::new(config),
         token_verifier: Arc::new(verifier),
+        manual_analyzer,
     };
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

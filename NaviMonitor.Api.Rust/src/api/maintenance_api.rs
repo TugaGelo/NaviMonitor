@@ -1,9 +1,11 @@
 //! `/api/maintenance` — same routes and status codes as the .NET MaintenanceController.
-//! `/analyze` (Gemini) comes in step 6.
 
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{
+        Multipart, Path, State,
+        multipart::{MultipartError, MultipartRejection},
+    },
     http::StatusCode,
 };
 use serde::Deserialize;
@@ -16,10 +18,12 @@ use crate::{
         maintenance::{
             maintenance_log::{MaintenanceInput, MaintenanceLog},
             maintenance_service::{self, MaintenanceError},
+            manual_policy,
+            manual_service::{self, ManualError},
         },
         vehicle::vehicle_service,
     },
-    shared_kernel::current_user::CurrentUser,
+    shared_kernel::{current_user::CurrentUser, manual_analyzer::ManualImage},
 };
 
 fn map_service_error(e: MaintenanceError) -> ApiError {
@@ -117,6 +121,97 @@ pub async fn save_matrix(
     Ok(Json(
         json!({ "message": "Maintenance schedule saved successfully!" }),
     ))
+}
+
+fn map_manual_error(e: ManualError) -> ApiError {
+    let message = e.to_string();
+    match e {
+        ManualError::Invalid(_) => ApiError::BadRequest(message),
+        ManualError::NotConfigured => ApiError::Unavailable(message),
+        ManualError::LimitReached => ApiError::TooManyRequests(message),
+        ManualError::Failed(cause) => {
+            tracing::warn!(error = ?cause, "manual analysis failed");
+            ApiError::BadGateway(message)
+        }
+        ManualError::Database(e) => e.into(),
+    }
+}
+
+fn bad_upload(e: MultipartError) -> ApiError {
+    if e.status() == StatusCode::PAYLOAD_TOO_LARGE {
+        ApiError::BadRequest(manual_policy::too_large_message())
+    } else {
+        ApiError::BadRequest(format!("Could not read the upload: {}", e.body_text()))
+    }
+}
+
+/// `POST /api/maintenance/analyze` — multipart `files` (manual photos) in, `{"matrix": [...]}` out.
+/// Nothing is saved; the app shows the result for review, then calls `/vehicle/{id}/matrix`.
+pub async fn analyze(
+    State(state): State<AppState>,
+    user: CurrentUser,
+    multipart: Result<Multipart, MultipartRejection>,
+) -> Result<Json<Value>, ApiError> {
+    let mut multipart = multipart.map_err(|e| ApiError::BadRequest(e.body_text()))?;
+    let mut images = Vec::new();
+    while let Some(field) = multipart.next_field().await.map_err(bad_upload)? {
+        // The phone always sends a type; default to JPEG like the .NET version did.
+        let mime_type = field
+            .content_type()
+            .unwrap_or("image/jpeg")
+            .to_ascii_lowercase();
+        let data = field.bytes().await.map_err(bad_upload)?;
+        images.push(ManualImage {
+            mime_type,
+            data: data.to_vec(),
+        });
+    }
+
+    manual_service::analyze(
+        &state.pool,
+        state.manual_analyzer.as_deref(),
+        &user,
+        &images,
+    )
+    .await
+    .map(Json)
+    .map_err(map_manual_error)
+}
+
+#[cfg(test)]
+mod analyze_tests {
+    use axum::http::StatusCode;
+
+    use crate::test_support::{ME, TestApp};
+
+    #[tokio::test]
+    async fn no_files_is_400() {
+        let (status, body) = TestApp::without_db()
+            .upload("/api/Maintenance/analyze", ME, &[])
+            .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert!(body["message"].as_str().unwrap().contains("at least one"));
+    }
+
+    #[tokio::test]
+    async fn pdf_is_400() {
+        let (status, _) = TestApp::without_db()
+            .upload(
+                "/api/maintenance/analyze",
+                ME,
+                &[("application/pdf", b"%PDF")],
+            )
+            .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn needs_login() {
+        let (status, _) = TestApp::without_db()
+            .upload("/api/maintenance/analyze", None, &[("image/jpeg", b"page")])
+            .await;
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+    }
 }
 
 #[cfg(test)]
@@ -251,5 +346,39 @@ mod db_tests {
         );
         let (status, _) = app.call(Method::POST, &url, ME, Some(json!({}))).await;
         assert_eq!(status, StatusCode::BAD_REQUEST);
+    }
+
+    #[sqlx::test]
+    async fn analyze_returns_the_matrix_until_the_daily_limit(pool: PgPool) {
+        let app = TestApp::new(pool);
+        let page: &[(&str, &[u8])] = &[("image/jpeg", b"page 1"), ("image/png", b"page 2")];
+        for _ in 0..crate::modules::maintenance::manual_policy::DAILY_LIMIT {
+            let (status, body) = app.upload("/api/maintenance/analyze", ME, page).await;
+            assert_eq!(status, StatusCode::OK);
+            assert_eq!(body["matrix"][0]["item"], "Engine Oil");
+        }
+        let (status, body) = app.upload("/api/maintenance/analyze", ME, page).await;
+        assert_eq!(status, StatusCode::TOO_MANY_REQUESTS);
+        assert!(body["message"].as_str().unwrap().contains("tomorrow"));
+
+        // The limit is per user.
+        let (status, _) = app.upload("/api/maintenance/analyze", OTHER, page).await;
+        assert_eq!(status, StatusCode::OK);
+    }
+
+    #[sqlx::test]
+    async fn a_failed_analysis_does_not_use_up_a_try(pool: PgPool) {
+        let app = TestApp::new(pool);
+        let limit = crate::modules::maintenance::manual_policy::DAILY_LIMIT;
+        for _ in 0..limit {
+            let (status, _) = app
+                .upload("/api/maintenance/analyze", ME, &[("image/jpeg", b"fail")])
+                .await;
+            assert_eq!(status, StatusCode::BAD_GATEWAY);
+        }
+        let (status, _) = app
+            .upload("/api/maintenance/analyze", ME, &[("image/jpeg", b"page")])
+            .await;
+        assert_eq!(status, StatusCode::OK);
     }
 }

@@ -15,7 +15,10 @@ use crate::{
     app_state::AppState,
     config::Config,
     router::build_router,
-    shared_kernel::token_verifier::{TokenError, TokenVerifier, VerifiedIdentity, VerifyFuture},
+    shared_kernel::{
+        manual_analyzer::{AnalyzeFuture, ManualAnalyzer, ManualImage},
+        token_verifier::{TokenError, TokenVerifier, VerifiedIdentity, VerifyFuture},
+    },
 };
 
 /// Allowlisted test users. Pass as the `token` argument of [`TestApp::call`].
@@ -40,6 +43,20 @@ impl TokenVerifier for FakeVerifier {
     }
 }
 
+/// Returns a one-item matrix, or fails when the first page's bytes are "fail".
+pub struct FakeAnalyzer;
+
+impl ManualAnalyzer for FakeAnalyzer {
+    fn analyze<'a>(&'a self, images: &'a [ManualImage]) -> AnalyzeFuture<'a> {
+        Box::pin(async move {
+            anyhow::ensure!(images[0].data != b"fail", "fake Gemini failure");
+            Ok(serde_json::json!({
+                "matrix": [{ "item": "Engine Oil", "initialMilestone": 1000, "interval": 4000, "action": "Replace" }]
+            }))
+        })
+    }
+}
+
 pub struct TestApp(Router);
 
 impl TestApp {
@@ -55,6 +72,7 @@ impl TestApp {
             pool,
             config: Arc::new(config),
             token_verifier: Arc::new(FakeVerifier),
+            manual_analyzer: Some(Arc::new(FakeAnalyzer)),
         }))
     }
 
@@ -82,7 +100,41 @@ impl TestApp {
             None => req.body(Body::empty()),
         }
         .unwrap();
+        self.send(req).await
+    }
 
+    /// POSTs `files` as multipart form fields named "files", like the apps do.
+    pub async fn upload(
+        &self,
+        uri: &str,
+        token: Option<&str>,
+        files: &[(&str, &[u8])],
+    ) -> (StatusCode, Value) {
+        const BOUNDARY: &str = "test-boundary";
+        let mut body = Vec::new();
+        for (i, (content_type, data)) in files.iter().enumerate() {
+            body.extend_from_slice(
+                format!(
+                    "--{BOUNDARY}\r\nContent-Disposition: form-data; name=\"files\"; filename=\"page{i}\"\r\nContent-Type: {content_type}\r\n\r\n"
+                )
+                .as_bytes(),
+            );
+            body.extend_from_slice(data);
+            body.extend_from_slice(b"\r\n");
+        }
+        body.extend_from_slice(format!("--{BOUNDARY}--\r\n").as_bytes());
+
+        let mut req = Request::builder().method(Method::POST).uri(uri).header(
+            header::CONTENT_TYPE,
+            format!("multipart/form-data; boundary={BOUNDARY}"),
+        );
+        if let Some(token) = token {
+            req = req.header(header::AUTHORIZATION, format!("Bearer {token}"));
+        }
+        self.send(req.body(Body::from(body)).unwrap()).await
+    }
+
+    async fn send(&self, req: Request<Body>) -> (StatusCode, Value) {
         let res = self.0.clone().oneshot(req).await.unwrap();
         let status = res.status();
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();

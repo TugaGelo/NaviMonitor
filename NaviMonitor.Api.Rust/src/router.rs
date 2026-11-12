@@ -1,6 +1,6 @@
 use axum::{
     Router,
-    extract::Request,
+    extract::{DefaultBodyLimit, Request},
     http::{HeaderValue, Method, Uri, header},
     routing::get,
 };
@@ -11,6 +11,7 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use crate::{
     api::{health_api, maintenance_api, refuel_api, settings_api, vehicle_api},
     app_state::AppState,
+    modules::maintenance::manual_policy,
 };
 
 pub fn build_router(state: AppState) -> Router {
@@ -58,6 +59,13 @@ pub fn build_router(state: AppState) -> Router {
         .route(
             "/api/maintenance/vehicle/{vehicle_id}",
             get(maintenance_api::list_for_vehicle),
+        )
+        .route(
+            "/api/maintenance/analyze",
+            // Photos need more than the default 2 MB body limit; 1 MB covers the multipart framing.
+            axum::routing::post(maintenance_api::analyze).layer(DefaultBodyLimit::max(
+                manual_policy::MAX_TOTAL_BYTES + 1024 * 1024,
+            )),
         )
         .route(
             "/api/maintenance/vehicle/{vehicle_id}/matrix",
