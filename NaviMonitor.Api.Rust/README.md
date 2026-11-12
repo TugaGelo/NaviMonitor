@@ -47,3 +47,11 @@ cargo fmt --check && cargo clippy --all-targets -- -D warnings && cargo test
 Database tests (`db_tests` modules, using `#[sqlx::test]`) need Postgres running
 (`docker compose up -d`) and `DATABASE_URL` set; each test gets a fresh database.
 To run only the tests that don't need a database: `cargo test -- --skip db_tests`.
+
+## Deploy (Render + Neon)
+
+The `Dockerfile` builds a release binary; migrations run on startup.
+Render settings: Docker runtime, root directory `NaviMonitor.Api.Rust`,
+health check path `/health`. Environment variables are the ones in
+`env.example`, minus `PORT` (Render sets it). Use Neon's **direct**
+(non-pooled) connection string for `DATABASE_URL`.
