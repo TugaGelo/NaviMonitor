@@ -7,7 +7,7 @@ use super::{
     vehicle_repo,
 };
 use crate::{
-    modules::{maintenance::maintenance_repo, refuel::refuel_repo},
+    modules::{document::document_repo, maintenance::maintenance_repo, refuel::refuel_repo},
     shared_kernel::current_user::CurrentUser,
 };
 
@@ -69,6 +69,7 @@ pub async fn delete(pool: &PgPool, user: &CurrentUser, id: i32) -> Result<(), Ve
     }
     refuel_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
     maintenance_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
+    document_repo::soft_delete_for_vehicle(&mut *tx, id).await?;
     tx.commit().await?;
     Ok(())
 }
