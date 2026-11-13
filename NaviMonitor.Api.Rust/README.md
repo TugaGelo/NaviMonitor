@@ -48,10 +48,15 @@ Database tests (`db_tests` modules, using `#[sqlx::test]`) need Postgres running
 (`docker compose up -d`) and `DATABASE_URL` set; each test gets a fresh database.
 To run only the tests that don't need a database: `cargo test -- --skip db_tests`.
 
-## Deploy (Render + Neon)
+## Deploy (Vercel + Neon)
 
-The `Dockerfile` builds a release binary; migrations run on startup.
-Render settings: Docker runtime, root directory `NaviMonitor.Api.Rust`,
-health check path `/health`. Environment variables are the ones in
-`env.example`, minus `PORT` (Render sets it). Use Neon's **direct**
-(non-pooled) connection string for `DATABASE_URL`.
+Vercel's Container runtime builds the `Dockerfile` (free Hobby plan, no card:
+going over a limit pauses the app instead of billing). Migrations run on startup.
+
+Vercel project settings: Root Directory `NaviMonitor.Api.Rust`, framework
+"Container", function region Singapore (`sin1`). Environment variables are the
+ones in `env.example`, with `PORT=8080`. Use Neon's direct (non-pooled)
+connection string for `DATABASE_URL`.
+
+Vercel caps request bodies at 4.5 MB, so both apps shrink manual photos before
+`/api/maintenance/analyze` and the API accepts at most 4 MB of images.

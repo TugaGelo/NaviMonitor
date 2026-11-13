@@ -7,6 +7,22 @@ import UploadPhase from './UploadPhase';
 import ReviewPhase from './ReviewPhase';
 import type { MaintenanceMatrixItem } from '../../../types/types';
 
+// The API host (Vercel) rejects uploads over 4.5 MB, so shrink each page to ~300 KB first.
+async function shrinkImage(file: File, maxSide = 1600): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+    return blob ?? file;
+  } catch {
+    return file; // e.g. HEIC the browser can't decode: send as-is and let the API judge it.
+  }
+}
+
 interface SyncManualModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +45,8 @@ export default function SyncManualModal({ isOpen, onClose, onSuccess, vehicleId 
     setError('');
 
     const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
+    const shrunk = await Promise.all(files.map(f => shrinkImage(f)));
+    shrunk.forEach((blob, i) => formData.append('files', blob, `page${i + 1}.jpg`));
 
     try {
       const response = await api.post(`/maintenance/analyze`, formData, {

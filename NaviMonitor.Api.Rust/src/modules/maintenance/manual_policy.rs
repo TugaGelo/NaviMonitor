@@ -1,11 +1,11 @@
-//! Limits on manual analysis: they keep the Gemini bill small and the request under its 20 MB cap.
+//! Limits on manual analysis: they keep Gemini usage small and uploads under Vercel's 4.5 MB body cap.
 
 use crate::shared_kernel::manual_analyzer::ManualImage;
 
 pub const DAILY_LIMIT: i32 = 5;
 pub const MAX_IMAGES: usize = 8;
-/// Base64 grows data by 4/3, so 14 MB of photos stays under Gemini's 20 MB request limit.
-pub const MAX_TOTAL_BYTES: usize = 14 * 1024 * 1024;
+/// Vercel rejects request bodies over 4.5 MB, so the apps shrink photos to ~300 KB before upload.
+pub const MAX_TOTAL_BYTES: usize = 4 * 1024 * 1024;
 const ALLOWED_TYPES: [&str; 5] = [
     "image/jpeg",
     "image/png",
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn accepts_a_few_normal_photos() {
-        assert!(check_images(&[jpeg(2_000_000), jpeg(3_000_000)]).is_ok());
+        assert!(check_images(&[jpeg(1_000_000), jpeg(1_500_000)]).is_ok());
     }
 
     #[test]

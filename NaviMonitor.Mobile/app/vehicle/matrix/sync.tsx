@@ -2,6 +2,7 @@ import { View, Text, ScrollView, Pressable, Image, ActivityIndicator, TextInput,
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { X, Plus, Sparkles, ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VehicleRepository } from '../../../lib/database/localRepository';
@@ -26,8 +27,16 @@ export default function AISyncScreen() {
   }, [vehicleId]);
 
   const pickImages = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 0.8 });
-    if (!result.canceled) setImages(prev => [...prev, ...result.assets.map(a => a.uri)]);
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsMultipleSelection: true, quality: 1 });
+    if (result.canceled) return;
+    // The API host (Vercel) rejects uploads over 4.5 MB, so shrink each page to ~300 KB.
+    const shrunk = await Promise.all(result.assets.map(async a => {
+      const ctx = ImageManipulator.manipulate(a.uri);
+      if (a.width > 1600) ctx.resize({ width: 1600 });
+      const image = await ctx.renderAsync();
+      return (await image.saveAsync({ compress: 0.7, format: SaveFormat.JPEG })).uri;
+    }));
+    setImages(prev => [...prev, ...shrunk]);
   };
 
   const handleAnalyze = async () => {

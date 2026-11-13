@@ -62,9 +62,9 @@ pub fn build_router(state: AppState) -> Router {
         )
         .route(
             "/api/maintenance/analyze",
-            // Photos need more than the default 2 MB body limit; 1 MB covers the multipart framing.
+            // Photos need more than the default 2 MB body limit; the extra covers multipart framing.
             axum::routing::post(maintenance_api::analyze).layer(DefaultBodyLimit::max(
-                manual_policy::MAX_TOTAL_BYTES + 1024 * 1024,
+                manual_policy::MAX_TOTAL_BYTES + 512 * 1024,
             )),
         )
         .route(
